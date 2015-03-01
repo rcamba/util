@@ -5,20 +5,21 @@ initTestLink:http://www.youtube.com/watch?v=xo-tWlETq8w
 from copy import copy
 from time import sleep
 from string import lower
-from os import system, chdir
+from os import system, chdir, listdir
 from threading import Thread
 from bs4 import BeautifulSoup
 from urlparse import urlparse
 from unicodedata import normalize
 from sys import argv, exit as sys_exit
+from random import randint
 
 from urllib import FancyURLopener as openURL
 from psutil import get_pid_list, Process, error
 
-from root import screeningDir, musicDir, setClipboardData, switchBoard, getAllPageLinks, ytDownloadsDir, ytAMVDir, ytAnShows, keyboardType
+from root import screeningDir, musicDir, setClipboardData, switchBoard, getAllPageLinks, ytDownloadsDir, ytAMVDir, ytAnShows, keyboardType, standardizeString
 from cleanFileNames import cleanString, cleanChars
 from LinkAttribute import LinkAttribute
-from mouseMacro import move, click
+from bs4 import BeautifulSoup, SoupStrainer
 
 AVAILABLE_SWITCHES=['v','h','s','m']
 
@@ -122,18 +123,44 @@ def cleanVidList(vidList):
 def getPageSource(link):
 	return openURL({}).open(link).read()
 	
+def getAllScript(pageSource):
+	
+	resultsList=BeautifulSoup(pageSource, parse_only=SoupStrainer('script'))
+	resultsList=resultsList.findAll('script')
 
-def get_URL_BlockList(pageSource):
-	return pageSource.split("url%3D")[:-1]
+	return resultsList
+	
+	
+def getRawDownloadLinks(blockList):
+	rawResultsList=[]
+	for block in blockList:
+		if "\\u0026itag=18" in block or "itag%3D18" in block or "itag=18" in block or "itag=43" in block or "itag%3D43" in block or "\\u0026itag=43" in block or "\\u0026itag=34" in block or "itag%3D34" in block or "itag=34" in block :
+			rawResultsList.append(block)
+	return rawResultsList
+	
+def getRawDownloadLinks720p(blockList):
+	rawResultsList=[]
+	for block in blockList:
+		if "\\u0026itag=22" in block or "itag%3D22" in block or "itag=22" in block or "\\u0026itag=45" in block or "itag%3D45" in block or "itag=45" in block :
+			rawResultsList.append(block)
+	return rawResultsList
+	
+def getScriptBlock(scriptList):
+	resultScript=""
+	for script in scriptList:
+		if "itag=18" in script.text:
+			resultScript=script.text
+			break
+					
+	return resultScript
 	
 
 def htmlManualDecode(link):
 		
 	try:
-		returnVal=link.replace("%253A",":").replace("%252F","/").replace("%253F","?").replace("%25252C",",").replace("%3D","=").replace("%26","&").replace("%253D","=").replace("%2526","&").replace("%253B",";").replace("%2B"," ").replace("%2522","\"").replace("%252C",",").replace(" ","%20").replace("\"","%22").replace("%2C","&")
+		returnVal=link.replace("%253A",":").replace("%252F","/").replace("%253F","?").replace("%25252C",",").replace("%3D","=").replace("%26","&").replace("%253D","=").replace("%2526","&").replace("%253B",";").replace("%2B"," ").replace("%2522","\"").replace("%252C",",").replace(" ","%20").replace("\"","%22").replace("%2C","&").replace("%3A",':').replace("%2F",'/').replace("\\u0026",'&').replace("%3F",'?')
 	except AttributeError:
 		returnVal=None
-		
 		
 	
 	return returnVal
@@ -165,7 +192,7 @@ def getFileTitle(pageSource, youtubeLink):
 	return fTitle
 
 def convertToMp3(fileTitle, chosenDir):
-	
+	"""EXTRACTS audio (mka) from the mp4 file and then deletes the mp4 file. Doesn't actually "convert" """
 	print "Beginning conversion of: ", fileTitle
 		
 	outputName="".join([chosenDir,"\\",fileTitle[:fileTitle.rindex('.')],".mka"])#uMad?
@@ -215,151 +242,125 @@ def waitForWget():
 
 	
 	
-def getDownloadLink(cleanedLink, gItag):
-	#decomposition
+def getDownloadLink(linkAttrib,quality):
 	
-	linkAttrib=LinkAttribute()
+	#condition 1: gcr
+	if len(linkAttrib.gcr)>0:
+		linkAttrib.sparams="&sparams=cp,gcr,id,ip,ipbits,itag,ratebypass,source,upn,expire"
+	else:
+		linkAttrib.sparams="&sparams=cp,id,ip,ipbits,itag,ratebypass,source,upn,expire"
 	
-	attributeList=cleanedLink.split('&')
-	finalLink=attributeList[0]		
-	attributeList=attributeList[1:]
+	#condition 2: ratebypass
 	
-	for i in range(len(attributeList)-1,-1,-1):
-		if len(attributeList[i])>0:
-			attributeList[i]=str("".join(["&",attributeList[i]]))
-			linkAttrib.addAttrib(attributeList[i])
+	if len(linkAttrib.ratebypass)==0:
+		linkAttrib.ratebypass="&ratebypass=yes"
+
 	
-	#recomposition
-	linkAttrib.itag=gItag
-	recomposed="".join([linkAttrib.itag, linkAttrib.sparams, linkAttrib.algorithm, linkAttrib.burst, linkAttrib.id, linkAttrib.expire, linkAttrib.fexp, linkAttrib.ip, linkAttrib.upn, linkAttrib.cp, linkAttrib.ipbits, linkAttrib.newshard, linkAttrib.key, linkAttrib.ms, linkAttrib.ratebypass, linkAttrib.source, linkAttrib.sver, linkAttrib.mv, linkAttrib.mt, linkAttrib.signature, linkAttrib.fallback, linkAttrib.type, linkAttrib.gcr])
+	#condition 3: check for ',' extending signature
 	
-	"""	http://r7---sn-ni5f-ttjl.c.youtube.com/videoplayback?expire=1356567114&id=048e5bfb4e45781d&sparams=cp,id,ip,ipbits,itag,ratebypass,source,upn,expire&fexp=916602,906071,914005,916624,920704,912806,928001,922403,922405,929901,913605,929104,913546,913556,908496,920201,913302,919009,911116,926403,901451,902556&ip=174.5.137.168&upn=-6UMUVhXpHM&cp=U0hUS1VRVV9GTkNONF9NS1lCOmJkVWsxcmRiNl9N&ipbits=8&newshard=yes&itag=37&key=yt1&ms=au&ratebypass=yes&source=youtube&sver=3&mv=m&mt=1356544692&signature=36ED6FB72DF44244D4004AB4C955793119EF33D4.579C1FB75B1A24063DD22F0F374FD446C94F8168&fallback_host=tc.v10.cache4.c.youtube.com&type=video/mp4;%20codecs=%22avc1.64001F,%20mp4a.40.2%22
-	"""
+	if ',' in linkAttrib.signature:
+		comaLoc=linkAttrib.signature.index(',')
+		sigLoc=linkAttrib.signature.index("signature")
+		if comaLoc < sigLoc :
+			linkAttrib.signature=linkAttrib.signature[comaLoc+1 :]
+		else:
+			linkAttrib.signature=linkAttrib.signature[:comaLoc]
+		
+	if '&' not in linkAttrib.signature:
+		linkAttrib.signature="".join(['&',linkAttrib.signature])
 	
-	return "".join([finalLink, recomposed])
+
+	#condition 4: itag connect be in videoplayback
+	
+	if "itag" in linkAttrib.videoplayback:
+		linkAttrib.videoplayback=linkAttrib.videoplayback[:linkAttrib.videoplayback.index('?')]
+		linkAttrib.ip=linkAttrib.ip.replace('&','?')
+	
+	if quality=="480p":
+		linkAttrib.itag="&itag=18"
+	elif quality=="720p":
+		linkAttrib.itag="&itag=22"
+	else:
+		print "Unknown quality: ", quality
+		raise TypeError
+	
+	
+	
+	return "".join([linkAttrib.videoplayback,linkAttrib.ip,linkAttrib.sver,linkAttrib.expire,linkAttrib.key,linkAttrib.source,linkAttrib.mv,linkAttrib.upn,linkAttrib.ms,linkAttrib.mt,linkAttrib.fexp,linkAttrib.id,linkAttrib.gcr,linkAttrib.sparams,linkAttrib.ipbits,linkAttrib.cp,linkAttrib.signature,linkAttrib.itag,linkAttrib.ratebypass]).strip()
 	
 def downloadMusic(ytLink, dirLocation, convert=True):
 	
-	def cleanMP4Link(mp4Link):
 	
-		def cleanSliceEnd(link):
-			if link!=None:
-				sigReplace=link.replace("sig","signature")
-				sigSlice="".join( [sigReplace[:sigReplace.index("&quality=medium")], "&keepalive=yes" ])	
-			else:
-				sigSlice=None
-				
-			return sigSlice
-		
-		cleanedHTML=htmlManualDecode(mp4Link)
-		fullyCleaned=cleanSliceEnd(cleanedHTML)
-		
-		return fullyCleaned
-		
-	def getMP4Link(blockList):
-		result=None
-		for block in blockList:
-			if "medium" in block and "mp4" in block:
-				result=block
-				break
-				
-		return result
 	#Start
 	
 	pageSource=getPageSource(ytLink)
-	URL_BlockList=get_URL_BlockList(pageSource)
-	mp4Link=getMP4Link(URL_BlockList)
-	cleanedLink=htmlManualDecode(mp4Link)
-	cleanedLink=cleanedLink.replace("sig","signature").replace("&quality=medium","")
-	#downloadLink=getDownloadLink(cleanedLink, "&itag=18")
-	print cleanedLink
-	exit()
-	#downloadLink=cleanMP4Link(mp4Link)
+	scriptList=getAllScript(pageSource)
+	resultScript=getScriptBlock(scriptList)
+	urlBlockList= resultScript.split("\\u0026url=")
+	rawLinkList=getRawDownloadLinks(urlBlockList)
 	
+	fileTitle=getFileTitle(pageSource,ytLink)
+	fileTitle=cleanString(fileTitle)
 	
-	if downloadLink!=None:
-		downloadLink=downloadLink.replace(' ','')
+	chdir(dirLocation)
+	
+	fileTitle=checkIfAlreadyDownloaded(fileTitle, dirLocation)
+	
+	for rawLink in rawLinkList:
 		
-		fileTitle=getFileTitle(pageSource,ytLink)
+		decodedLink=htmlManualDecode(rawLink)
+		linkAttrib=LinkAttribute(decodedLink)
+		
+		downloadLink=getDownloadLink(linkAttrib,"480p")
 		print "\nDownloading: ", fileTitle
+		command="".join(["wget --tries=3 -q ", "\"", downloadLink, "\"", " -O ", "\"", fileTitle, "\""  ])
 		
-		fileTitle=cleanString(fileTitle)
-		print "Cleaning filename. Cleaned to: ", fileTitle
-		
-		chdir(dirLocation)
-		
-		command="".join(["wget -q ","\"",downloadLink,"\""," -O ","\"",fileTitle,"\""])
-		print system(command)
-		
-		if convert==True:
+		if system(command)==0 and convert==True:
 			convertToMp3(fileTitle,dirLocation)
+			break
 	
-	else:
-		print "Invalid download link. Skipping: ", ytLink
 	
 	#system("wget -q \"http://o-o---preferred---sn-ni5f-ttje---v17---lscache4.c.youtube.com/videoplayback?upn=OmAyI1JhUvo&sparams=cp,id,ip,ipbits,itag,ratebypass,source,upn,expire&fexp=921007,919350,922401,920704,912806,913419,913558,913556,919351,925109,919003,912706&key=yt1&expire=1348534246&itag=18&ipbits=8&sver=3&ratebypass=yes&mt=1348511892&ip=174.5.137.168&mv=m&source=youtube&ms=au&cp=U0hTTVVOUl9JUENOM19NSFZDOnlja2xkV0I4eGtx&id=9dfe7e3ebc75f593&newshard=yes&type=video/mp4;codecs=\"avc1.42001E,mp4a.40.2\"&fallback_host=tc.v5.cache7.c.youtube.com&signature=7006222DBD71CBEE19A02B20340B54E7BCDB4491.29F419BA1B58EBF80452682E38F379E45D697084&keepalive=yes\" -O \"The Next Big Thing is Already Here -- Samsung Galaxy S III.mp4\"")
 
 
+def checkIfAlreadyDownloaded(fName, dirLocation):
+	locNameList=listdir(dirLocation)
+	renamedFile=fName
+	for locName in locNameList:
+		if standardizeString(fName)==standardizeString(locName):
+			renamedFile="".join([fName.replace(".mp4",""),"_",str(randint(0,999)),".mp4"])
+			print fName, " is already downlodaded.", " Renaming file to ", renamedFile
+			break
+	return renamedFile
+			
 
 def download720yt(ytLink, dirLocation=ytAMVDir):
 	
-	def clean720pLink(link720):
-		
-		def cleanSliceEnd(link):
-			if link!=None:
-				sigReplace=link.replace("sig","signature")
-				sigSlice="".join( [sigReplace[:sigReplace.index("&quality=hd720")], "&keepalive=yes"])
-			else:
-				sigSlice=None
-			return sigSlice
-	
-		fullyCleaned=cleanSliceEnd(link720)
-		
-		return fullyCleaned
-	
-	def get720Link(blockList):
-		result=None
-		
-		for block in blockList:
-			
-			if "hd720" in block in block and "mp4" in block :
-				result=block
-				break
-
-		return result
-		
-	
-	
-	#Start
-	
+	#check if filename is already downloaded
 	pageSource=getPageSource(ytLink)
-	URL_BlockList=get_URL_BlockList(pageSource)
-	mp4Link=get720Link(URL_BlockList)
-	cleanedLink=htmlManualDecode(mp4Link)
+	scriptList=getAllScript(pageSource)
+	resultScript=getScriptBlock(scriptList)
+	urlBlockList= resultScript.split("\\u0026url=")
+	rawLinkList=getRawDownloadLinks720p(urlBlockList)
 	
-	downloadLink=getDownloadLink(cleanedLink,"&itag=22")
+	fileTitle=getFileTitle(pageSource,ytLink)
+	fileTitle=cleanString(fileTitle)
 	
-	#downloadLink=clean720pLink(mp4Link)
+	chdir(dirLocation)
 	
+	fileTitle=checkIfAlreadyDownloaded(fileTitle, dirLocation)
 	
-	
-	if downloadLink!=None:
-		downloadLink=downloadLink.replace(' ','')
+	for rawLink in rawLinkList:
 		
-		fileTitle=getFileTitle(pageSource,ytLink).replace("quot;","").replace("&","").replace("?","")
-		print "Downloading: ", fileTitle
+		decodedLink=htmlManualDecode(rawLink)
+		linkAttrib=LinkAttribute(decodedLink)
 		
-		fileTitle=cleanString(fileTitle)
-		print "Cleaning filename. Cleaned to: ", fileTitle
+		downloadLink=getDownloadLink(linkAttrib,"720p")
+		print "\nDownloading: ", fileTitle
+		command="".join(["wget --tries=3 -q ", "\"", downloadLink, "\"", " -O ", "\"", fileTitle, "\""  ])
 		
-		chdir(dirLocation)
-		
-		command="".join(["wget -q","\"",downloadLink,"\""," -O ","\"",fileTitle,"\""])
-		print system(command)
-		
-	else:
-		print "Invalid download link. Skipping: ", downloadLink
-	
+		if system(command)==0:
+			break
 
 def cleanYT(str):
 	
@@ -396,6 +397,8 @@ def prepDownload(vidList,selectedDir):
 						
 			sleep(3)
 	
+	waitForWget()
+	
 if __name__ == "__main__":
 	
 	MAX_TRIES=3
@@ -412,8 +415,8 @@ if __name__ == "__main__":
 		prepDownload(vidList,ytDownloadsDir)
 		
 	elif 'm480' in switchList:#multipleVideo at 480p
-		print "Downloading videos at 480p"
-		DEFAULT_LINKS=["http://www.youtube.com/playlist?list=PLfvarqT_23pWuc6D8nYWYWIh3vJ_Ewq7z"]#argv[1:]
+		print "Downloading multiple videos at 480p."
+		DEFAULT_LINKS=argv[1:].replace('\\','/')
 		
 		if len(DEFAULT_LINKS)>0:
 			vidList=getVidList(DEFAULT_LINKS)
@@ -430,10 +433,9 @@ if __name__ == "__main__":
 			print "Missing video link argument"
 			
 	elif 's480' in switchList:
-		
+		print "Downloading single video in 480p."
 		ytLink=argv[1].replace('\\','/')
-		#downloadMusic(cleanYT(ytLink),ytAnShows,False)
-		Thread(target=downloadMusic,args=(cleanYT(ytLink),ytAnShows,False,)).start()
+		Thread(target=downloadMusic,args=(cleanYT(ytLink),ytDownloadsDir,False,)).start()
 		
 	elif 'v' in switchList:#multiple videos- 720p
 		
@@ -453,34 +455,18 @@ if __name__ == "__main__":
 		prepDownload(vidList,musicDir)
 	
 	else:#multiple music
-		DEFAULT_LINKS=[
-		"http://www.reddit.com/r/japanesemusic", "http://www.reddit.com/r/animemusic/"]#"http://www.reddit.com/r/vocaloid",
+		DEFAULT_LINKS=["http://www.reddit.com/r/dubstep","http://www.reddit.com/r/japanesemusic", "http://www.reddit.com/r/animemusic/","http://www.reddit.com/r/vocaloid"]
 		
 		if(len(argv)>1):
 			vidList=getVidList(argv[1:])
 		else:
 			vidList=getVidList(DEFAULT_LINKS)	
-		deleteDuplicates(vidList)
-		cleanVidList(vidList)
-		counter=0
 		
-		for vid in vidList:
-			system("firefox -new-tab " + "\"" +vid + "\"")
-			sleep(7)
-			keyboardType("{ENTER}")
 			
-			sleep(3)
-			keyboardType("{ENTER}")
-			sleep(3)
-			system("kill FlashPlayerPlugin_11_5_502_135")
-			counter+=1
-			if counter%15==0:
-				print "Starting sleep"
-				sleep(300)
 			
-		#prepDownload(vidList,screeningDir)
+		prepDownload(vidList,screeningDir)
 		
-		#system("%UtilResources%/cleanFileNames.pyc \"C:/Users/Kevin/Music/ytcon/screen\" ")
+		system("%UtilResources%/cleanFileNames.pyc \"C:/Users/Kevin/Music/ytcon/screen\" ")
 	
 
 
