@@ -102,8 +102,8 @@ def setFilePathToClipboard(vlcTitle):
 		if(len(resultsList)>1):
 			print "More than one result found"
 			printNumberedList(resultsList)
-			vlcTitle=resultsList[int(chooseFromNumberedList(resultsList))]
-		
+			#vlcTitle=resultsList[int(chooseFromNumberedList(resultsList))]
+			vlcTitle=chooseFromNumberedList(resultsList)
 		elif(len(resultsList)==1):
 			vlcTitle=resultsList[0]
 			#cen()
