@@ -8,11 +8,11 @@ import time
 import operator 
 class TorrentDownload:
 	def __init__(self,newPattern,newFansub_ID,newSearchTerms,newOption=""):
-		self.pattern=newPattern
+		self.origPattern=newPattern
 		self.fansub_ID=newFansub_ID
 		self.searchTerms=newSearchTerms.replace(' ','+')
 		
-		self.pattern=self.pattern.replace(' ','.+')
+		self.pattern=self.origPattern.replace(' ','.+')
 		self.pattern='.+'+self.pattern+'.+'
 		
 		if(len(newOption)>0):
@@ -39,9 +39,9 @@ class TorrentDownload:
 		
 	def __str__( self ):
 		if self.option!=None:
-			return ", ".join([str(self.pattern), str(self.fansub_ID), str(self.searchTerms), str(self.option)])
+			return ", ".join([str(self.origPattern), str(self.fansub_ID), str(self.searchTerms), str(self.option)])
 		else:
-			return ", ".join([str(self.pattern), str(self.fansub_ID), str(self.searchTerms)])
+			return ", ".join([str(self.origPattern), str(self.fansub_ID), str(self.searchTerms)])
 
 class TorLog:
 	def __init__(self, newDate, newFileName):
@@ -68,37 +68,69 @@ def castBackLogToTorObj(token):
 	elif len(token)==4:
 		return ( TorrentDownload(token[0], token[1], token[2], token[3]))
 	
-def addBackLogToTorList(torList):
-	backLogList=open(downloadTorBackLog).read().split("\n")
+def downloadedThisWeek(pattern, torLogList):
+	retVal=False
 	
-	if len(backLogList)>0:
+	targPattern=re.compile(pattern)
+	
+	today=datetime.date.today()
+	lastMon=(today - datetime.timedelta(days=today.weekday())).strftime(TIME_FORMAT)#last monday
+	thisSun=(today + datetime.timedelta(days=-today.weekday()-1, weeks=1)).strftime(TIME_FORMAT)#coming sunday
+	
+	startSlice=0;
+	
+	for log in torLogList:
+		if log.date==lastMon and startSlice==0:
+			startSlice=torLogList.index(log)
 		
-		for tor in backLogList:
-			if(len(tor))>0:
-				token=tor.split(',')
-				pattern= token[0]
-				if isPatternInTorList(pattern, torList)==False:
-					generatedTorObj=castBackLogToTorObj(token)
-					print "Added back logged torrents:", pattern
-					torList.append(generatedTorObj)
+	endSlice=len(torLogList)
+	torLogList=torLogList[startSlice:endSlice]
+	for log in torLogList:
+		if targPattern.match(log.filename):
+			retVal=True
+			break
 	
-	#clear backlog file
-	f=open(downloadTorBackLog,'w')
-	f.close()
+	return retVal
 
-def downloadedThisWeek(tor, torLog):
-	pass
-	"""
-	for p in tor.pageLinkList:
-		print p.text
-	torLog=torLog[-50:]
-	(today - timedelta(days=today.weekday())).strftime(TIME_FORMAT)#last monday
-	(today + timedelta(days=-today.weekday()-1, weeks=1)).strftime(TIME_FORMAT)#coming sunday
-	#for p in tor.pageLinkList:
-		#for log in torLog:
-			#print p.text in log.filename
+def downloadedToday(pattern, torLogList):
+	retVal=False
 	
-	"""
+	todaysDate=datetime.date.today().strftime(TIME_FORMAT)
+	position=-1
+	targPattern=re.compile(pattern)
+	for i in range(0,len(torLogList)):
+		if todaysDate==torLogList[i].date:
+			position=i
+			break
+	
+	if position>-1:
+		for i in range(position, len(torLogList)):
+			if targPattern.match(torLogList[i].filename):
+				retVal=True
+	
+
+	return retVal
+	
+def handleBacklogs(torList, torLogList, today=False):
+	
+
+	for tor in torList[:]:
+		
+		
+		#if already downloaded remove from list, no need to download it
+		
+		if today==False:
+			if( downloadedThisWeek(tor.getPattern(), torLogList) ==True):
+				print "Downloaded THIS WEEK: ", tor.getPattern()
+				torList.remove(tor)
+		else:
+			
+			if( downloadedToday(tor.getPattern(),torLogList) ==True):
+				print "Downloaded TODAY: ", tor.getPattern()
+				torList.remove(tor)
+			
+	return torList
+	
 def getTorListFromDay(day):
 	
 	torList=[]
@@ -108,65 +140,100 @@ def getTorListFromDay(day):
 	UNDERWATER_ID=265
 	DAMEDESUYO_ID=227008
 	FFF_ID=73859
-	if day=="Tuesday": 
+	CAFFEINE_ID=284035
+	VIVID_ID=678163
+	
+	if day=="Monday":
 		torList.append( 
-			TorrentDownload("Nisekoi", COMMIE_ID, "Nisekoi 2")
+			TorrentDownload("Punch Line 720", HORRIBLESUBS_ID, "Punch Line")
+		)
+		
+		torList.append(
+			TorrentDownload("Arslan Senki 720", HORRIBLESUBS_ID, "Arslan Senki")
 		)
 		
 		torList.append( 
-			TorrentDownload("Naruto 720", HORRIBLESUBS_ID, "Naruto Shippuuden", "LatestOnly")
+			TorrentDownload("Ghost Shell 720", HORRIBLESUBS_ID, "Ghost")
+		)
+		
+		torList.append( 
+			TorrentDownload("Yamada 720", HORRIBLESUBS_ID, "Yamada")
+		)
+		
+		torList.append( 
+			TorrentDownload(" Grisaia no Meikyuu 720", HORRIBLESUBS_ID, " Grisaia no Meikyuu")
+		)
+		
+		torList.append( 
+			TorrentDownload("Owari", DAMEDESUYO_ID, "Owari")
+		) 
+		
+	
+	if day=="Tuesday": 
+		torList.append( 
+			TorrentDownload("Nagato", CAFFEINE_ID, "Nagato")
+		)
+		
+		
+		
+		torList.append( 
+			TorrentDownload("Plastic", COMMIE_ID, " ")
+		) 
+		
+		torList.append( 
+			TorrentDownload("Hibike Euphonium", FFF_ID, " ")
+		)
+		
+		torList.append( 
+			TorrentDownload("Kekkai Sensen ", VIVID_ID, "Kekkai Sensen ")
+		)
+		
+		torList.append( 
+			TorrentDownload("Highschool DxD BorN", FFF_ID, "Highschool DxD BorN")
 		)
 		
 	elif day=="Wednesday":
 		torList.append( 
-			TorrentDownload("\[HorribleSubs\] Shinmai Maou no Testament - \d+ \[720p\].mkv", HORRIBLESUBS_ID, "Shinmai Testament")
+			TorrentDownload("Nisekoi", COMMIE_ID, "Nisekoi 2")
 		)
-		
-		
-		
 		
 		
 	elif day=="Thursday":
 		torList.append( 
-			TorrentDownload("\[HorribleSubs\] Saekano - \d+ \[720p\].mkv", HORRIBLESUBS_ID, "Saekano")
+			TorrentDownload("Saekano", FFF_ID, "Saekano")
 		)
 		
 		torList.append( 
-			TorrentDownload("\[HorribleSubs\] Naruto Shippuuden - \d+ \[720p\].mkv", HORRIBLESUBS_ID, "Naruto Shippuuden", "LatestOnly")
+			TorrentDownload("Naruto Shippuuden 720", HORRIBLESUBS_ID, "Naruto Shippuuden", "LatestOnly")
 		)
 		
 		
-		
-	
-	
-		
-		torList.append( 
-			TorrentDownload("\[Commie\] Kantai Collection - \d+ \[\w+\].mkv", COMMIE_ID, "Kantai")
-		)
 		
 		
 	elif day=="Friday":
 		
-		
+		torList.append( 
+			TorrentDownload("Yahari Ore no Seishun Love Come wa ", FFF_ID, "Yahari Ore no Seishun Love Come wa ")
+		)
 		
 		
 		torList.append( 
-			TorrentDownload("\[HorribleSubs\] Kuroko's Basketball 3 - \d+ \[720p\].mkv", HORRIBLESUBS_ID, "Kuroko")
+			TorrentDownload("Assassination Classroom 720", HORRIBLESUBS_ID, "Assassination Classroom")
 		)
 			
-	
+	elif day=="Saturday":
+		
+		
 		torList.append( 
-			TorrentDownload("\[Commie\] Aldnoah.Zero - \d+ \[\w+\].mkv", COMMIE_ID, "Aldnoah")	
+			TorrentDownload("Kuroko 720", HORRIBLESUBS_ID, "Kuroko")
 		)
 		
 		torList.append( 
-			TorrentDownload("\[Commie\] Shigatsu wa Kimi no Uso - \d+ \[\w+\].mkv", COMMIE_ID, "Shigatsu")	
+			TorrentDownload("Fate", COMMIE_ID, "Fate")
 		)
 		
 		
 		
-
-	addBackLogToTorList(torList)
 		
 			
 	return torList
@@ -224,22 +291,6 @@ def generateTorLogList():
 
 
 	
-def downloadedToday(fileName, torLogList):
-	for i in range(0,len(torLogList)):
-		if fileName==torLogList[i].filename:
-			position=i
-			break
-	
-	logDate=torLogList[position].date
-	todaysDate= datetime.datetime.today().strftime(TIME_FORMAT)
-	
-	
-	if (logDate==todaysDate):
-		return True
-		
-	else:
-		return False
-
 
 		
 def addToBacklog(torDownloadObj):
@@ -326,20 +377,33 @@ if __name__=="__main__":
 	
 	prepareForDownload()
 	
-	downloadObjectList=[]
-	day=datetime.date.today().strftime("%A")
-	torList=getTorListFromDay(day)	
-	for i in xrange(0,len(torList)):
-		torList[i]=addLinksAndText(torList[i])
 	
-	torLog=generateTorLogList()
+	torList=[]
+	finalTorList=[]
 	
-	for tor in torList:
-		downloadedThisWeek(tor,torLog)
+	torLogList=generateTorLogList()
+	today=datetime.date.today()
+	todayInWeekdayDecimal= int(today.strftime("%w"))
 	
-	#pruneDownloadLinkList(torList)
+	for i in range(0, todayInWeekdayDecimal): #0 is sunday
+		day=(today - datetime.timedelta(days=today.weekday()-1+i)).strftime("%A")
+		torList= getTorListFromDay(day)
+		
+		if i==todayInWeekdayDecimal-1:
+			print i
+			finalTorList.extend( handleBacklogs(torList, torLogList, False))
+		
+		else:
+			finalTorList.extend( handleBacklogs(torList, torLogList, True))
 	
-	#exeDownload(torList)
+	#for f in finalTorList:
+		#print f
+	
+	for i in xrange(0,len(finalTorList)):
+		finalTorList[i]=addLinksAndText(finalTorList[i])
+		#print finalTorList[i]
+	
+	exeDownload(finalTorList)
 	
 	print "Finished"
 	
