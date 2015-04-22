@@ -128,27 +128,21 @@ def getTorListFromDay(day):
 	VIVID_ID=209076
 	
 	if day=="Monday":
-		torList.append( 
-			TorrentDownload("Punch Line 720", HORRIBLESUBS_ID,"Punch Line")
-		)
 		
-		torList.append(
-			TorrentDownload("Arslan Senki 720", HORRIBLESUBS_ID)
-		)
+		
 		
 		torList.append( 
 			TorrentDownload("Ghost Shell 720", HORRIBLESUBS_ID)
 		)
 		
-		torList.append( 
-			TorrentDownload("Yamada 720", HORRIBLESUBS_ID, "Yamada")
-		)
-		
-		
 		
 		torList.append( 
-			TorrentDownload("Owari", DAMEDESUYO_ID, "Owari")
+			TorrentDownload("Owari", VIVID_ID, "Owari")
 		) 
+		
+		torList.append( 
+			TorrentDownload("Souma", FFF_ID, "Souma")
+		)
 		
 	if day=="Tuesday": 
 		torList.append( 
@@ -171,21 +165,20 @@ def getTorListFromDay(day):
 			TorrentDownload("Highschool DxD BorN", FFF_ID, "Highschool DxD BorN")
 		)
 		
-	elif day=="Wednesday":
 		torList.append( 
 			TorrentDownload("Nisekoi", COMMIE_ID, "Nisekoi 2")
 		)
 	
-	elif day=="Thursday":
+		
+	
+	elif day=="Friday":
 		torList.append( 
-			TorrentDownload("Saenai Heroine no Sodatekata", FFF_ID, "Saenai Heroine no Sodatekata")
+			TorrentDownload("Dungeon", FFF_ID,)
 		)
 		
 		torList.append( 
 			TorrentDownload("Naruto Shippuuden 720", HORRIBLESUBS_ID, "Naruto Shippuuden", "LatestOnly")
 		)
-	
-	elif day=="Friday":
 		
 		torList.append( 
 			TorrentDownload("Yahari Ore no Seishun Love Come wa. Zoku", FFF_ID, "Yahari Ore no Seishun Love Come wa ")
@@ -195,13 +188,8 @@ def getTorListFromDay(day):
 			TorrentDownload("Assassination Classroom 720", HORRIBLESUBS_ID, "Assassination Classroom")
 		)
 		
-		torList.append(
-			TorrentDownload("Gunslinger Stratos 720", HORRIBLESUBS_ID, "Gunslinger Stratos")
-		)
 		
-		torList.append(
-			TorrentDownload("Ninja Slayer 720", HORRIBLESUBS_ID, "Ninja Slayer")
-		)
+		
 		
 		torList.append(
 			TorrentDownload("Triage 720", HORRIBLESUBS_ID, "Triage")
@@ -209,15 +197,11 @@ def getTorListFromDay(day):
 		
 		
 		torList.append( 
-			TorrentDownload("Mikagura School Suite", CAFFEINE_ID, "Mikagura School Suite")
+			TorrentDownload("Mikagura School Suite", CAFFEINE_ID, " ")
 		)
 		
 			
 	elif day=="Saturday":
-		torList.append( 
-			TorrentDownload("Shokugeki", FFF_ID, "Shokugeki")
-		)
-		 
 		
 		torList.append( 
 			TorrentDownload("Kuroko 720", HORRIBLESUBS_ID, "Kuroko")
@@ -242,7 +226,8 @@ def addLinksAndText(torrentDownloadObject):
 	targPattern=re.compile(pattern)
 	fll=filenameLogList()
 	for i in range(0,len(pageLinksList)):
-		if( targPattern.match(pageLinksList[i].text)!=None and "Volume" not in pageLinksList[i].text and pageLinksList[i].text not in fll):#explicitly not downloading BD
+		linkText=pageLinksList[i].text.encode('ascii','ignore')#Fate \u2044
+		if( targPattern.match(pageLinksList[i].text)!=None and "Volume" not in linkText and linkText not in fll):#explicitly not downloading BD
 			
 			if(torrentDownloadObject.getOptions()=="LatestOnly"):
 			
@@ -288,7 +273,7 @@ def updateLogFile(updateLogList):
 		dateStr=today.strftime(TIME_FORMAT)
 		
 		for uLog in updateLogList:
-			writer.write(dateStr+","+uLog)
+			writer.write(dateStr+","+uLog.encode('ascii','ignore'))#convert to unicode- handling case of Fate \u2044
 			writer.write('\n')
 		
 		writer.close()
@@ -302,12 +287,12 @@ def exeDownload(finalTorList):
 			
 			print "Downloading: ", finalTorList[i].pageLinkList[j].text.encode('unicode-escape'), "\n"
 	
-			os.system(command)
+			#os.system(command)
 			updateLogList.append(finalTorList[i].pageLinkList[j].text)
 
 			time.sleep(2)
 		if len(finalTorList[i].pageLinkList)==0:
-			print "No new torrent for", finalTorList[i].getPatternStr()
+			print "No new torrent for", finalTorList[i].getPatternStr(), "\n"
 			
 	updateLogFile(updateLogList)
 
@@ -334,12 +319,15 @@ if __name__=="__main__":
 	todayInWeekdayDecimal= int(today.strftime("%w"))
 	print "Gathering torrent targets"
 	dayArray=["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-	for i in range(1, todayInWeekdayDecimal+1): #0 is sunday
-		day=dayArray[i]
+	dayArray=dayArray[:todayInWeekdayDecimal]
+	for day in dayArray: #0 is sunday
 		#(today - datetime.timedelta(days=today.weekday()-1+i)).strftime("%A")
 		torList= getTorListFromDay(day)
 		
-		if i==todayInWeekdayDecimal:
+		print day
+		print datetime.date.today().strftime("%A")
+		print day==datetime.date.today().strftime("%A")
+		if day==datetime.date.today().strftime("%A"):
 			finalTorList.extend( handleBacklogs(torList, torLogList, True))
 		
 		else:
