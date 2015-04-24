@@ -607,8 +607,8 @@ def createBackUp(fileName):#backup before opening/writing to txt files
 	originalDir=getcwd()
 	
 	if(path.exists(fileName) and path.isdir(fileName)==False):
-			
-		timeFormat="%b-%d-%Y@%H_%M_%S"
+		
+		timeFormat="%b-%d-%Y@%H_%M_%f"
 		extension=path.splitext(fileName)[1]
 		slicedFileName=path.splitext( path.split(fileName)[1] )[0]#cuts extension and path from filename
 		
@@ -629,21 +629,17 @@ def createBackUp(fileName):#backup before opening/writing to txt files
 		chdir(dirName)
 		
 		if(getcwd()==dirName):
-			try:
-				rename( str(path.split(fileName)[1]), datedFileName)
-				#command="".join(["rename ", str(path.split(fileName)[1])," ", datedFileName])
-				#system(command)
-			except WindowsError:
-				
+			winError=None#/lock?
+			while winError==None:
 				try:
 					datedFileName="".join([ slicedFileName,"@",str(datetime.now().strftime(timeFormat)),extension ])
 					rename( str(path.split(fileName)[1]), datedFileName)
-				
-				except WindowsError:
-					#This actually shouldn't be a case since the last renaming involves writing down the seconds
-					#i.e, no name clash
-					print "Failed to rename ", str(path.split(fileName)[1]), " to ", datedFileName
-				
+					
+					winError="clear"
+				except:
+					pass
+					#print "Failed to rename ", str(path.split(fileName)[1]), " to ", datedFileName
+					
 				
 		
 	else:
