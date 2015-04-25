@@ -38,7 +38,7 @@ downloadTorBackLog="C:\\Users\\Kevin\\Util\\resources\\downloadTorBackLog.txt"
 #Variables
 CMD_HEIGHT=50
 PRINT_BORDER= "------------------------------"
-
+MAX_WAIT_TIME=30 #seconds
 
 #Utility methods
 def reverseSlash(string,targetSlash):
@@ -576,7 +576,7 @@ def fileSearch(target, write=True):
 	#This block is all for recursiveWrite
 	if write==True:
 		
-		command="".join("start /B %UtilResources%/iterWriteFiles.py")#HOLY FUCK AWESOME PUN!
+		command="".join("start /B %UtilResources%/iterWriteFiles.py")
 		Thread(target=system, args=(command,)).start()
 	
 		
@@ -603,7 +603,7 @@ def createBackUp(fileName):#backup before opening/writing to txt files
 	from shutil import copy2
 	from os import mkdir, path, rename, chdir, getcwd
 	from datetime import datetime
-	from time import sleep
+	from time import sleep, time
 	originalDir=getcwd()
 	
 	if(path.exists(fileName) and path.isdir(fileName)==False):
@@ -629,15 +629,17 @@ def createBackUp(fileName):#backup before opening/writing to txt files
 		chdir(dirName)
 		
 		if(getcwd()==dirName):
-			winError=None#/lock?
-			while winError==None:
+			winError=None #/lock?
+			timeCounter=0
+			initTime=time()
+			while winError==None and timeCounter<MAX_WAIT_TIME:
 				try:
 					datedFileName="".join([ slicedFileName,"@",str(datetime.now().strftime(timeFormat)),extension ])
 					rename( str(path.split(fileName)[1]), datedFileName)
 					
 					winError="clear"
 				except:
-					pass
+					timeCounter=time()-initTime
 					#print "Failed to rename ", str(path.split(fileName)[1]), " to ", datedFileName
 					
 				
