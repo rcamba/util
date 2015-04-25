@@ -1,6 +1,6 @@
 from os import path, getcwd
 from root import errorAlert, removedFilesLog, chooseFromList, printList, createBackUp, setClipboardData
-from string import rstrip, lower
+from string import rstrip, lower, strip
 from re import findall
 from collections import OrderedDict
 from sys import argv
@@ -11,11 +11,18 @@ def logRemovedFile(msg):
 	writer.write(msg)
 	writer.close()
 
-
+def validateFilename(filename, assocTag=""):
+	validFileList=validateFilenameList( filename, assocTag )
+	res=""
+	if len(validFileList)==1:
+		res=validFileList[0]
+		
+	return res
+	
 def validateFilenameList(filenameList, assocTag=""):
 	
-	
-	if type(filenameList)==str:
+	origFlist=filenameList
+	if type(origFlist)==str:
 		file=filenameList
 		
 		filenameList=[]
@@ -30,43 +37,74 @@ def validateFilenameList(filenameList, assocTag=""):
 		
 		
 		if path.isfile(file)==False:
-			if inspect.stack()[1][3]=="addTag":# methodName
-				msg=errorAlert("Unable to add to tag" + assocTag + ". "+ file + " is an invalid file. ")
+			if inspect.stack()[1][3]=="addTags":# caller methodName
+				msg=errorAlert("Unable to add to tag " + assocTag + ". "+ file + " is an invalid file. ")
 			elif inspect.stack()[1][3]=="loadTagDict":
 				msg=errorAlert(file + " is an invalid file. Removed from "+ assocTag +" tag.")
+			else:
+				msg=errorAlert("Removed invalid file " + file)
 			logRemovedFile(msg)
 			
 		else:
 			validFileList.append(file)
-			
-
 		
 	return validFileList
 
-
-	
-def addTag(tag, filenameList):
-	
-	validFileList=validateFilenameList(filenameList, tag)
-	
+def addTags(tagList, filename):
 	tagDict=loadTagDict()
 	
-	if tagDict.has_key(tag):
-		tagDict[tag].extend(validFileList)
-		if len(tagDict[tag])!=set(tagDict[tag]):#check for duplicates i.e tag already has file in its filelist
-			duplicateList= list (set([x for x in tagDict[tag] if tagDict[tag].count(x) > 1]) )
-			
-			for d in duplicateList:
-				print d, "already has tag:", tag
+	
+	for tag in tagList:
+		tag=lower(tag).strip()
 		
-		#tagDict[tag]= list(set(tagDict[tag])) #remove files in same tag
+		validFileList=validateFilenameList(filename, tag)
+		if len(validFileList):
+			if tagDict.has_key(tag):
+				tagDict[tag].extend(validFileList)
+				if len(tagDict[tag])!=len(set(tagDict[tag])):#check for duplicates i.e tag already has file in its filelist
+					duplicateList= list (set([x for x in tagDict[tag] if tagDict[tag].count(x) > 1]) )
+					
+					for d in duplicateList:
+						errorAlert( "already has tag:"+ tag)
+				
+				tagDict[tag]= list(set(tagDict[tag])) #remove files in same tag
+			else:
+				tagDict[tag]=validFileList
+				print "Creating new tag: ", tag
+		
+			__writeTagFile__(tagDict)
+		
+		else:
+			errorAlert( "No valid file to add. No changes have been made")
+
+def removeTags(tagList, filename):
+	tagDict=loadTagDict()
+	changes=False
+	#validatedFilename=validateFilename(filename)
+	if len(filename)>0:
+		for tag in tagList:
+			tag=lower(tag).strip()	
+			if tagDict.has_key(tag):
+				try:
+					tagDict[tag].remove(filename)				
+					changes=True
+					print "Successfully removed " + filename + " from tag: ", tag
+					
+				except ValueError:
+					errorAlert("Tag:" + tag + " doesn't have filename : " + filename + "\nNo changes have been made.")
+				
+			else:
+				errorAlert( "Tag: " + tag + " doesn't exist.")
+				
+		if changes==True:
+			__writeTagFile__(tagDict)
+		
 	else:
-		tagDict[tag]=validFileList
-		print "Creating new tag: ", tag
-	
-	__writeTagFile__(tagDict,validFileList)
-	
-def __writeTagFile__(tagDict,validFileList):
+		errorAlert( "Invalid file. No changes have been made.")
+		
+		
+
+def __writeTagFile__(tagDict):
 	
 	createBackUp(tagFile)
 	writer=open(tagFile,'w') 
@@ -119,7 +157,8 @@ def loadTagDict():
 			changes=True
 			
 	if changes==True:
-		__writeTagFile__(tagDict, validFileList)
+		print "Updating changes when loading dictionary"
+		__writeTagFile__(tagDict)
 		
 	return tagDict
 	
@@ -132,8 +171,8 @@ def getFilenameList(tagList):#str or list
 	result=[]
 	
 	counter=0
+	tagList=map(lower,tagList)
 	for tag in tagList:
-		tag=lower(tag)
 		if tagDict.has_key(tag):
 			if counter>0:
 				result=list(set(tagDict[tag]).intersection(set(result)))
@@ -166,9 +205,10 @@ if __name__=="__main__":
 		tagList=raw_input("Enter tag(s). Separate with commas\n").split(',')
 		
 		
-		for tag in tagList:
-			addTag(tag.strip(),argv[1])
+		
+		addTags(tagList,argv[1])
 	else:#list all tags and allow user to select; print flist for selected tag
+		#should be in search?
 		tagDict=loadTagDict()
 		tList=list( tagDict.keys() )
 		tList.sort()
