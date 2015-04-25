@@ -1,4 +1,4 @@
-from tag import getFilenameList, addTag
+from tag import getFilenameList, addTags, removeTags
 from root import screeningDir, musicDir, addMember
 from os import listdir, system, stat, kill, path, rename
 from string import lower
@@ -8,7 +8,7 @@ from shutil import move, Error as shutil_error
 from sys import exit as sys_exit, argv
 from time import sleep
 from signal import SIGILL
-
+from random import shuffle
 
 
 def killVLC():
@@ -24,7 +24,7 @@ def killVLC():
 	
 def getKeyPress(): 
     
-	print "Type [k] to keep, [t] to keep and tag, [d] to delete track or [q] for quit\n"
+	print "Type [k] to keep, [t] to keep and tag, [d] to delete track or [q] for quit"
 	result=""
 	while (result==""):
         
@@ -37,21 +37,19 @@ def getKeyPress():
 	result=lower(result)
 	return result
 
-def cutDir(fileName):
-	
-	newFileName=""
-	
-	newFileName=path.split(fileName)[1]
-	
-	return newFileName
+def cutDir(fileName):	
+	return path.split(fileName)[1]
 
-def handleTagging(musicFileName):
+def handleTagging(musicList, musicFileName, i):
+	
 	try:
+		removeTags(["screen"], musicFileName)
 		move(musicFileName,musicDir)
 		
 	except WindowsError:
 		print "Failed to move file"
 		print "Press enter to exit."
+		addTags(["screen"],musicFileName)
 		raw_input()
 		sys_exit(1)
 
@@ -69,42 +67,43 @@ def handleTagging(musicFileName):
 		rename(musicFileName, newMusicFileName)
 		musicFileName=newMusicFileName
 		
-		try:	
-			move(musicFileName,musicDir)
-			
-		except WindowsError:
-			print "Failed to move file"
-			print "Press enter to exit."
-			raw_input()
-			sys_exit(1)
+		move(musicFileName,musicDir)
+		#removed second handling of WindowsError...
 		
 	musicList.pop(i)
-	fileName="".join(["\"",musicDir,"\\",cutDir(musicFileName),"\""])
-
+	
+	
+	
+	filename="".join([musicDir,"\\",cutDir(musicFileName)])
 	tagList=raw_input("Enter tag(s):\n").split(',')
-	for tag in tagList:
-		addTag(tag,[fileName])
+	print "\n"
+	addTags(tagList,filename)
+	
 	
 def handleDelete(musicList, i):
-	#currently lets tag.py auto handle the removal of songs from screen tag and does logging too
+	
+	removeTags(["screen"], musicList[i].replace("\"",""))
 	command="".join(["del ",musicList[i]])
 	system(command)
 	if path.exists(musicList[i])==False: 
-		print "Delete successful"
+		print "Delete successful\n"
 		musicList.pop(i)
 	else:
 		print "Failed to delete file"
 		print "Press enter to exit."
+		addTags(["screen"], musicList[i].replace("\"",""))
 		raw_input()
 		sys_exit(1)
 	
-def handleKeep(musicFileName):
+def handleKeep(musicFileName, i):
 	try:
+		removeTags(["screen"], musicFileName.replace("\"",""))
 		move(musicFileName,musicDir)
 		
 	except WindowsError:
 		print "Failed to move file"
 		print "Press enter to exit."
+		addTags(["screen"],musicFileName.replace("\"",""))
 		raw_input()
 		sys_exit(1)
 		
@@ -122,16 +121,11 @@ def handleKeep(musicFileName):
 		rename(musicFileName, newMusicFileName)
 		musicFileName=newMusicFileName
 		
-		try:
-			move(musicFileName,musicDir)
+		
+		move(musicFileName,musicDir)
 			
-		except WindowsError:
-			print "Failed to move file"
-			print "Press enter to exit."
-			raw_input()
-			sys_exit(1)
-			
-	print "Move successful"
+		
+	print "Move successful\n"
 	musicList.pop(i)
 	
 def startScreening(musicList):
@@ -156,13 +150,13 @@ def startScreening(musicList):
 				killVLC()
 				musicFileName=musicList[i].replace("\"","")
 				if(prompt=="k"):
-					handleKeep(musicFileName)
+					handleKeep(musicFileName, i)
 					
 				elif(prompt=="d"):
 					handleDelete(musicList, i)
 					
 				elif(prompt=="t"):
-					handleTagging(musicFileName)
+					handleTagging(musicList, musicFileName, i)
 					
 				elif(prompt=="q"):
 					quit=True
@@ -179,7 +173,10 @@ def loadMusic():
 		musicList[i]=addMember(musicList[i].replace("\"",""),stat)
 		i=i-1
 	
-	morphedList=sorted(musicList, key=lambda Metamorph:Metamorph.getAttribute().st_ctime)
+	#morphedList=sorted(musicList, key=lambda Metamorph:Metamorph.getAttribute().st_ctime)
+	#move from creation time sort to random
+	shuffle(musicList)
+	morphedList=musicList
 	
 	finalList=[]
 	for i in range(0,len(morphedList)):
