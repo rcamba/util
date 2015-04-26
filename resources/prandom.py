@@ -5,10 +5,10 @@ from operator import attrgetter
 from sys import argv, stdin
 
 from root import musicDir, switchParser, songLogFile, pipedList
-from tag import getFilenameList
+from tag import getFilenameList, getMixedFilenameList
 
 VALID_EXTENSIONS=["mp3","m4a","flac","ogg","mka"]
-AVAILABLE_SWITCHES=['#','e']
+AVAILABLE_SWITCHES=['#','e','m']
 
 class SongLogHandler:
 	def __init__(self,songsLogFile):
@@ -83,7 +83,11 @@ def getSongList(musicDir):
 	
 def getSongListFromTag	(tagList):
 	tagList=map(strip, tagList)
-	songList=getFilenameList(tagList)
+
+	if 'm' in switches:
+		songList=getMixedFilenameList(tagList)
+	else:
+		songList=getFilenameList(tagList)
 	
 	return  songList
 	
@@ -147,10 +151,7 @@ def handlePiping():
 	
 if __name__=="__main__":
 	switches=switchParser(argv)
-	#-m switch mix
-	#-m -e:tag1,tag2, exceptionList= add ( tag1.flist, tag2.flist)
-	#-m songList= add( tag1.flist, tag2.flist)
-	#different from tag1.flist, intersect with tag2.flist : tag1,tag2- play only if in both
+	
 	if stdin.isatty()==False:#for using with nf/search
 		print "Playing piped songs"
 		songList=handlePiping()
@@ -173,5 +174,5 @@ if __name__=="__main__":
 	slh.logSongs(songList)
 	
 	playSongs(finalSongList)
-
+	
 		
