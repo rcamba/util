@@ -1,16 +1,75 @@
-from os import path, getcwd
-from root import errorAlert, removedFilesLog, chooseFromList, printList, createBackUp, setClipboardData, tagFile
+from os import path, getcwd,  listdir
+from root import errorAlert, removedFilesLog, chooseFromList, printList, createBackUp, setClipboardData, tagFile, tagLogsDir, constructedTagFile
 from string import rstrip, lower, strip
 from re import findall
 from collections import OrderedDict
 from sys import argv
 import inspect
 
+def logChanges(tagList, validatedFilename, changeType="add"):
+	num=len(listdir(tagLogsDir))
+	writer=open( tagLogsDir+"\\"+"tagLog_"+ str(num)+".log", 'w+')
+	for tag in tagList:
+		if changeType=="add":
+			writer.write('+' +tag +'::')
+		elif changeType=="remove":
+			writer.write('-' +tag +'::')
+		writer.write("\"" + lower(validatedFilename) + "\" ")
+		writer.write("\n")
+	writer.close()
+	
+def constructTagDict():
+	#just construct and return, not actually writing currently...
+	fList=listdir(tagLogsDir)
+	sorted(fList, key=lambda x:int( (x.split('_')[1]).split('.')[0] ))#sort based on int after '_'
+	
+	
+	changes=False
+	
+	#writer=open(constructedTagFile,'w+')
+	
+	tagDict={}
+	#tagDict=loadTagDict()
+	for f in fList:
+		f=tagLogsDir+"\\"+f
+		reader=open(f,'r')
+		lineList= reader.readlines()
+		for line in lineList:
+			if line[0]=='+':
+				
+				line=line[1:]#rid sign
+				line=rstrip(line)
+				
+				tag, fileStringList=line.split('::')
+				tag=lower(tag)
+				
+				filenameList=convertToFilenameList(fileStringList)
+				validFileList=validateFilenameList(filenameList, tag)
+				tagDict[tag]=validFileList
+				
+			elif line[0]=='-':
+				line=line[1:]#rid sign
+				line=rstrip(line)
+				
+				tag, fileStringList=line.split('::')
+				tag=lower(tag)
+				
+				filenameList=convertToFilenameList(fileStringList)
+				
+				for file in filenameList:
+					tagDict[tag].remove(file)
+					for file in tagDict[tag]:
+						if len(validateFilename(file))==0:
+							tagDict[tag].remove(file)
+				
 
-
-def setTagFile(newTag=r"C:\Users\Kevin\Util\resources\unitTests\tagFileTest.txt"):#for testing
+	return tagDict
+	
+def setTagFile(newTagFile=r"C:\Users\Kevin\Util\resources\unitTests\tagFileTest.txt", newLogsDir=r"c:\users\kevin\util\resources\unitTests\tagLogsTest"):#for testing
 	global tagFile
-	tagFile=newTag
+	global tagLogsDir
+	tagFile=newTagFile
+	tagLogsDir=newLogsDir
 
 def logRemovedFile(msg):
 	writer=open(removedFilesLog,'a')
@@ -83,6 +142,7 @@ def addTags(tagList, filename):
 				tagDict[tag]=[validatedFilename]
 				print "Creating new tag: ", tag
 			
+			logChanges(tagList, validatedFilename, "add")
 			__writeTagFile__(tagDict)
 		
 		else:
@@ -107,6 +167,9 @@ def tagMultipleFiles(tag, filenameList):
 			tagDict[tag]=validFileList
 			print "Creating new tag: ", tag
 		
+		for file in validFileList:
+			logChanges([tag], file, "add")
+			
 		__writeTagFile__(tagDict)
 		
 	else:
@@ -133,6 +196,7 @@ def removeTags(tagList, filename):
 				errorAlert( "Tag: " + tag + " doesn't exist.")
 				
 		if changes==True:
+			logChanges(tagList, validatedFilename, "remove")
 			__writeTagFile__(tagDict)
 		
 	else:
@@ -143,7 +207,7 @@ def removeTags(tagList, filename):
 def __writeTagFile__(tagDict):
 	
 	createBackUp(tagFile)
-	writer=open(tagFile,'w') 
+	writer=open(tagFile,'w+') 
 	
 	tagDict=OrderedDict(sorted(tagDict.items(), key=lambda t: lower(t[0])))
 	
