@@ -1,12 +1,12 @@
 from os import path, getcwd
-from root import errorAlert, removedFilesLog, chooseFromList, printList, createBackUp, setClipboardData
+from root import errorAlert, removedFilesLog, chooseFromList, printList, createBackUp, setClipboardData, tagFile
 from string import rstrip, lower, strip
 from re import findall
 from collections import OrderedDict
 from sys import argv
 import inspect
 
-tagFile=r"c:\users\kevin\util\resources\tagfile.txt"
+
 
 def setTagFile(newTag=r"C:\Users\Kevin\Util\resources\unitTests\tagFileTest.txt"):#for testing
 	global tagFile
@@ -242,7 +242,7 @@ def getMixedFilenameList(tagList):#for prand
 	return res
 
 if __name__=="__main__":
-	#tagFile=r"c:\users\kevin\util\resources\tagfile.txt"
+	
 	
 	if len(argv)>1:
 		tagList=raw_input("Enter tag(s). Separate with commas\n").split(',')
