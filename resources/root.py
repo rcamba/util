@@ -19,20 +19,20 @@ ytAnShows="C:\\Users\\\Kevin\\Videos\\ytAnShows"
 
 #Files
 sVLC_PID=r"C:\Users\Kevin\Util\resources\sVLC_PID"
-songLogFile=r"C:\Users\Kevin\Util\resources\unitTests\prandomSongsLog.txt"
-removedFilesLog="C:\\Users\\Kevin\\Util\\resources\\removedFilesLog.txt"
-hibLog="C:\\Users\\Kevin\\Util\\resources\\hibLog.txt"
-tagFile="C:\\Users\\Kevin\\Util\\resources\\tagFile.txt"
-newestFile="C:\\Users\\Kevin\\Util\\resources\\tempDir\\newestFile.txt"#DEPRECATED since use of clipboard
+songLogFile=r"C:\Users\Kevin\Util\resources\logs\prandomSongsLog.log"
+removedFilesLog="C:\\Users\\Kevin\\Util\\resources\\logs\\removedFilesLog.log"
+hibLog="C:\\Users\\Kevin\\Util\\resources\\logs\\hibLog.log"
+tagFile="C:\\Users\\Kevin\\Util\\resources\\logs\\tagFile.log"
+
 vlcTitleFile="C:\\Users\\Kevin\\Util\\resources\\vlcTitleFile.txt"#DEPRECATED since use of clipboard
 matrixFile="C:\\Users\\Kevin\\Util\\resources\\matrixFile.txt"
-deletedTagFile="C:\\Users\\Kevin\\Util\\resources\\deletedTagFiles.txt"
+deletedTagFile="C:\\Users\\Kevin\\Util\\resources\\logs\\deletedTagFiles.log"
 quickLaunchFile="C:\\Users\\Kevin\\Util\\resources\\directoryQ.txt"
-downloadedTorFiles="C:\\Users\\Kevin\\Util\\resources\\downloadedAnimeTorrents.txt"
+downloadedTorFiles="C:\\Users\\Kevin\\Util\\resources\\logs\\downloadedAnimeTorrents.log"
 recSearchFile="C:\\Users\\Kevin\\Util\\resources\\topFileList.txt"
-toDoListTextFile="C:\\Users\\Kevin\\Util\\resources\\toDoListFile.txt"
-prevDirFile="C:\\Users\\Kevin\\Util\\resources\\prevDir.txt"
-downloadTorBackLog="C:\\Users\\Kevin\\Util\\resources\\downloadTorBackLog.txt"
+toDoListTextFile="C:\\Users\\Kevin\\Util\\resources\\logs\\toDoListFile.log"
+prevDirFile="C:\\Users\\Kevin\\Util\\resources\\logs\\prevDir.log"
+
 
 
 #Variables

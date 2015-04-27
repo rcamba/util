@@ -109,7 +109,8 @@ def screenTagging():
 			fileList[i]="".join([screeningDir,"\\",fileList[i]])
 		
 		#print fileList
-		tagMultipleFiles(fileList,"screen")
+		tagMultipleFiles("screen",fileList)
+			
 	
 	else:
 		print "Wrong directory: Need screening directory"
