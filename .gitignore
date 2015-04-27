@@ -1,12 +1,13 @@
 *.pyc
 *.class
+*.log
+resources/log
 resources/dependencies
 resources/BETA_getAnimeTorrents.py
 resources/animedir.txt
 resources/basePicture.png
 resources/deletedTagFiles.txt
 resources/downloadedAnimeTorrents.txt
-resources/getAnimeTorrents.py
 resources/keptForRef/tagFile.txt
 resources/keptForRef/zGetNewMusic.py
 resources/playback.txt
