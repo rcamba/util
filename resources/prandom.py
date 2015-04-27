@@ -4,7 +4,7 @@ from random import randint
 from operator import attrgetter
 from sys import argv, stdin
 
-from root import musicDir, switchParser, songLogFile, pipedList
+from root import musicDir, switchParser, songLogFile, pipedList, errorAlert
 from tag import getFilenameList, getMixedFilenameList
 
 VALID_EXTENSIONS=["mp3","m4a","flac","ogg","mka"]
@@ -88,6 +88,10 @@ def getSongListFromTag	(tagList):
 		songList=getMixedFilenameList(tagList)
 	else:
 		songList=getFilenameList(tagList)
+	
+	if len(songList)==0:
+		errorAlert("No file list available for given tag(s)")
+	
 	
 	return  songList
 	

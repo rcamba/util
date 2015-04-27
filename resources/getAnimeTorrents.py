@@ -274,14 +274,14 @@ def exeDownload(finalTorList):
 			
 			print "Downloading: ", finalTorList[i].pageLinkList[j].text.encode('unicode-escape'), "\n"
 	
-			#os.system(command)
+			os.system(command)
 			updateLogList.append(finalTorList[i].pageLinkList[j].text)
 
 			time.sleep(2)
 		if len(finalTorList[i].pageLinkList)==0:
 			print "No new torrent for", finalTorList[i].getPatternStr(), "\n"
 			
-	#updateLogFile(updateLogList)
+	updateLogFile(updateLogList)
 
 def filenameLogList():
 	f=[]
@@ -307,7 +307,7 @@ if __name__=="__main__":
 	print "Gathering torrent targets"
 	dayArray=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday","Sunday"]
 	if todayInWeekdayDecimal!=0:
-		dayArray=dayArray[:todayInWeekdayDecimal+1]
+		dayArray=dayArray[:todayInWeekdayDecimal]
 	
 	for day in dayArray: #0 is sunday
 		#(today - datetime.timedelta(days=today.weekday()-1+i)).strftime("%A")

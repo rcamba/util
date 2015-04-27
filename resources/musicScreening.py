@@ -75,8 +75,8 @@ def handleTagging(musicList, musicFileName, i):
 	
 	
 	filename="".join([musicDir,"\\",cutDir(musicFileName)])
-	tagList=raw_input("Enter tag(s):\n").split(',')
-	print "\n"
+	tagList=raw_input("Enter tag(s). Separate with commas\n").split(',')
+	print ""
 	addTags(tagList,filename)
 	
 	
