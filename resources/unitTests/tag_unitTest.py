@@ -4,6 +4,7 @@ import os
 from string import rstrip, lower
 from tag import addTags, validateFilenameList, getFilenameList, getTagList, validateFilename, removeTags, tagMultipleFiles, getMixedFilenameList, setTagFile, loadTagDict
 
+
 def clearFileContents(file):
 	w=open(file,'w')#clear test log file
 	w.close()
@@ -63,7 +64,7 @@ class TestAddAndGetTags(unittest.TestCase):
 		print "\nStarting ", self._testMethodName, "\n"
 	
 	def tearDown(self):
-		clearFileContents(tagFile)
+		clearFileContents(testTagFile)
 	
 	def testCreatingTags(self):
 	
@@ -219,13 +220,16 @@ class TestAddAndGetTags(unittest.TestCase):
 		res=getMixedFilenameList(["testRed","testGreen"])
 		self.assertEqual(set(res), {f1,f2})
 		
+
 		
-	
+		
+		
+		
 if __name__=="__main__":
-	tagFile=r"c:\users\kevin\util\resources\unittests\tagfiletest.log"
+	testTagFile=r"c:\users\kevin\util\resources\unittests\tagfiletest.log"
+	testLogsDir=r"c:\users\kevin\util\resources\unittests\tagLogsTest"
 	
-	
-	setTagFile(tagFile)
+	setTagFile(testTagFile,testLogsDir)
 	if len(loadTagDict()) !=0:
 		print "TagDict not empty. Either not using proper file or file was not cleaned up properly after last run."
 	
@@ -253,6 +257,7 @@ if __name__=="__main__":
 		addAndGetTags_suite.addTest( TestAddAndGetTags("testRemoveTags") )
 		addAndGetTags_suite.addTest( TestAddAndGetTags("testTagMultipleFiles") )
 		addAndGetTags_suite.addTest( TestAddAndGetTags("testGetMixedFilenameList") )
+		
 		
 		validateFList_suite= unittest.TestSuite()
 		validateFList_suite.addTest( TestValidateFilenameList("testValidateStrOnly") )
