@@ -2,7 +2,7 @@
 Contains all constants and some utility methods
 """
 #Directories; %username% 
-animedDir="C:\\Users\\Kevin\\Util\\Resources\\animedir.txt"
+
 musicDir="C:\\Users\\Kevin\\Music\\ytcon"
 screeningDir="C:\\Users\\Kevin\\Music\\ytcon\\screen"
 picDir=""
@@ -18,6 +18,8 @@ ytDownloadsDir="C:\\Users\\Kevin\\Videos\\ytVids"
 ytAnShows="C:\\Users\\\Kevin\\Videos\\ytAnShows"
 
 #Files
+animedDir="C:\\Users\\Kevin\\Util\\Resources\\logs\\animedir.log" #log
+
 sVLC_PID=r"C:\Users\Kevin\Util\resources\sVLC_PID"
 songLogFile=r"C:\Users\Kevin\Util\resources\logs\prandomSongsLog.log"
 removedFilesLog="C:\\Users\\Kevin\\Util\\resources\\logs\\removedFilesLog.log"
@@ -34,10 +36,7 @@ toDoListTextFile="C:\\Users\\Kevin\\Util\\resources\\logs\\toDoListFile.log"
 prevDirFile="C:\\Users\\Kevin\\Util\\resources\\logs\\prevDir.log"
 
 
-
 #Variables
-CMD_HEIGHT=50
-PRINT_BORDER= "------------------------------"
 MAX_WAIT_TIME=30 #seconds
 
 #Utility methods
@@ -198,40 +197,63 @@ def switchParser(args,validSwitches=[]):#returns dict, will replace switchBoard
 def listFromPiped():
 	pass#get list from piped printNumberedList/ printList
 	
-def printList(list, endRange=-1):#(list, pretty="on",noPrint=False,endRange=-1)
+def printList(list, endRange=-1,aes="full"):#(list, pretty="on",noPrint=False,endRange=-1)
 #pretty is for colors+numbering  and "++,--,etc." , noPrint is just returning the str to print and no actual "print" command inside
-	printNumberedList(list,endRange)
+	return printNumberedList(list,endRange,aes)
 
-def printNumberedList(list,endRange=-1):
+def outputFromCommand(commandAndArgs):
+	import subprocess
+	c=commandAndArgs.split()
+	proc=subprocess.Popen(c, stdout=subprocess.PIPE, shell=True)
+	(output, error)=proc.communicate()
+	return output
+	
+def printNumberedList(list,endRange=-1,aes="full"):
 	
 	from msvcrt import kbhit, getch
 	from sys import stdout
+	import subprocess
+	
+	printBorder= "------------------------------"
+	finalPrintStr=""
+	
+	out=outputFromCommand("powershell -Command $host.UI.RawUI.WindowSize.Height")
+	CMD_HEIGHT=int(out.strip())-1 # -1 for prompt ("Press any key to continue")
+	consoleColors=[3,6]
+	
 	
 	if(endRange==-1):
 		endRange=len(list)
+		
 	charID="plus"
+	if aes=="none":
+		global printBorder
+		printBorder=""
+	print printBorder
 	
-	print PRINT_BORDER
 	origConsoleColor=getConsoleColor()
 	try:
 		for i in range(0,endRange):
 			
 			
 			if( i % 2 == 0):
-				setConsoleColor(3)
+				setConsoleColor([0])
 				
 			else:
-				setConsoleColor(6)
+				setConsoleColor([1])
 			
 			if(charID=="plus"):
+				finalPrintStr+="[+"+str(i+1)+"+]"+ (list[i])+ "[++]" +"\n"
 				print "[+",(i+1),"+]", (list[i]), "[++]"
 				charID="minus"
 			
 			elif(charID=="minus"):	
+				finalPrintStr+="[-"+str(i+1)+"-]"+ (list[i])+ "[--]" +"\n"
 				print "[-",(i+1),"-]", (list[i]), "[--]"
 				charID="star"
 			
 			elif(charID=="star"):
+				finalPrintStr+="[!"+str(i+1)+"!]"+(list[i])+ "[!!]" +"\n"
 				print "[!",(i+1),"!]", (list[i]), "[!!]"
 				charID="plus"
 			
@@ -252,7 +274,9 @@ def printNumberedList(list,endRange=-1):
 	
 	finally:
 		setConsoleColor(origConsoleColor)
-	print PRINT_BORDER
+	
+	print printBorder
+	return finalPrintStr
 	
 def cen():
 	from cmdCursorPos import centerCMD
@@ -306,18 +330,24 @@ def pipedList(stdinOutput):
 		#print pipedList
 	except Exception, e:
 		errorAlert( str(e) )
-		pipedList=[]
+		errorAlert( "Cannot convert: " +stdinOutput + "from pipes in to list" )
+		finalList=[]
 		
 	return finalList
 
 def setClipboardData(data):
+	def __setClipboardData__(data):
+		from win32clipboard import OpenClipboard, EmptyClipboard, SetClipboardData, CloseClipboard
+		from win32con import CF_TEXT
+		OpenClipboard()
+		EmptyClipboard()
+		SetClipboardData(CF_TEXT, data)
+		CloseClipboard()
 	
-	from win32clipboard import OpenClipboard, EmptyClipboard, SetClipboardData, CloseClipboard
-	from win32con import CF_TEXT
-	OpenClipboard()
-	EmptyClipboard()
-	SetClipboardData(CF_TEXT, data)
-	CloseClipboard()
+	from threading import Thread
+	Thread(target=__setClipboardData__, args=(data,)).start()
+	
+	
 
 def getClipboardData():
 	
@@ -604,8 +634,9 @@ def createBackUp(fileName):#backup before opening/writing to txt files
 	from os import mkdir, path, rename, chdir, getcwd
 	from datetime import datetime
 	from time import sleep, time
-	originalDir=getcwd()
 	
+	originalDir=getcwd()
+	#print "Creating backup copy of: ", fileName
 	if(path.exists(fileName) and path.isdir(fileName)==False):
 		
 		timeFormat="%b-%d-%Y@%H_%M_%f"
