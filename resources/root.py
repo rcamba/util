@@ -214,58 +214,71 @@ def printNumberedList(list,endRange=-1,aes="full"):
 	from sys import stdout
 	import subprocess
 	
-	printBorder= "------------------------------"
-	finalPrintStr=""
+	origConsoleColor=getConsoleColor()
 	
 	out=outputFromCommand("powershell -Command $host.UI.RawUI.WindowSize.Height")
-	CMD_HEIGHT=int(out.strip())-1 # -1 for prompt ("Press any key to continue")
-	consoleColors=[3,6]
+	cmd_height=int(out.strip())-1 # -1 for prompt ("Press any key to continue")
 	
+	
+	out=outputFromCommand("powershell -Command $host.UI.RawUI.WindowSize.Width")
+	cmd_width=int(out.strip())
+	
+	finalPrintStr= ""
 	
 	if(endRange==-1):
 		endRange=len(list)
-		
-	charID="plus"
-	if aes=="none":
-		global printBorder
-		printBorder=""
-	print printBorder
 	
-	origConsoleColor=getConsoleColor()
+	aesDict={}
+	
+	aesDict["full"]={
+		"printBorder": "-"*((cmd_width)-1),
+		"consoleColors":[3,6],
+		"charSymbols":['+','-','!']
+	}
+	
+	aesDict["borderOnly"]={
+		"printBorder": "-"*((cmd_width)-1),
+		"consoleColors":[origConsoleColor,origConsoleColor],
+		"charSymbols":['','','']
+	}
+	
+	
+	aesDict["none"]={
+		"printBorder": "",
+		"consoleColors":[origConsoleColor,origConsoleColor],
+		"charSymbols":['','','']
+	}
+
+	if len(aesDict[aes]["printBorder"])>0:
+		print aesDict[aes]["printBorder"]
+	
 	try:
 		for i in range(0,endRange):
 			
-			
 			if( i % 2 == 0):
-				setConsoleColor([0])
-				
+				setConsoleColor(aesDict[aes]["consoleColors"][0])	
 			else:
-				setConsoleColor([1])
+				setConsoleColor(aesDict[aes]["consoleColors"][1])
 			
-			if(charID=="plus"):
-				finalPrintStr+="[+"+str(i+1)+"+]"+ (list[i])+ "[++]" +"\n"
-				print "[+",(i+1),"+]", (list[i]), "[++]"
-				charID="minus"
+			charSymbols=aesDict[aes]["charSymbols"]
 			
-			elif(charID=="minus"):	
-				finalPrintStr+="[-"+str(i+1)+"-]"+ (list[i])+ "[--]" +"\n"
-				print "[-",(i+1),"-]", (list[i]), "[--]"
-				charID="star"
-			
-			elif(charID=="star"):
-				finalPrintStr+="[!"+str(i+1)+"!]"+(list[i])+ "[!!]" +"\n"
-				print "[!",(i+1),"!]", (list[i]), "[!!]"
-				charID="plus"
+			cSymbol=charSymbols[i% len(charSymbols)]
+			if aes=="none" or aes=="borderOnly":
+				line=str(list[i])
+
+			else:
+				line="["+cSymbol+" "+str(i+1)+" "+cSymbol+"] " + str(list[i]) + " ["+(cSymbol*2)+"]"
+			print line
+			finalPrintStr+=line+"\n"
 			
 				
 				
-			if(((i+1)%(CMD_HEIGHT))==0):
+			if ( (i+1) % (cmd_height) )==0:
 				stdout.write( "Press any key to continue" )
 				if(kbhit()==False):
 					inputChar=ord(getch())
 					if(inputChar==224 or inputChar==0):
 						getch()
-					
 					
 					stdout.write(len("Press any key to continue")*"\b")
 					
@@ -275,7 +288,10 @@ def printNumberedList(list,endRange=-1,aes="full"):
 	finally:
 		setConsoleColor(origConsoleColor)
 	
-	print printBorder
+	if len(aesDict[aes]["printBorder"])>0:
+		print aesDict[aes]["printBorder"]
+	
+	finalPrintStr=finalPrintStr.strip()
 	return finalPrintStr
 	
 def cen():
@@ -322,7 +338,7 @@ def pipedList(stdinOutput):
 	from re import findall
 	from string import replace
 	try:
-		stdinOutput=stdinOutput.replace(PRINT_BORDER,'')
+		
 		
 		pipedList=findall("\".+\"",stdinOutput)
 		#print pipedList
