@@ -1,6 +1,6 @@
 from tag import getFilenameList, addTags, removeTags
-from root import screeningDir, musicDir, addMember
-from os import listdir, system, stat, kill, path, rename
+from root import screeningDir, musicDir
+from os import listdir, system, kill, path, rename, remove as os_remove
 from string import lower
 from msvcrt import kbhit, getch
 from psutil import Process, get_pid_list
@@ -10,11 +10,10 @@ from time import sleep
 from signal import SIGILL
 from random import shuffle
 
-
 def killVLC():
 	for pid in get_pid_list():
 		try:
-			if(Process(pid).name=="vlc.exe"):#launch vlc ourselves so we know it's PID?
+			if(Process(pid).name=="vlc.exe"):
 				kill(pid, SIGILL)
 
 		except:
@@ -68,23 +67,19 @@ def handleTagging(musicList, musicFileName, i):
 		musicFileName=newMusicFileName
 		
 		move(musicFileName,musicDir)
-		#removed second handling of WindowsError...
+		
 		
 	musicList.pop(i)
-	
-	
 	
 	filename="".join([musicDir,"\\",cutDir(musicFileName)])
 	tagList=raw_input("Enter tag(s). Separate with commas\n").split(',')
 	print ""
 	addTags(tagList,filename)
 	
-	
 def handleDelete(musicList, i):
 	
 	removeTags(["screen"], musicList[i].replace("\"",""))
-	command="".join(["del ",musicList[i]])
-	system(command)
+	os_remove( musicList[i].replace("\"","") )
 	if path.exists(musicList[i])==False: 
 		print "Delete successful\n"
 		musicList.pop(i)
@@ -124,7 +119,6 @@ def handleKeep(musicFileName, i):
 		
 		move(musicFileName,musicDir)
 			
-		
 	print "Move successful\n"
 	musicList.pop(i)
 	
@@ -142,7 +136,7 @@ def startScreening(musicList):
 			
 			prompt=getKeyPress()
 			
-			while(prompt!="k" and prompt!="d" and prompt!="t" and prompt!="q"):
+			while all([prompt!="k", prompt!="d" , prompt!="t", prompt!="q"]):
 				print "Invalid selection"
 				prompt=getKeyPress()
 				
@@ -165,24 +159,13 @@ def loadMusic():
 	
 	musicList=getFilenameList(["screen"])
 	
-	
-	i=len(musicList)-1
-	
-	while(i>-1):
-		
-		musicList[i]=addMember(musicList[i].replace("\"",""),stat)
-		i=i-1
-	
-	#morphedList=sorted(musicList, key=lambda Metamorph:Metamorph.getAttribute().st_ctime)
 	#move from creation time sort to random
 	shuffle(musicList)
-	morphedList=musicList
 	
 	finalList=[]
-	for i in range(0,len(morphedList)):
-		finalList.append("".join(["\"",morphedList[i].getObject(),"\""]))
-	
-	finalList.reverse()
+	for i in range(0,len(musicList)):
+		finalList.append("\"" + musicList[i] + "\"")
+
 	return finalList
 	
 
