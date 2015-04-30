@@ -1,9 +1,8 @@
 from win32gui import GetWindowText, IsWindowEnabled, EnumWindows
 from win32process import GetWindowThreadProcessId 
 from psutil import Process, get_pid_list
-from root import vlcTitleFile, printNumberedList, setClipboardData, standardizeString, chooseFromNumberedList, cen, fileSearch
+from root import vlcTitleFile, setClipboardData, standardizeString, chooseFromList, printList
 from os import listdir, path
-from threading import Thread
 
 
 def get_hwnds_for_pid (pid):
@@ -50,7 +49,7 @@ def get_VLC_Title():
 				print "-",
 				vlcTitle=titleFromHwnd(hwndList[i])
 				
-				f=open(vlcTitleFile,"w")
+				f=open(vlcTitleFile,"w+")
 				f.write(str(hwndList[i]))
 				f.close()
 				
@@ -94,40 +93,41 @@ def setFilePathToClipboard(vlcTitle):
 	
 	if(type(vlcTitle)==str):
 		
-		#resultsList=fileSearch(vlcTitle)
+		
 		resultsList=searchMusicFileList(musicFileList,vlcTitle)
 		
 		#store vlc file name in vlcTitle after printing
 		
 		if(len(resultsList)>1):
 			print "More than one result found"
-			printNumberedList(resultsList)
-			#vlcTitle=resultsList[int(chooseFromNumberedList(resultsList))]
-			vlcTitle=chooseFromNumberedList(resultsList)
+			printList(resultsList)
+			
+			vlcTitle=chooseFromList(resultsList)
 		elif(len(resultsList)==1):
 			vlcTitle=resultsList[0]
-			#cen()
+			
 		else:
 			print "No results found"
 	
 		
-		
-		setClipboardData("".join(['\"',standardizeString(vlcTitle),'\"']))
+		filename="".join(['\"',standardizeString(vlcTitle),'\"'])
+		setClipboardData(filename)
 	else:
 		print "VLC.exe process not found"
-	#file=open(vlcTitleFile,"w")
-	#file.write("".join(["\"",vlcTitle,"\""]))
-	#file.close()
-
 
 	
+	return filename
 	
 
 if __name__ == "__main__":
 	
 	vlcTitle=get_VLC_Title()
-	print "+ Currently playing: ", vlcTitle
-	Thread(target=setFilePathToClipboard, args=(vlcTitle,)).start()
+	
+	print "+ Currently playing:"
+	printList([vlcTitle], aes="none")
+	filename=setFilePathToClipboard(vlcTitle)
+	printList([filename], aes="none")
+	
 	
 	
 
