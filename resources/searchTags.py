@@ -1,39 +1,70 @@
 """
 *Not using .bat because it reads commas as a separator/delimiter
 """
-from sys import argv
-from root import switchParser, printList, setClipboardData, chooseFromList
-from tag import getFilenameList
+from sys import argv, stdin
+from root import switchParser, printList, setClipboardData, chooseFromList, pipedList
+from tag import getFilenameList, getTagList
 from string import strip
-AVAILABLE_SWITCHES=['s']
+AVAILABLE_SWITCHES=['s','f']
 
+def main(argList):
+	if 'f' in switches:
+			
+		tagList=getTagList(argList[0])
+		print tagList
 
+	else:
+		tagList= " ".join(map(str, argList)).split(',')
+		tagList=map(strip,tagList)
+		fileList = getFilenameList( tagList)
+		
+		for i in range(0,len(fileList)):
+			fileList[i]="\""+fileList[i]+"\""
+		
+		
+		
+			
+		
+		
+		if 's' in switches:
+			if len(switches['s'])>0:
+				choice=fileList[int (switches['s'])-1]
+			
+			else:
+				printList( fileList )
+			
+				if len(fileList)==1:
+					choice=fileList[0]
+				
+				else:
+					choice=chooseFromList(fileList)
+				
+			print choice
+			setClipboardData(choice)
+		
+		else:
+			printList( fileList )
+		
 if __name__=="__main__":
 	switches=switchParser(argv)
 	
 	
-	tagList= " ".join(map(str, argv[1:])).split(',')
-	tagList=map(strip,tagList)
+	if stdin.isatty()==False:#for using with nf/search
+		print "Piped search"
+		argList=pipedList( "".join(map(str,stdin.readlines())) )
+		main(argList)
 	
-	
-	fileList = getFilenameList( tagList)
-	
-	for i in range(0,len(fileList)):
-		fileList[i]="\""+fileList[i]+"\""
-	
-	
-	printList( fileList )
-	
-	
+	elif len(argv)>1:	
+		main(argv[1:])
 		
-	
-	if "s" in switches:
-		if len(fileList)==1:
-			choice=fileList[0]
-		else:
-			choice=chooseFromList(fileList)
+			
+	else:
 		
-		#setClipboardData( "\""+ choice+"\"")
-		setClipboardData(choice)
-		
-		
+		tList=getTagList()
+		tList.sort()
+		printList(tList)
+		choice=chooseFromList( tList )
+		cfList=  getFilenameList(choice)
+		printList(cfList)
+		choice=chooseFromList( cfList)
+		setClipboardData ( choice)
