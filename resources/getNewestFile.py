@@ -1,22 +1,22 @@
 """
+stores the newest file in the current working directory into clipboard
 
--stores the newest file in the current working directory into clipboard
-
-USAGE: nF [-d dir][strings in file...][-p][-s][-a]
+USAGE: nF [target string] [[-p][-#]] [-s][-f][-d]
 -p: print list containing the given strings
+-#:[num] number of items to print
 -s: select from given list
--a: list is printed alphabetically instead of by creation data
+-f: list FILES only 
+-d: list DIRECTORIES
 """
-#-f for files only, ignore dir in newest file result
 
-from sys import argv, float_info, stdin
-from string import lower
-from directPicToFolder import getFolder
-from root import picDir, switchParser, addMember, setClipboardData, printNumberedList, chooseFromNumberedList, cen, inSwitchList, pipedList as pipedF, printList, chooseFromList, errorAlert, pipedList
+
+from sys import argv, stdin, stdout
+from root import switchParser, addMember, setClipboardData, cen, printList, chooseFromList, errorAlert, pipedList
 from threading import Thread
 from os import listdir, getcwd, stat, path
 from sys import exit as sys_exit
-AVAILABLE_SWITCHES=['p','s','d','h','a','#']
+from string import lower
+AVAILABLE_SWITCHES=['p','s','d','h','f','#']
  	
 def sortByCreationTime(fList):
 	for i in range(len(fList)-1,-1,-1):
@@ -33,42 +33,52 @@ def sortByCreationTime(fList):
 	
 	return fList
 		
-def getNewestFileList(targDir=getcwd()):
+def getFileList(targDir=getcwd()):
 	fList= listdir(targDir)
-	fList=sortByCreationTime(fList)
+	fList= map(lower, fList)
 	return fList
 
 def pruneFileList(fList, targWords):
+	
 	for f in fList[:]:
+		removed=False
+		
 		for word in targWords:
 			if word not in f:
 				fList.remove(f)
+				removed=True
 				break
-				
+		
+		if removed==False:
+			if 'f' in switches:
+				if path.isfile(f)==False:
+					fList.remove(f)
+					
+			elif 'd' in switches:
+				if path.isdir(f)==False:
+					fList.remove(f)
+
 	return fList
 
-def presentResult(fList, targDir=getcwd()):
+	
+def printSettings():
+	numItemsToPrint= 1
+	aes="none"
 	
 	if 'p' in switches:
 		numItemsToPrint= 10
 		
 		if '#' in switches:
-			numOfItemsToPrint=int(switches['#'])
+			numItemsToPrint=int(switches['#'])
 		
 		if len(fList)<numItemsToPrint:
 			numItemsToPrint=len(fList)
 		
 		aes="full"
-	
-				
-			
-	elif len(switches)==0:
-		numItemsToPrint= 1
-		aes="none"
 		
-	if numItemsToPrint>1:
-		printList(fList, numItemsToPrint, aes)
+	return (numItemsToPrint, aes)
 	
+def handleSelect(fList):
 	if 's' in switches:
 			
 		if len(switches['s'])>0:
@@ -77,11 +87,23 @@ def presentResult(fList, targDir=getcwd()):
 				choice=fList[ sVal-1]
 			else:
 				errorAlert("Select switch value:" + str(sVal) + " greater than list size: " + str(len(fList)) )
-				exit(1)
+				sys_exit(1)
 		else:
 			choice=chooseFromList(fList)
 		
 		fList[0]=choice
+		
+	return fList[0]
+	
+def presentResult(fList, targDir=getcwd()):
+	#default values when empty switches
+	
+	numItemsToPrint, aes= printSettings()
+	
+	if numItemsToPrint>1:	
+		printList(fList, numItemsToPrint, aes, pressToContinue=stdout.isatty())
+		
+	fList[0]=handleSelect(fList)
 	
 	fList[0]="\""+ targDir+"\\"+str(fList[0]) + "\""
 	print fList[0]
@@ -89,8 +111,6 @@ def presentResult(fList, targDir=getcwd()):
 	setClipboardData(fList[0])
 	
 	
-		
-
 if __name__ == "__main__":	
 	switches=switchParser(argv,  AVAILABLE_SWITCHES)	
 	
@@ -104,10 +124,16 @@ if __name__ == "__main__":
 		
 		fList=pipedList("".join(map(str,stdin.readlines())))
 		prunedList=pruneFileList(fList, argv[1:])
-		sortByCreationTime(prunedList)
-		presentResult(fList)
-		
+		finalList=sortByCreationTime(prunedList)	
+
 	else:
-		fList=getNewestFileList()
+		
+		fList=getFileList()
 		prunedList=pruneFileList(fList, argv[1:])
-		presentResult(prunedList)
+		finalList=sortByCreationTime(prunedList)
+	
+	
+	if len(prunedList)>0:
+		presentResult(finalList)
+	else:
+		errorAlert("Empty list")
