@@ -1,7 +1,7 @@
 """
 *Not using .bat because it reads commas as a separator/delimiter
 """
-from sys import argv, stdin
+from sys import argv, stdin, stdout
 from root import switchParser, printList, setClipboardData, chooseFromList, pipedList
 from tag import getFilenameList, getTagList
 from string import strip
@@ -21,17 +21,12 @@ def main(argList):
 		for i in range(0,len(fileList)):
 			fileList[i]="\""+fileList[i]+"\""
 		
-		
-		
-			
-		
-		
 		if 's' in switches:
 			if len(switches['s'])>0:
 				choice=fileList[int (switches['s'])-1]
 			
 			else:
-				printList( fileList )
+				printList( fileList, pressToContinue=stdout.isatty() )
 			
 				if len(fileList)==1:
 					choice=fileList[0]
@@ -43,7 +38,7 @@ def main(argList):
 			setClipboardData(choice)
 		
 		else:
-			printList( fileList )
+			printList( fileList, pressToContinue=stdout.isatty() )
 		
 if __name__=="__main__":
 	switches=switchParser(argv)
