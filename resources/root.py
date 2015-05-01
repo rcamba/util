@@ -26,7 +26,7 @@ removedFilesLog="C:\\Users\\Kevin\\Util\\resources\\logs\\removedFilesLog.log"
 hibLog="C:\\Users\\Kevin\\Util\\resources\\logs\\hibLog.log"
 tagFile="C:\\Users\\Kevin\\Util\\resources\\logs\\tagFile.log"
 
-vlcTitleFile="C:\\Users\\Kevin\\Util\\resources\\vlcTitleFile.txt"#DEPRECATED since use of clipboard
+vlcTitleFile="C:\\Users\\Kevin\\Util\\resources\\logs\\vlcTitleFile.log"
 matrixFile="C:\\Users\\Kevin\\Util\\resources\\matrixFile.txt"
 deletedTagFile="C:\\Users\\Kevin\\Util\\resources\\logs\\deletedTagFiles.log"
 quickLaunchFile="C:\\Users\\Kevin\\Util\\resources\\directoryQ.txt"
@@ -72,15 +72,7 @@ def compareLists(list1, list2, similar=True):
 	
 	return list
 	
-def inSwitchList(targSwitch, switchList):
-	result=False
-	
-	for switch in switchList:
-		if targSwitch in switch:
-			result=True
-			break
-			
-	return result
+
 		
 	
 
@@ -188,7 +180,7 @@ def switchParser(args,validSwitches=[]):#returns dict, will replace switchBoard
 			else:
 				print "\nInvalid switch: ", token[0][1:]
 				print "Valid switches: ", validSwitches
-				exit(1)
+				sys_exit(1)
 			
 			args.remove(arg)
 	
@@ -197,36 +189,39 @@ def switchParser(args,validSwitches=[]):#returns dict, will replace switchBoard
 def listFromPiped():
 	pass#get list from piped printNumberedList/ printList
 	
-def printList(list, endRange=-1,aes="full"):#(list, pretty="on",noPrint=False,endRange=-1)
+def printList(list, endRange=-1,aes="full",pressToContinue=True):#(list, pretty="on",noPrint=False,endRange=-1)
 #pretty is for colors+numbering  and "++,--,etc." , noPrint is just returning the str to print and no actual "print" command inside
-	return printNumberedList(list,endRange,aes)
+	return printNumberedList(list,endRange,aes,pressToContinue)
 
 def outputFromCommand(commandAndArgs):
 	import subprocess
 	c=commandAndArgs.split()
 	proc=subprocess.Popen(c, stdout=subprocess.PIPE, shell=True)
 	(output, error)=proc.communicate()
-	return output
+	return output.strip()
 	
-def printNumberedList(list,endRange=-1,aes="full"):
+def printNumberedList(list,endRange=-1,aes="full", pressToContinue=True):
 	
 	from msvcrt import kbhit, getch
-	from sys import stdout
+	from sys import stdout, exit as sys_exit
 	import subprocess
 	
 	origConsoleColor=getConsoleColor()
 	
 	out=outputFromCommand("powershell -Command $host.UI.RawUI.WindowSize.Height")
-	cmd_height=int(out.strip())-1 # -1 for prompt ("Press any key to continue")
+	cmd_height=int(out)-1 # -1 for prompt ("Press any key to continue")
 	
 	
 	out=outputFromCommand("powershell -Command $host.UI.RawUI.WindowSize.Width")
-	cmd_width=int(out.strip())
+	cmd_width=int(out)
 	
 	finalPrintStr= ""
 	
 	if(endRange==-1):
 		endRange=len(list)
+	elif endRange> len(list):
+		errorAlert("Size of list is greater than given endRange of " + str(endRange))
+		sys_exit(1)
 	
 	aesDict={}
 	
@@ -273,7 +268,7 @@ def printNumberedList(list,endRange=-1,aes="full"):
 			
 				
 				
-			if ( (i+1) % (cmd_height) )==0:
+			if ( (i+1) % (cmd_height) )==0 and pressToContinue==True:
 				stdout.write( "Press any key to continue" )
 				if(kbhit()==False):
 					inputChar=ord(getch())
@@ -315,7 +310,7 @@ def chooseFromNumberedList(list, centering=True, noInvalidResult=False):
 		try:
 			choice= raw_input()
 		except EOFError:#pipes
-			choice=getInputFromKeyPress()
+			choice=keyPressInput()
 		
 		
 		if(choice.isdigit() and int(choice)<=len(list) and int(choice)>0):
@@ -412,6 +407,9 @@ def addMember(originalObject, function="", manAttrib=""):
 		
 		def getAttribute(self):
 			return self.attribute
+			
+		def __str__(self):
+			return originalObject.__str__()
 			
 	
 	result=Metamorph(originalObject,function)
