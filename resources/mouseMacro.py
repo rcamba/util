@@ -1,4 +1,7 @@
 """
+Author: jtokarchuk
+https://github.com/jtokarchuk/MouseTab/blob/master/mousemacro.py
+
 click() -- calls left mouse click
 hold() -- presses and holds left mouse button
 release() -- releases left mouse button
