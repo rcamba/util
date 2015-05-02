@@ -1,39 +1,33 @@
 """
 Contains all constants and some utility methods
 """
-#Directories; %username% 
 
-musicDir="C:\\Users\\Kevin\\Music\\ytcon"
-screeningDir="C:\\Users\\Kevin\\Music\\ytcon\\screen"
-picDir=""
-gifsDir=""
-rageComicsDir=""
-verticalDir=""
-webComicsDir=""
-showListDir=""
-backUpDir="C:\\Users\\Kevin\\backUp"
-garbageBin="C:\\Users\\Kevin\\usrGarbageBin"
-ytAMVDir="C:\\Users\\Kevin\\Videos\\ytAMV"
-ytDownloadsDir="C:\\Users\\Kevin\\Videos\\ytVids"
-ytAnShows="C:\\Users\\\Kevin\\Videos\\ytAnShows"
+from os import getenv
+utilResourceDir=getenv("utilResources")
+username=getenv("username")
+
+#rid of C:\\Users?
+musicDir="C:\\Users\\"+username+"\\Music\\ytcon"
+screeningDir="C:\\Users\\"+username+"\\Music\\ytcon\\screen"
+backUpDir="C:\\Users\\"+username+"\\backUp"
+garbageBin="C:\\Users\\"+username+"\\usrGarbageBin"
+ytAMVDir="C:\\Users\\"+username+"\\Videos\\ytAMV"
+ytDownloadsDir="C:\\Users\\"+username+"\\Videos\\ytVids"
+ytAnShows="C:\\Users\\"+username+"\\Videos\\ytAnShows"
 
 #Files
-animedDir="C:\\Users\\Kevin\\Util\\Resources\\logs\\animedir.log" #log
-
-sVLC_PID=r"C:\Users\Kevin\Util\resources\sVLC_PID"
-songLogFile=r"C:\Users\Kevin\Util\resources\logs\prandomSongsLog.log"
-removedFilesLog="C:\\Users\\Kevin\\Util\\resources\\logs\\removedFilesLog.log"
-hibLog="C:\\Users\\Kevin\\Util\\resources\\logs\\hibLog.log"
-tagFile="C:\\Users\\Kevin\\Util\\resources\\logs\\tagFile.log"
-
-vlcTitleFile="C:\\Users\\Kevin\\Util\\resources\\logs\\vlcTitleFile.log"
-matrixFile="C:\\Users\\Kevin\\Util\\resources\\matrixFile.txt"
-deletedTagFile="C:\\Users\\Kevin\\Util\\resources\\logs\\deletedTagFiles.log"
-quickLaunchFile="C:\\Users\\Kevin\\Util\\resources\\directoryQ.txt"
-downloadedTorFiles="C:\\Users\\Kevin\\Util\\resources\\logs\\downloadedAnimeTorrents.log"
-recSearchFile="C:\\Users\\Kevin\\Util\\resources\\topFileList.txt"
-toDoListTextFile="C:\\Users\\Kevin\\Util\\resources\\logs\\toDoListFile.log"
-prevDirFile="C:\\Users\\Kevin\\Util\\resources\\logs\\prevDir.log"
+animedLog=utilResourceDir+"\\logs\\animedir.log"
+sVLC_PID=utilResourceDir+"\\sVLC_PID"
+songLogFile=utilResourceDir+"\\logs\\prandomSongsLog.log"
+removedFilesLog=utilResourceDir+"\\logs\\removedFilesLog.log"
+hibLog=utilResourceDir+"\\logs\\hibLog.log"
+tagFile=utilResourceDir+"\\logs\\tagFile.log"
+vlcTitleFile=utilResourceDir+"\\logs\\vlcTitleFile.log"
+deletedTagFile=utilResourceDir+"\\logs\\deletedTagFiles.log"
+quickLaunchFile=utilResourceDir+"\\logs\\directoryQ.log"
+downloadedTorFiles=utilResourceDir+"\\logs\\downloadedAnimeTorrents.log"
+toDoListTextFile=utilResourceDir+"\\logs\\toDoListFile.log"
+prevDirFile=utilResourceDir+"\\logs\\prevDir.log"
 
 
 #Variables
@@ -59,7 +53,6 @@ def compareLists(list1, list2, similar=True):
 	"""
 	list=[]
 	
-	
 	if(similar==True):
 		for i in range(0, len(list1)):
 			if(list1[i] in list2):
@@ -69,11 +62,7 @@ def compareLists(list1, list2, similar=True):
 			if(list1[i] not in list2):
 				list.append(list1[i])
 		
-	
 	return list
-	
-
-		
 	
 
 def switchBoard(args, validSwitches=[]):
@@ -116,8 +105,7 @@ def switchBoard(args, validSwitches=[]):
 						else:
 							print token[0], ": not a valid switch"
 							sys_exit(1)
-						
-					
+										
 					elif(lower(switch) in validSwitches ):
 						switchList.append(lower(switch))
 					else:
@@ -126,14 +114,12 @@ def switchBoard(args, validSwitches=[]):
 						sys_exit(1)
 				args.remove(args[i])
 		
-		
 		#standard/ normalize slashes for file accesses
 			elif("/" in args[i]):
 				args[i]=args[i].replace("/","\\")
 		
 	else:
 		print "Not a list"
-	
 	
 	return switchList
 
@@ -334,11 +320,9 @@ def pipedList(stdinOutput):
 	from string import replace
 	try:
 		
-		
 		pipedList=findall("\".+\"",stdinOutput)
-		#print pipedList
 		finalList= [x.replace('\"','') for x in pipedList]
-		#print pipedList
+		
 	except Exception, e:
 		errorAlert( str(e) )
 		errorAlert( "Cannot convert: " +stdinOutput + "from pipes in to list" )
@@ -433,18 +417,7 @@ def getAllPageLinks(url):
 	return resultsList
 	
 def prompt(cwd=""):
-	"""
-	from sys import stdout
-	from os import getcwd
-	
-	if(len(cwd)==0):
-		stdout.write(str(getcwd()))
-	else:
-		stdout.write(cwd)
-	
-	
-	stdout.write("\n>>>")
-	"""
+
 	from sys import stdout
 	from os import system
 	system("echo %CD%")
@@ -492,7 +465,6 @@ def keyPressInput(promptStr=""):
 				stdout.write( "".join(result) )
 				stdout.write( "\b"* (len(result)-cursorPos) )
 				
-				
 		elif userInput==224:
 			userInput=ord(getch())
 			
@@ -507,7 +479,6 @@ def keyPressInput(promptStr=""):
 				else:
 					stdout.write(" ")
 				cursorPos+=1
-				
 				
 			elif userInput==119: #ctrl+home
 				clear(len(result))
@@ -540,108 +511,56 @@ def keyPressInput(promptStr=""):
 			stdout.write(charG)
 			result.insert(cursorPos,charG)
 			cursorPos+=1
-			
-
-		
 		
 	return "".join(result)
 
-def fileSearch(target, write=True):
+def fileSearch(targetFile, topLevel="C:\\Users\\Kevin\\", strict=True):
 	from string import lower
 	from threading import Thread
-	from os import system
-	'''
-	from os import listdir,path
+	from os import system, getcwd, path, listdir
+	"""search for targetFile from current top level drive recursively through folders except for folders in EXCLUDED_FOLDERS(system folders, temp/cache, etc.)"""
 	
-	def recursiveWrite():#currently not being used
-		nonDirList=[]
-		directories=["C:\\Users\\Kevin"]
-		i=len(directories)-1
-		
-		while(i>=0):
-			holder=directories[i]
-			
+	EXCLUDED_FOLDERS=[r"c:\users\kevin\application data",r"c:\users\kevin\cookies",r"c:\users\kevin\local settings",r"c:\users\kevin\nethood",r"c:\users\kevin\printhood",r"c:\users\kevin\recent",r"c:\users\kevin\sendto",r"c:\users\kevin\start menu",r"c:\users\kevin\templates",r"c:\users\kevin\appdata\local\temporary internet files",r"c:\users\kevin\appdata\local\application data",
+	r"c:\users\kevin\appdata\local\history",
+	r"c:\users\kevin\my documents",
+	r"c:\users\kevin\documents\my music",r"c:\users\kevin\documents\my videos",r"c:\users\kevin\documents\my pictures"]
+	def listDirFullPath(topLevel):
+		from string import lower
+		fList=[]
+		if topLevel not in EXCLUDED_FOLDERS:
 			try:
-				fileList=listdir(holder)
-			except:
-				pass
-			for j in range(0,len(fileList)):
-				fullPath="".join([holder,"\\",fileList[j]])
-				if(path.isdir(fullPath) and (fullPath not in __EXCLUDE_FOLDERS) ):
-					directories.insert(0,fullPath)
-				else:
-					nonDirList.append(fullPath)
-					writer.write(fullPath)
-					writer.write("\n")
-			
-			directories.remove(holder)
-			i=len(directories)-1
-			
-		writer.close()
+				fList= listdir(topLevel)
+				for i in range(0,len(fList)):
+					fList[i]=lower(path.join(topLevel, fList[i]))
+			except WindowsError:
+				#pass
+				errorAlert("Cannot access " + topLevel)
 		
-	def recursiveWrite2(topLevel="C:\\Users\\Kevin"):#currently not being used
-		
-		traverseList=[]
-		currDirContents=""
-		
-		try:
-			currDirContents=listdir(str(topLevel))
-		except WindowsError:
-			pass#print "Invalid topLevel path:", topLevel
-		
-		for i in range(0,len(currDirContents)):
-			fullPath="".join([topLevel,"\\",currDirContents[i]])
-			
-			if(len(fullPath)>0):
-				writer.write(fullPath)
-				writer.write("\n")
-			
-			if(path.isdir(fullPath) and (fullPath not in __EXCLUDE_FOLDERS) ):
-				traverseList.append(fullPath)
-				
-		for i in range(0,len(traverseList)):
-			recursiveWrite2(traverseList[i])
-			#Thread(target=recursiveWrite2, args=(str(traverseList[i]),)).start()
-			
-	'''	
+		return fList
 	
 	
-	resultsList=[]
-	if len(target)>0:
+	resList=[]
+	targetFile=lower(targetFile)
+	fList=listDirFullPath(topLevel)
+	
+	for f in fList:
+		filename=path.split(f)[1]
+		if path.isfile( filename ):
+			if strict:
+				if targetFile==filename:
+					resList.append(f)
+			else:
+				if targetFile in filename:
+					resList.append(f)
 		
-		
-		fileList=open(recSearchFile).read().split("\n")
-		
-		for i in xrange(0,len(fileList)):
-			if(lower(target.strip()) in lower(fileList[i])):
-				resultsList.append(fileList[i])
+		elif path.isdir(f):
+			fList.extend( listDirFullPath(f) ) 
 	
 	
-	#This block is all for recursiveWrite
-	if write==True:
-		
-		command="".join("start /B %UtilResources%/iterWriteFiles.py")
-		Thread(target=system, args=(command,)).start()
+	printList( resList)
+	return resList
 	
-		
-	return resultsList
-	
-def handleFileList(fList):#from fileSearch
 
-	if(len(fList)>1):
-		printNumberedList(fList)
-		choice=chooseFromNumberedList(fList)
-		result="".join(["\"",str(fList[choice]),"\""])
-		setClipboardData(result)
-	
-	elif(len(fList)==0):
-		result=-1
-	
-	else:
-		result="".join(["\"",fList[0],"\""])
-		setClipboardData(result)
-		
-	return result
 	
 def createBackUp(fileName):#backup before opening/writing to txt files
 	from shutil import copy2
@@ -724,9 +643,9 @@ def killProcess(processName="", pid=-1):
 			
 			
 		else:
-			print "Unable to find process."
+			errorAlert( "Unable to find process.")
 	else:
-		print "Missing processName or pid parameter"
+		errorAlert( "Missing processName or pid parameter" )
 	
 	return success
 
@@ -749,7 +668,7 @@ def getPixel(x=-1,y=-1):
 		i_desktop_window_id = GetDesktopWindow()
 		i_desktop_window_dc = GetWindowDC(i_desktop_window_id)#device context
 		try:
-			long_colour = GetPixel(i_desktop_window_dc, x, y)#FAILS IF PAST THE 1024x768 SIZE?	
+			long_colour = GetPixel(i_desktop_window_dc, x, y)
 		except:
 			print "Coordinates ", x,",",y, "out of screen size"
 			sys_exit(1)
@@ -810,15 +729,13 @@ def getProcessPID(target):
 				break
 		
 		if resultPID==-9000:
-			print "No PID found for ", target
-			print "Terminating script."
+			errorAlert( "No PID found for " + target )
+			errorAlert( "Terminating script" )
 			sys_exit(1)
 			
-	
-		
 		
 	else:
-		print "Passed argument: ", target ," is invalid. Must be string type argument and not an exlucded process"
+		errorAlert( "Passed argument: ", target ," is invalid. Must be string type argument and not an excluded process")
 	
 	
 	return resultPID
@@ -858,7 +775,7 @@ def moveWindow(x, y, processName="", pid=-1, hwnd=-1, width=-1, height=-1):
 		processPID=processName
 	
 	elif len(processName)==0 and pid==-1:
-		print "Must pass at least one argument, either process name or PID"
+		errorAlert( "Must pass at least one argument, either process name or PID")
 		sys_exit(1)
 	
 	elif len(processName)>0 and pid==-1:#case for just the process name passed
@@ -873,8 +790,8 @@ def moveWindow(x, y, processName="", pid=-1, hwnd=-1, width=-1, height=-1):
 		processPID=pid
 		
 	else:
-		print "Cannot have both process name and PID argument passed."
-		
+		errorAlert( "Cannot have both process name and PID argument passed.")
+		sys_exit(1)
 	
 	hwndList=get_hwnds_for_pid (processPID)
 	
@@ -1050,7 +967,7 @@ def getPIDFromHandle(handle):
 	
 def cropImage(imageFileName, cropBox):
 	import Image
-	from random import randint
+
 	
 	img=Image.open(imageFileName)
 	extension=imageFileName[imageFileName.rindex('.'):]
@@ -1060,33 +977,18 @@ def cropImage(imageFileName, cropBox):
 	
 	return saveFileName
 	
-	
 def moveMouse(x,y):
 	from mouseMacro import move
-	if( type(x)==str and type(y)==str):
-		try:
-			x=int(x)
-			y=int(y)
-		except ValueError:
-			print "Invalid arguments. Must be integer"
-		
-	if( type(x)==int and type(y)==int):
-		move(x,y)
-	else:
-		print "Invalid arguments. Must be integer"
-		
-def getListFromPipeStr(pipePrintStr):
+
+	try:
+		x=int(x)
+		y=int(y)
+	except ValueError:
+		errorAlert( "Invalid arguments. Must be integer" )
 	
-	pipedList= pipePrintStr.split('\n')
-	for i in range(len(pipedList)-1,-1,-1):
+	move(x,y)
 		
-		try:
-			pipedList[i]=pipedList[i][pipedList[i].index("\"")+1: pipedList[i].rindex("\"")]
-		except ValueError:
-			pipedList.remove(pipedList[i])
-			
-	return pipedList
-	
+
 def drawLoadingBar(drawString):
 	import sys
 	drawString=str(drawString)
@@ -1094,17 +996,8 @@ def drawLoadingBar(drawString):
 	sys.stdout.write("\b"* len(drawString))
 	sys.stdout.flush()
 	
-def __listGlobalVars():
-	"""Lists the global variables in the current module"""
-	from string import lower
-	z=globals()
-	for i in z.iterkeys():
-		if("file" in lower(str(i)) or "log" in lower(str(i))):
-			if(type(z[i])==str and "root" not in z[i]):
-				print z[i]
 				
-				
-def __backUpPyAndText():
+def __backUpPyAndText__():
 	"""
 		backs up .py and txt files
 	"""
@@ -1116,9 +1009,8 @@ def __backUpPyAndText():
 		file=filesList[i]
 		#if ".pyc" in file or ".exe" in file or ".java" in file or ".class" in file or ".c" in file or ".o" in file:
 		extension=path.splitext(file)[1]#extension of file
-		if (extension!=".py" and extension!=".txt" ):
+		if all([extension!=".py", extension!=".log", extension!=".txt"]) :
 			filesList.remove(file)
-	
 	
 	
 	from os import path
