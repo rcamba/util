@@ -8,7 +8,7 @@
 	#play next episode
 	#mark curr episode as played
 	
-from root import switchBoard, printNumberedList, chooseFromNumberedList, animedDir
+from root import switchBoard, printNumberedList, chooseFromNumberedList, animedLog
 from sys import argv
 from os import listdir, system, path
 from string import replace
@@ -16,7 +16,7 @@ from string import replace
 AVAILABLE_SWITCHES= ['a']
 
 def addToMainAnimeDir(newDir):
-	f=open(animedDir,"a")
+	f=open(animedLog,"a")
 	f.write(newDir)
 	f.write("\n")
 	f.close()
@@ -72,7 +72,7 @@ if __name__ == "__main__":
 		addToMainAnimeDir(argv[1])
 		
 	else:
-		f=open(animedDir,"r")
+		f=open(animedLog,"r")
 		animeList=f.readlines()
 		
 		for i in range(0,len(animeList)):

@@ -149,6 +149,7 @@ def removeTags(tagList, filename):
 
 def __writeTagFile__(tagDict):
 	
+	#def __wtf__(tagDict):
 	createBackUp(tagFile)
 	writer=open(tagFile,'w+') 
 	
@@ -168,7 +169,7 @@ def __writeTagFile__(tagDict):
 	
 	writer.close()
 		
-	
+	#Thread(target=__wtf__, args=(tagDict,)).start()
 	
 def convertToFilenameList(fileStringList):
 	res=[]
@@ -260,7 +261,6 @@ if __name__=="__main__":
 		
 		
 		addTags(tagList,argv[1])
-	else:#list all tags and allow user to select; print flist for selected tag
-		#should be in search?
-		pass
+	else:
+		print "Missing args"
 		
