@@ -1,9 +1,4 @@
 @ECHO OFF
 
-set /p var= <%UtilResources%/prevDir.txt
-
-
-REM this will delete the top in the queue
-REM java popDir d
-
+set /p var= <%UtilResources%/logs/prevDir.log
 CD /D %var%
