@@ -175,7 +175,7 @@ if __name__=="__main__":
 	finalSongList=randomSelect(prunedSongList,maxNum)
 	
 	slh=SongLogHandler(songLogFile)
-	slh.logSongs(songList)
+	slh.logSongs(finalSongList)
 	
 	playSongs(finalSongList)
 	
