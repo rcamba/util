@@ -1,14 +1,3 @@
-r"""
-Sets the computer to hibernate after x amount of minutes and logs the time and date of hibernation
--x is a required parameter from the user
--x can be 0
--x can't be negative
--Name of log file is "hibLog.txt"
-
-TO DO:
-	Add a way to cancel/add more time without having to kill and call hib.bat
-	Check if vlc task exists before ending task to prevent killing non-existant tasks
-"""
 
 
 def loadingSplash(givenTime, output="", splash=['.', "..", "..."]):
@@ -28,7 +17,9 @@ def loadingSplash(givenTime, output="", splash=['.', "..", "..."]):
 		stdout.write(clear)
 		
 		return clear
-
+	
+	#givenTime in seconds
+	
 	i=0	
 	stdout.write(output)
 	startTime=time()
@@ -52,7 +43,7 @@ def loadingSplash(givenTime, output="", splash=['.', "..", "..."]):
 	writeSlashB(output)
 
 def createLog():
-	"""Opens hibLog.txt and appends date and time to the file"""
+	"""Opens hibLog.log and appends date and time to the file"""
 	from root import hibLog
 	from time import strftime, localtime
 	f=open(hibLog,"a")
@@ -61,29 +52,27 @@ def createLog():
 	f.write(s)
 	f.close()
 
-def hibernate(setTime):	
-	from root import killProcess
-	"""Sets program to sleep for setTime minutes
+def main(setTime):	
 	
+	"""
+	Sets program to sleep for setTime minutes
 	Log is created after sleep
-	Kills vlc 
 	Calls toDoList for ready viewing once system resumes from hibernation 
 	Sets the computer to hibernate
 	"""
 	
 	for i in range(int(setTime), 0, -1 ):
-		#print "Time remaining until hibernation: ", i
-		#time.sleep( 60 )
 		output="Time remaining until hibernation: "+ str( i)
 		loadingSplash(60, output)
 	
 	
 	createLog()
-		
-	killProcess("vlc")
-	system("start cmd /c \"tdl & pause\"")
-	system("C:/Users/Kevin/Desktop/force_hib.lnk")
+	hibernate()
 	
+def hibernate():
+	from toDoList import viewToDoList
+	viewToDoList()
+	system(r"C:\Windows\System32\rundll32.exe PowrProf.dll,SetSuspendState")#hibernate
 	
 if __name__ == "__main__":
 	from sys import argv
@@ -93,7 +82,9 @@ if __name__ == "__main__":
 	if(len(argv)<2):
 		print "Missing time parameter"
 	else:
-		if(float(argv[1]) > -1 ):
-			hibernate(float(argv[1]))
-		else:
-			print "Invalid parameter. Time cannot be a negative value"
+		try:
+			main(int(argv[1]))
+			
+		except ValueError:
+			errorAlert("Argument must be an integer")
+		
