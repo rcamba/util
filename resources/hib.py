@@ -71,8 +71,9 @@ def main(setTime):
 	
 def hibernate():
 	from toDoList import viewToDoList
-	viewToDoList()
 	system(r"C:\Windows\System32\rundll32.exe PowrProf.dll,SetSuspendState")#hibernate
+	viewToDoList()
+	
 	
 if __name__ == "__main__":
 	from sys import argv
