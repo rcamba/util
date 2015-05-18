@@ -10,7 +10,6 @@ username=getenv("username")
 musicDir="C:\\Users\\"+username+"\\Music\\ytcon"
 screeningDir="C:\\Users\\"+username+"\\Music\\ytcon\\screen"
 backUpDir="C:\\Users\\"+username+"\\backUp"
-garbageBin="C:\\Users\\"+username+"\\usrGarbageBin"
 ytAMVDir="C:\\Users\\"+username+"\\Videos\\ytAMV"
 ytDownloadsDir="C:\\Users\\"+username+"\\Videos\\ytVids"
 ytAnShows="C:\\Users\\"+username+"\\Videos\\ytAnShows"
@@ -327,7 +326,7 @@ def pipedList(stdinOutput):
 		errorAlert( str(e) )
 		errorAlert( "Cannot convert: " +stdinOutput + "from pipes in to list" )
 		finalList=[]
-		
+	
 	return finalList
 
 def setClipboardData(data):
