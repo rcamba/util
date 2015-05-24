@@ -104,7 +104,7 @@ def tagMultipleFiles(tag, filenameList):
 				duplicateList= list (set([x for x in tagDict[tag] if tagDict[tag].count(x) > 1]) )
 				
 				for d in duplicateList:
-					errorAlert(validatedFilename + " already has tag: "+ tag)
+					errorAlert(d + " already has tag: "+ tag)
 			
 			tagDict[tag]= list(set(tagDict[tag])) #remove files in same tag
 		else:

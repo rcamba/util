@@ -330,16 +330,15 @@ def pipedList(stdinOutput):
 	return finalList
 
 def setClipboardData(data):
-	def __setClipboardData__(data):
-		from win32clipboard import OpenClipboard, EmptyClipboard, SetClipboardData, CloseClipboard
-		from win32con import CF_TEXT
-		OpenClipboard()
-		EmptyClipboard()
-		SetClipboardData(CF_TEXT, data)
-		CloseClipboard()
+
+	from win32clipboard import OpenClipboard, EmptyClipboard, SetClipboardData, CloseClipboard
+	from win32con import CF_TEXT
+	OpenClipboard()
+	EmptyClipboard()
+	SetClipboardData(CF_TEXT, data)
+	CloseClipboard()
 	
-	from threading import Thread
-	Thread(target=__setClipboardData__, args=(data,)).start()
+	
 	
 	
 
