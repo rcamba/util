@@ -30,7 +30,9 @@ def sortByCreationTime(fList):
 	fList=sorted(fList, key=lambda Metamorph:Metamorph.getAttribute().st_ctime, reverse=True)
 	
 	fList=map(str, fList)
-	
+	for i in range(0,len(fList)):
+		fList[i]="\""+fList[i]+"\""
+		
 	return fList
 		
 def getFileList(targDir=getcwd()):
@@ -105,7 +107,9 @@ def presentResult(fList, targDir=getcwd()):
 		
 	fList[0]=handleSelect(fList)
 	
-	fList[0]="\""+ targDir+"\\"+str(fList[0]) + "\""
+	if path.abspath(fList[0])==False:
+		fList[0]="\""+ targDir+"\\"+str(fList[0]) + "\""
+	
 	print fList[0]
 	
 	setClipboardData(fList[0])

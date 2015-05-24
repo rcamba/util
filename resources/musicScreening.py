@@ -27,11 +27,11 @@ def getKeyPress():
 	result=""
 	while (result==""):
         
-		#if kbhit():         
-		result = (getch())
-		inputChar=ord(result)
-		if(inputChar==224 or inputChar==0):
-			getch()
+		if kbhit():         
+			result = (getch())
+			inputChar=ord(result)
+			if(inputChar==224 or inputChar==0):
+				getch()
 			
 	result=lower(result)
 	return result
