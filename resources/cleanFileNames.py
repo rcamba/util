@@ -15,15 +15,19 @@ def screenTagging():
 		
 		fileList=listdir(screeningDir)
 		screeningList=getFilenameList("screen")
+		removedCounter=0
 		for i in range(len(fileList)-1,-1,-1):
 			fileList[i]="".join([screeningDir,"\\",fileList[i]]).lower()
 			
 			if fileList[i] in screeningList:
-				print fileList[i], " already has screen tag"
+				#print fileList[i], " already has screen tag"
 				fileList.remove(fileList[i])
+				removedCounter=removedCounter+1
 		
 		tagMultipleFiles("screen",fileList)
+		print removedCounter, " songs already had screen tag"
 		print "Tagged ", len(fileList), " files"
+		
 	
 	else:
 		print "Wrong directory: Need screening directory"
@@ -90,12 +94,13 @@ def cleanString(dirtyStr, testOutput=None):
 
 	
 def renameFiles(changesDict, directory):
+	if 'p' in switches: #print only
+		print "Printing only. No changes will be made"
 	for key in changesDict.keys():
 		
 		command="".join(["rename ","\"",directory,"\\",key,"\" \"",changesDict[key],"\""])
 		
 		if 'p' in switches: #print only
-			print "Printing only. No changes will be made"
 			print command
 		
 		else:
