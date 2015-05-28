@@ -1,9 +1,9 @@
 from os import system, getpid
 from time import sleep
 
-from root import resizeWindow, moveWindow, getClipboardData, sVLC_PID
+from root import resizeWindow, moveWindow, getClipboardData, setClipboardData, sVLC_PID
 from mouseMacro import getpos, move
-from get_VLC_Title import get_VLC_Title, setFilePathToClipboard
+from get_VLC_Title import get_VLC_Title, findFilePath
 from tag import getTagList
 
 windowWidth=950
@@ -20,8 +20,10 @@ else:
 
 
 
+
 vlcTitle=get_VLC_Title()
-setFilePathToClipboard(vlcTitle)
+fp=findFilePath(vlcTitle)
+setClipboardData(fp)
 
 print  vlcTitle
 print getTagList(getClipboardData().replace("\"",""))

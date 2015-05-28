@@ -46,7 +46,7 @@ def get_VLC_Title():
 	
 		for i in range(0,len(hwndList)):
 			if("media player" in GetWindowText (hwndList[i])):
-				print "-",
+				#print "-",
 				vlcTitle=titleFromHwnd(hwndList[i])
 				
 				f=open(vlcTitleFile,"w+")
@@ -85,48 +85,43 @@ def searchMusicFileList(musicFileList, targetFile):
 			
 	return resultsList
 	
-def setFilePathToClipboard(vlcTitle):
 	
+def findFilePath(vlcTitle):
 	resultsList=[]
 	topLevel="C:\\Users\\Kevin\\Music"
 	musicFileList=listAllFiles(topLevel)
-	
 	if(type(vlcTitle)==str):
-		
-		
 		resultsList=searchMusicFileList(musicFileList,vlcTitle)
-		
-		#store vlc file name in vlcTitle after printing
-		
+	
 		if(len(resultsList)>1):
 			print "More than one result found"
 			printList(resultsList)
-			
 			vlcTitle=chooseFromList(resultsList)
+			
 		elif(len(resultsList)==1):
 			vlcTitle=resultsList[0]
 			
 		else:
 			print "No results found"
-	
 		
-		filename="".join(['\"',standardizeString(vlcTitle),'\"'])
-		setClipboardData(filename)
+		filePath="".join(['\"',standardizeString(vlcTitle),'\"'])
 	else:
 		print "VLC.exe process not found"
+		
+	return filePath
+
 
 	
-	return filename
 	
-
 if __name__ == "__main__":
 	
 	vlcTitle=get_VLC_Title()
 	
 	print "+ Currently playing:"
 	printList([vlcTitle], aes="none")
-	filename=setFilePathToClipboard(vlcTitle)
-	printList([filename], aes="none")
+	fp=findFilePath(vlcTitle)
+	setClipboardData(fp)
+	printList([fp], aes="none")
 	
 	
 	
