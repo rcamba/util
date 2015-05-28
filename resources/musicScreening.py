@@ -12,14 +12,10 @@ from random import shuffle
 
 def killVLC():
 	for pid in get_pid_list():
-		try:
-			if(Process(pid).name=="vlc.exe"):
-				kill(pid, SIGILL)
-
-		except:
-			pass
-			
-	sleep(0.3)
+		
+		if(Process(pid).name=="vlc.exe"):
+			kill(pid, SIGILL)
+		
 	
 def getKeyPress(): 
     
