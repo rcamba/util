@@ -27,7 +27,7 @@ dirJumpFile=utilResourceDir+"\\logs\\directoryQ.log"
 downloadedTorFiles=utilResourceDir+"\\logs\\downloadedAnimeTorrents.log"
 toDoListTextFile=utilResourceDir+"\\logs\\toDoListFile.log"
 prevDirFile=utilResourceDir+"\\logs\\prevDir.log"
-
+prandomExceptions=utilResourceDir+"\\logs\\prandomexceptiontags.log"
 
 #Variables
 MAX_WAIT_TIME=30 #seconds
@@ -285,6 +285,7 @@ def chooseFromList(list, centering=True, noInvalidResult=False):
 	return chooseFromNumberedList(list, centering, noInvalidResult)
 	
 def chooseFromNumberedList(list, centering=True, noInvalidResult=False):
+	from sys import exit as sys_exit
 	
 	if(centering==True):
 		cen()
@@ -304,7 +305,8 @@ def chooseFromNumberedList(list, centering=True, noInvalidResult=False):
 			result=choice
 			
 		else:
-			print "Invalid choice. Choice was not a valid number."
+			errorAlert("Error: Invalid choice. Choice was not a valid number.")
+			sys_exit(1)
 	
 	elif(len(list)==1):
 		result=0

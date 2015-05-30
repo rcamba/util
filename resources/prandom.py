@@ -4,7 +4,7 @@ from random import randint
 from operator import attrgetter
 from sys import argv, stdin
 
-from root import musicDir, switchParser, songLogFile, pipedList, errorAlert
+from root import musicDir, switchParser, songLogFile, pipedList, errorAlert, prandomExceptions
 from tag import getFilenameList, getMixedFilenameList
 
 VALID_EXTENSIONS=["mp3","m4a","flac","ogg","mka"]
@@ -85,6 +85,7 @@ def getSongListFromTag	(tagList):
 	tagList=map(strip, tagList)
 
 	if 'm' in switches:
+		print "Getting mixed tags: ", tagList
 		songList=getMixedFilenameList(tagList)
 	else:
 		songList=getFilenameList(tagList)
@@ -96,17 +97,22 @@ def getSongListFromTag	(tagList):
 	return  songList
 	
 def pruneExceptions(songList, switches):
-	prunedList=songList
+	
+	exec("exceptionList=" +open(prandomExceptions).read() )#... default exceptions
+	exceptionSongList=[]
 	
 	if switches.has_key('e'):#exception, i.e don't play songs with this tag
-		exceptionSongList=getFilenameList( switches['e'].split(',') )
-		
-		#prunedList=list(set(songList).difference(set(exceptionSongList))) #Only worked if there were 2 tags in exception switch
-		for exceptionSong in exceptionSongList:
-			if exceptionSong in prunedList: #if tag is given, songList may not have exceptionSong - when no tag is given, all songs are in songList so exceptionSong will always be in it
-				prunedList.remove(exceptionSong)
+		exceptionList.extend( switches['e'].split(',') )
 	
-	return prunedList
+	for exception in exceptionList:
+		exceptionSongList.extend(getFilenameList( exception) )
+	
+	for exceptionSong in exceptionSongList:
+		if exceptionSong in songList: #if tag is given, songList may not have exceptionSong - when no tag is given, all songs are in songList so exceptionSong will always be in it
+			songList.remove(exceptionSong)
+	
+	
+	return songList
 	
 def playSongs(songList):
 	for song in songList:
@@ -155,7 +161,7 @@ def handlePiping():
 	
 if __name__=="__main__":
 	switches=switchParser(argv)
-	
+	#ADD ALL THIS TO MAIN AND THREAD MAIN- SEE IF PERFORMANCE DIFFERENCE WHEN CALLING PRAND- I.E NO WAIT WHEN LOADING SONGS
 	if stdin.isatty()==False:#for using with nf/search
 		print "Playing piped songs"
 		songList=handlePiping()
