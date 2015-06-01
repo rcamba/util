@@ -3,24 +3,44 @@ from root import screeningDir, musicDir
 from os import listdir, system, kill, path, rename, remove as os_remove
 from string import lower
 from msvcrt import kbhit, getch
-from psutil import Process, get_pid_list
+
+from psutil import Process, get_pid_list, error
 from shutil import move, Error as shutil_error
 from sys import exit as sys_exit, argv
 from time import sleep
 from signal import SIGILL
 from random import shuffle
 
-def killVLC():
-	for pid in get_pid_list():
-		
-		if(Process(pid).name=="vlc.exe"):
-			kill(pid, SIGILL)
-		
+def killVLC(tries=0):
 	
+	if tries<2:
+		for pid in get_pid_list():
+			try:
+				if(Process(pid).name=="vlc.exe"):
+					kill(pid, SIGILL)
+			except error.NoSuchProcess:
+				tries+=1
+				killVLC(tries)
+		else:
+				tries+=1
+				killVLC(tries)
+	else:
+		raise Exception("VLC not found after 3 tries")
+				
+
+def pollForVLCExistance():
+	procNameList=[ Process(pid).name for pid in  get_pid_list()  ]
+	
+	while "vlc.exe" not in procNameList:
+		procNameList=[ Process(pid).name for pid in  get_pid_list()  ]
+		sleep(0.5)
+
+
 def getKeyPress(): 
     
 	print "Type [k] to keep, [t] to keep and tag, [d] to delete track or [q] for quit"
 	result=""
+	#pollForVLCExistance()
 	while (result==""):
         
 		if kbhit():         
