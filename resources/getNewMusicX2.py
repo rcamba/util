@@ -8,6 +8,7 @@ from sys import argv, exit as sys_exit
 from random import randint
 from urllib import unquote_plus
 from urllib import FancyURLopener as openURL
+from cleanFilenames import cleanString
 import re
 
 from root import screeningDir, musicDir, setClipboardData, switchBoard, getAllPageLinks, ytDownloadsDir, ytAMVDir, ytAnShows, outputFromCommand, errorAlert
@@ -97,10 +98,10 @@ def __getVidList(vidLinks):
 def alreadyDownloaded(title, targDir):
 	retVal=False
 	fList= listdir(targDir)
-	t=path.splitext(title)
+	t=path.splitext(title)[0].lower()
 	for f in fList:
 		
-		if t==path.splitext(f):
+		if t==path.splitext(f)[0].lower():
 			retVal=True
 			break
 	
@@ -110,22 +111,25 @@ def downloadMusic(ytVidLink, targetDir):
 	
 	command="".join([YOUTUBE_DL, ytVidLink , " --quiet --restrict-filenames --no-mtime --no-overwrites --extract-audio --output \"",targetDir,"\\%(title)s_%(id)s.%(ext)s\""])
 	title=getTitleFromSys(ytVidLink)
-	
-	if alreadyDownloaded(title, musicDir)==False:#check musicDir instead of screening dir since there's no overwrites anyway
-		print "Downloading:", title 
-		title="".join([targetDir,"\\",title])		
+	if len(title)>0:
 		
-		system(command)
+		title=cleanString(title)
+		if alreadyDownloaded(title, musicDir)==False:#check musicDir instead of screening dir since there's no overwrites anyway
+			print "Downloading:", title 
+			title="".join([targetDir,"\\",title])		
+			
+			system(command)
+			
+			#conversion
+			convertCommand="%UtilResources%/convertToMp3.py " + "\""+title+"\""
+			print "Converting : ", title
+			sleep(2)
+			system(convertCommand)
 		
-		#conversion
-		convertCommand="%UtilResources%/convertToMp3.py " + "\""+title+"\""
-		print "Converting : ", title
-		sleep(2)
-		system(convertCommand)
-	
+		else:
+			errorAlert( title + " already in main music directory" )
 	else:
-		errorAlert( title + " already in main music directory" )
-	
+		errorAlert( "Empty title for" + ytVidLink)
 
 def downloadVideo(ytVidLink, targetDir):
 	
