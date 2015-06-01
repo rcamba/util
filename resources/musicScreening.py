@@ -21,9 +21,7 @@ def killVLC(tries=0):
 			except error.NoSuchProcess:
 				tries+=1
 				killVLC(tries)
-		else:
-				tries+=1
-				killVLC(tries)
+		
 	else:
 		raise Exception("VLC not found after 3 tries")
 				
