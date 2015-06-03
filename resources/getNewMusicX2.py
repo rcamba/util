@@ -11,7 +11,7 @@ from urllib import FancyURLopener as openURL
 from cleanFilenames import cleanString
 import re
 
-from root import screeningDir, musicDir, setClipboardData, switchBoard, getAllPageLinks, ytDownloadsDir, ytAMVDir, ytAnShows, outputFromCommand, errorAlert
+from root import screeningDir, musicDir, setClipboardData, switchBoard, getAllPageLinks, ytDownloadsDir, ytAMVDir, ytAnShows, outputFromCommand, errorAlert, deletedScreenedLog
 
 
 from bs4 import BeautifulSoup, SoupStrainer
@@ -115,21 +115,25 @@ def downloadMusic(ytVidLink, targetDir):
 		
 		title=cleanString(title)
 		if alreadyDownloaded(title, musicDir)==False:#check musicDir instead of screening dir since there's no overwrites anyway
-			print "Downloading:", title 
-			title="".join([targetDir,"\\",title])		
+			if path.splitext(title.lower())[0] not in deletedMusicList:
+				print "Downloading:", title 
+				title="".join([targetDir,"\\",title])		
+				
+				system(command)
+				
+				#conversion
+				convertCommand="%UtilResources%/convertToMp3.py " + "\""+title+"\""
+				print "Converting : ", title
+				sleep(2)
+				system(convertCommand)
 			
-			system(command)
+			else:
+				errorAlert( title + " already screened and deleted before" )
 			
-			#conversion
-			convertCommand="%UtilResources%/convertToMp3.py " + "\""+title+"\""
-			print "Converting : ", title
-			sleep(2)
-			system(convertCommand)
-		
 		else:
 			errorAlert( title + " already in main music directory" )
 	else:
-		errorAlert( "Empty title for" + ytVidLink)
+		errorAlert( "Empty title for " + ytVidLink)
 
 def downloadVideo(ytVidLink, targetDir):
 	
@@ -138,7 +142,7 @@ def downloadVideo(ytVidLink, targetDir):
 	
 	print "Downloading:", title 
 	system(command)
-	
+
 if __name__ == "__main__":
 
 	switchList=switchBoard(argv)
@@ -165,6 +169,7 @@ if __name__ == "__main__":
 		
 	elif 'm' in switchList:#single music
 		print "Downloading single music"
+		deletedMusicList=open(deletedScreenedLog).read().split("\n")
 		vidLink=" ".join(map(str,argv[1:])).replace('\\','/')
 		downloadMusic(vidLink,musicDir)
 			
@@ -176,7 +181,8 @@ if __name__ == "__main__":
 			DEFAULT_LINKS=argv[1:]
 		
 		vidList=getVidList(DEFAULT_LINKS)
-		
+		deletedMusicList=open(deletedScreenedLog).read().split("\n")
+
 		for vidLink in vidList:
 			if(vidLink is not None):
 				#downloadMusic(vidLink,screeningDir)

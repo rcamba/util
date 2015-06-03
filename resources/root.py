@@ -28,6 +28,7 @@ downloadedTorFiles=utilResourceDir+"\\logs\\downloadedAnimeTorrents.log"
 toDoListTextFile=utilResourceDir+"\\logs\\toDoListFile.log"
 prevDirFile=utilResourceDir+"\\logs\\prevDir.log"
 prandomExceptions=utilResourceDir+"\\logs\\prandomexceptiontags.log"
+deletedScreenedLog=utilResourceDir+"\\logs\\deletedScreenedLog.log"
 
 #Variables
 MAX_WAIT_TIME=30 #seconds
