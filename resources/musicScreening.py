@@ -1,5 +1,5 @@
 from tag import getFilenameList, addTags, removeTags
-from root import screeningDir, musicDir
+from root import screeningDir, musicDir, deletedScreenedLog
 from os import listdir, system, kill, path, rename, remove as os_remove
 from string import lower
 from msvcrt import kbhit, getch
@@ -20,6 +20,7 @@ def killVLC(tries=0):
 					kill(pid, SIGILL)
 			except error.NoSuchProcess:
 				tries+=1
+				sleep(1)
 				killVLC(tries)
 		
 	else:
@@ -89,13 +90,22 @@ def handleTagging(musicList, musicFileName, i):
 	tagList=raw_input("Enter tag(s). Separate with commas\n").split(',')
 	print ""
 	addTags(tagList,filename)
-	
+
+def addToDeletedLog(targ):
+	writer=open(deletedScreenedLog,'a')
+	targ=targ.replace("\"","")
+	targ=path.splitext(path.split(targ)[1])[0]
+	writer.write(targ)
+	writer.write("\n")
+	writer.close()
+
 def handleDelete(musicList, i):
 	
 	removeTags(["screen"], musicList[i].replace("\"",""))
 	os_remove( musicList[i].replace("\"","") )
 	if path.exists(musicList[i])==False: 
 		print "Delete successful\n"
+		addToDeletedLog(musicList[i])
 		musicList.pop(i)
 	else:
 		print "Failed to delete file"
