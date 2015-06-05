@@ -593,7 +593,7 @@ def createBackUp(fileName, setBackUpDir=""):#backup before opening/writing to tx
 			copy2(fileName,dirName)
 
 		except IOError:
-			print "Error, cannot access directory or directory is invalid."
+			errorAlert("Error, cannot access directory or directory is invalid.", True, IOError)
 
 
 		chdir(dirName)
@@ -611,7 +611,6 @@ def createBackUp(fileName, setBackUpDir=""):#backup before opening/writing to tx
 				except:
 					timeCounter=time()-initTime
 					#print "Failed to rename ", str(path.split(fileName)[1]), " to ", datedFileName
-
 
 
 	else:
@@ -906,7 +905,7 @@ def printColored(text, color):
 	setConsoleColor(origColor)
 
 
-def errorAlert(msg="", raiseException=False):
+def errorAlert(msg="", raiseException=False, errorClass=None):
 
 	originalCmdFGColor=getConsoleColor()
 	setConsoleColor("red")
@@ -916,7 +915,10 @@ def errorAlert(msg="", raiseException=False):
 	setConsoleColor(originalCmdFGColor)
 
 	if raiseException==True:
-		raise Exception
+		if errorClass!=None:
+			raise errorClass(msg)
+		else:
+			raise Exception(msg)
 
 	return msg
 
