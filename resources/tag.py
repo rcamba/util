@@ -170,12 +170,13 @@ def removeTags(tagList, filename):
 
 
 def __writeTagFile__(changesDict, mode):
-
 	"""
 	mode:
 		w -- re-write entire tag file-> used for removing tags
 		a -- append to tag file -> used for adding tags
 	"""
+	if (mode=='a' or mode=='w')==False:
+		raise ValueError("mode must be either 'a' or 'w'")
 
 	for key in changesDict.keys():
 		tagFile=path.join(tagFilesLogDir, key+".tag")
