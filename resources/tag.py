@@ -1,5 +1,5 @@
 from os import path, getcwd, listdir, chdir
-from root import errorAlert, removedFilesLog, chooseFromList, printList, createBackUp, setClipboardData, tagFilesLogDir
+from root import errorAlert, removedFilesLog, chooseFromList, printList, createBackUp, setClipboardData, tagFilesLogDir, backUpDir
 from string import rstrip, lower, strip
 from re import findall
 from collections import OrderedDict
@@ -89,20 +89,17 @@ def addTags(tagList, filename):
 		if len(validatedFilename)>0:
 			tagFilesList=listdir(tagFilesLogDir)
 			tagFilesList=[ path.splitext(t)[0] for t in tagFilesList]
+
 			if tag in tagFilesList:
 				tagFileLine=open( path.join(tagFilesLogDir, tag+".tag") ).read()
 				tag, fileStringList=tagFileLine.split('::')
 				filenameList=convertToFilenameList(fileStringList)
 				if validatedFilename in filenameList:#check if tag already has file in its filelist
 					errorAlert(validatedFilename + " already has tag: "+ tag, raiseException=True)
-				else:
-					filenameList.append(validatedFilename)
-					changesDict[tag]=filenameList
-
 			else:
-				changesDict[tag]=[validatedFilename]
 				print "Creating new tag: ", tag
 
+			changesDict[tag]=[validatedFilename]
 
 			__writeTagFile__(changesDict,'a')
 
@@ -174,12 +171,19 @@ def __writeTagFile__(changesDict, mode):
 
 	for key in changesDict.keys():
 		tagFile=path.join(tagFilesLogDir, key+".tag")
-		createBackUp( tagFile, path.join(backUpDir, "tagFile") )
+
+		if path.exists(tagFile):
+			createBackUp( tagFile, path.join(backUpDir, "tagFile") )
+		else:
+			mode='w'
+
 		writer=open(tagFile,mode)
 
 		fileList= changesDict[key]
-		writer.write(key)
-		writer.write(key+"::")
+
+		if mode=='w':
+			writer.write(key+"::")
+
 		for file in fileList:
 			writer.write("\"" + lower(file) + "\" ")
 
