@@ -113,7 +113,8 @@ def writeToFile(tagList, mode):
 			
 			fileList=tagList[i].getStringList()
 			if(len(fileList)>0):
-				s="".join([tagList[i].getTag().strip()," ",fileList])#choosing not to standardizeString because some tags require to be capitalized such as DIY
+				s="".join([tagList[i].getTag().strip(),"::",fileList])#choosing not to standardizeString because some tags require to be capitalized such as DIY
+				#CONVERSION HERE :: on " "
 				
 				f.write(s)
 				f.write("\n")

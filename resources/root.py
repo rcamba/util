@@ -13,10 +13,10 @@ screeningDir=path.join(homeDrive,sep,homePath,username,"Music","ytcon","screen")
 backUpDir=path.join(homeDrive,sep,homePath,username,"backUp")
 ytAMVDir=path.join(homeDrive,sep,homePath,username,"Videos","ytAMV")
 ytDownloadsDir=path.join(homeDrive,sep,homePath,username,"Videos","ytVids")
-#ytAnShows=path.join(homeDrive,sep,homePath,username,"Videos","ytAnShows")
+tagFilesLogDir=path.join(utilResourceDir,"logs","tagFilesLog")
 
 #Files
-#animedLog=path.join(utilResourceDir,"logs","animedir.log")
+
 songLogFile=path.join(utilResourceDir,"logs","prandomSongsLog.log")
 removedFilesLog=path.join(utilResourceDir,"logs","removedFilesLog.log")
 hibLog=path.join(utilResourceDir,"logs","hibLog.log")

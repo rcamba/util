@@ -1,6 +1,7 @@
 *.pyc
 *.class
 *.log
+*.tag
 resources/log
 resources/dependencies
 resources/BETA_getAnimeTorrents.py
