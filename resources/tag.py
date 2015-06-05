@@ -1,5 +1,5 @@
 from os import path, getcwd, listdir, chdir
-from root import errorAlert, removedFilesLog, chooseFromList, printList, createBackUp, setClipboardData, tagFile, tagFilesLogDir
+from root import errorAlert, removedFilesLog, chooseFromList, printList, createBackUp, setClipboardData, tagFilesLogDir
 from string import rstrip, lower, strip
 from re import findall
 from collections import OrderedDict
@@ -35,11 +35,6 @@ def reconstructTagDict():
 
 	return rTagDict
 
-def setTagFile(newTagFile=r"C:\Users\Kevin\Util\resources\unitTests\tagFileTest.txt", newLogsDir=r"c:\users\kevin\util\resources\unitTests\tagLogsTest"):#for testing
-	global tagFile
-	global tagLogsDir
-	tagFile=newTagFile
-	tagLogsDir=newLogsDir
 
 def logRemovedFile(msg):
 	writer=open(removedFilesLog,'a')
@@ -86,37 +81,33 @@ def validateFilenameList(filenameList, assocTag=""):
 	return validFileList
 
 def addTags(tagList, filename):
-
+	changesDict={}
 	for tag in tagList:
 		tag=lower(tag).strip()
 
 		validatedFilename=validateFilename(filename, tag)
 		if len(validatedFilename)>0:
-			tagDict=loadTagDict()
-
-			if tagDict.has_key(tag):
-
-				if len(tagDict[tag])!=len(set(tagDict[tag])) or validatedFilename in tagDict[tag]:#check for duplicates i.e tag already has file in its filelist
-					duplicateList= list (set([x for x in tagDict[tag] if tagDict[tag].count(x) > 1]) )
-
-					if len(duplicateList)==0:#adding existing filename into tag
-						duplicateList=[validatedFilename]
-
-					for d in duplicateList:
-						errorAlert(validatedFilename + " already has tag: "+ tag)
+			tagFilesList=listdir(tagFilesLogDir)
+			tagFilesList=[ path.splitext(t)[0] for t in tagFilesList]
+			if tag in tagFilesList:
+				tagFileLine=open( path.join(tagFilesLogDir, tag+".tag") ).read()
+				tag, fileStringList=tagFileLine.split('::')
+				filenameList=convertToFilenameList(fileStringList)
+				if validatedFilename in filenameList:#check if tag already has file in its filelist
+					errorAlert(validatedFilename + " already has tag: "+ tag, raiseException=True)
 				else:
-					tagDict[tag].append(validatedFilename)
+					filenameList.append(validatedFilename)
+					changesDict[tag]=filenameList
 
-				#tagDict[tag]= list(set(tagDict[tag])) #remove files in same tag
 			else:
-				tagDict[tag]=[validatedFilename]
+				changesDict[tag]=[validatedFilename]
 				print "Creating new tag: ", tag
 
 
-			__writeTagFile__(tagDict)
+			__writeTagFile__(changesDict,'a')
 
 		else:
-			errorAlert( "No valid file to add. No changes have been made")
+			errorAlert( "Unable to tag invalid file: " + filename)
 
 def tagMultipleFiles(tag, filenameList):
 
@@ -206,7 +197,8 @@ def convertToFilenameList(fileStringList):
 	return res
 
 def loadTagDict():
-
+	return reconstructTagDict()
+	"""
 	reader=open(tagFile)
 	lineList=map(rstrip, reader.readlines())
 
@@ -230,7 +222,7 @@ def loadTagDict():
 		__writeTagFile__(tagDict)
 
 	return tagDict
-
+	"""
 def getFilenameList(tagList):#str or list
 	if type(tagList)==str:
 		tagList=[tagList]
