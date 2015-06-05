@@ -563,11 +563,12 @@ def fileSearch(targetFile, topLevel="C:\\Users\\Kevin\\", strict=True):
 
 
 
-def createBackUp(fileName):#backup before opening/writing to txt files
+def createBackUp(fileName, setBackUpDir=""):#backup before opening/writing to txt files
 	from shutil import copy2
 	from os import mkdir, path, rename, chdir, getcwd
 	from datetime import datetime
 	from time import sleep, time
+	global backUpDir
 
 	originalDir=getcwd()
 	#print "Creating backup copy of: ", fileName
@@ -577,7 +578,11 @@ def createBackUp(fileName):#backup before opening/writing to txt files
 		extension=path.splitext(fileName)[1]
 		slicedFileName=path.splitext( path.split(fileName)[1] )[0]#cuts extension and path from filename
 
-		dirName="".join([backUpDir,"\\",slicedFileName])
+		if len(setBackUpDir)>0:
+			backUpDir=setBackUpDir
+
+		dirName=path.join(backUpDir,slicedFileName)
+
 		if(path.isdir(dirName)==False):
 			print "Creating new directory: ", dirName
 			mkdir(dirName)
@@ -901,13 +906,17 @@ def printColored(text, color):
 	setConsoleColor(origColor)
 
 
-def errorAlert(msg=""):
+def errorAlert(msg="", raiseException=False):
 
 	originalCmdFGColor=getConsoleColor()
 	setConsoleColor("red")
 	msg= "\nERROR: "+ msg
+
 	print msg
 	setConsoleColor(originalCmdFGColor)
+
+	if raiseException==True:
+		raise Exception
 
 	return msg
 
