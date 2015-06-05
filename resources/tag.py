@@ -1,4 +1,4 @@
-from os import path, getcwd, listdir, chdir
+from os import path, getcwd, listdir, chdir, remove as removeFile
 from root import errorAlert, removedFilesLog, chooseFromList, printList, createBackUp, setClipboardData, tagFilesLogDir, backUpDir
 from string import rstrip, lower, strip
 from re import findall
@@ -28,10 +28,18 @@ def reconstructTagDict():
 	for f in fList:
 		reader=open(path.join(tagFilesLogDir,f),'rb')
 		line=reader.read()#each file only has one line
-		tag, fileStringList=line.split('::')
-		tagFileList=convertToFilenameList(fileStringList)
-		rTagDict[tag]=tagFileList
 		reader.close()
+
+		tag, fileStringList=line.split('::')
+		filenameList=convertToFilenameList(fileStringList)
+		validFileList=validateFilenameList(filenameList, tag)
+		rTagDict[tag]=validFileList
+
+		if len(filenameList)!=len(validFileList): #changes to filelist: a file was removed
+			changesDict={}
+			changesDict[tag]=validFileList
+			print "Updating changes when loading dictionary"
+			__writeTagFile__(changesDict, 'w')
 
 	return rTagDict
 
@@ -69,7 +77,7 @@ def validateFilenameList(filenameList, assocTag=""):
 		if path.isfile(file)==False:
 			if inspect.stack()[1][3]=="addTags":# caller methodName
 				msg=errorAlert("Unable to add to tag " + assocTag + ". "+ file + " is an invalid file. ")
-			elif inspect.stack()[1][3]=="loadTagDict":
+			elif inspect.stack()[1][3]=="reconstructTagDict":
 				msg=errorAlert(file + " is an invalid file. Removed from "+ assocTag +" tag.")
 			else:
 				msg=errorAlert("Removed invalid file " + file)
@@ -180,14 +188,21 @@ def __writeTagFile__(changesDict, mode):
 		writer=open(tagFile,mode)
 
 		fileList= changesDict[key]
+		if len(fileList)>0:
+			if mode=='w':
+				writer.write(key+"::")
 
-		if mode=='w':
-			writer.write(key+"::")
-
-		for file in fileList:
-			writer.write("\"" + lower(file) + "\" ")
+			for file in fileList:
+				writer.write("\"" + lower(file) + "\" ")
 
 		writer.close()
+
+		reader= open(tagFile)
+		content=reader.read()
+		reader.close()
+		if len(  content )==0:
+			print "Empty file list. Removing tag :", key
+			removeFile(tagFile)
 
 
 def convertToFilenameList(fileStringList):
