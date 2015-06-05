@@ -14,7 +14,7 @@ def _splitTagFile():#init -one time
 
 	for key in tagDict.keys():
 		fileList=tagDict[key]
-		writer=open(key+".tag",'a')
+		writer=open(key+".tag",'wb')
 		writer.write(key)
 		writer.write("::")
 		for file in fileList:
@@ -173,29 +173,27 @@ def removeTags(tagList, filename):
 
 
 
-def __writeTagFile__(tagDict):
+def __writeTagFile__(changesDict, mode):
 
-	#def __wtf__(tagDict):
-	createBackUp(tagFile)
-	writer=open(tagFile,'w+')
+	"""
+	mode:
+		w -- re-write entire tag file-> used for removing tags
+		a -- append to tag file -> used for adding tags
+	"""
 
-	tagDict=OrderedDict(sorted(tagDict.items(), key=lambda t: lower(t[0])))
+	for key in changesDict.keys():
+		tagFile=path.join(tagFilesLogDir, key+".tag")
+		createBackUp( tagFile, path.join(backUpDir, "tagFile") )
+		writer=open(tagFile,mode)
 
-	for key in tagDict.keys():
+		fileList= changesDict[key]
+		writer.write(key)
+		writer.write(key+"::")
+		for file in fileList:
+			writer.write("\"" + lower(file) + "\" ")
 
-		fileList=tagDict[key]
+		writer.close()
 
-		if len(fileList)>0:
-			writer.write(key+"::")
-			for file in fileList:
-
-				writer.write("\"" + lower(file) + "\" ")
-
-			writer.write("\n")
-
-	writer.close()
-
-	#Thread(target=__wtf__, args=(tagDict,)).start()
 
 def convertToFilenameList(fileStringList):
 	res=[]
