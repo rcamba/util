@@ -1,7 +1,7 @@
 from os import system, getpid
 from time import sleep
 
-from root import resizeWindow, moveWindow, getClipboardData, setClipboardData, sVLC_PID
+from root import resizeWindow, moveWindow, getClipboardData, setClipboardData
 from mouseMacro import getpos, move
 from get_VLC_Title import get_VLC_Title, findFilePath
 from tag import getTagList
@@ -13,7 +13,7 @@ resizeWindow(windowWidth,windowHeight,"",getpid())
 #moveWindow( (1920/2)-(windowWidth/2), (1080/2)-(windowHeight/2), "", getpid())
 if getpos()[0]>1920:
 	moveWindow( int(3840*0.75)-(windowWidth/2), getpos()[1]-200, "", getpid())
-	
+
 else:
 	moveWindow( (1920/2)-(windowWidth/2), getpos()[1]-200, "", getpid())
 
