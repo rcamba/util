@@ -1,16 +1,16 @@
-from os import path, getcwd, listdir, chdir, remove as removeFile
-from root import errorAlert, removedFilesLog, chooseFromList, printList, createBackUp, setClipboardData, tagFilesLogDir, backUpDir
-from string import rstrip, lower, strip
+from os import path, getcwd, listdir, remove as removeFile
+from root import errorAlert, removedFilesLog, createBackUp,  tagFilesLogDir, backUpDir
+from string import lower, strip
 from re import findall
-from collections import OrderedDict
 from sys import argv
 from threading import Thread
 
 import inspect
 
+"""
 def _splitTagFile():#init -one time
 	chdir(tagFilesLogDir)
-	tagDict=loadTagDict()
+	tagDict=reconstructTagDict()
 
 	for key in tagDict.keys():
 		fileList=tagDict[key]
@@ -21,25 +21,35 @@ def _splitTagFile():#init -one time
 			writer.write("\""+file+"\"")
 			writer.write(" ")
 		writer.close()
+"""
+def _rtd(f, rTagDict):
+	reader=open(path.join(tagFilesLogDir,f),'rb')
+	line=reader.read()#each file only has one line
+	reader.close()
+
+	tag, fileStringList=line.split('::')
+	filenameList=convertToFilenameList(fileStringList)
+	validFileList=validateFilenameList(filenameList, tag)
+	rTagDict[tag]=validFileList
+
+	if len(filenameList)!=len(validFileList): #changes to filelist: a file was removed
+		changesDict={}
+		changesDict[tag]=validFileList
+		print "Updating changes when loading dictionary"
+		__writeTagFile__(changesDict, 'w')
 
 def reconstructTagDict():
+
 	fList=listdir(tagFilesLogDir)
 	rTagDict={}
+	tList=[]
 	for f in fList:
-		reader=open(path.join(tagFilesLogDir,f),'rb')
-		line=reader.read()#each file only has one line
-		reader.close()
+		#_rtd(f,rTagDict)
+		tList.append(Thread(target=_rtd, args=(f,rTagDict)))
+		tList[len(tList)-1].start()
 
-		tag, fileStringList=line.split('::')
-		filenameList=convertToFilenameList(fileStringList)
-		validFileList=validateFilenameList(filenameList, tag)
-		rTagDict[tag]=validFileList
-
-		if len(filenameList)!=len(validFileList): #changes to filelist: a file was removed
-			changesDict={}
-			changesDict[tag]=validFileList
-			print "Updating changes when loading dictionary"
-			__writeTagFile__(changesDict, 'w')
+	for t in tList:
+		t.join()
 
 	return rTagDict
 
@@ -72,7 +82,6 @@ def validateFilenameList(filenameList, assocTag=""):
 
 		if path.isabs(file)==False:
 			file=getcwd()+'\\'+file
-
 
 		if path.isfile(file)==False:
 			if inspect.stack()[1][3]=="addTags":# caller methodName
@@ -208,33 +217,7 @@ def convertToFilenameList(fileStringList):
 
 	return res
 
-def loadTagDict():
-	return reconstructTagDict()
-	"""
-	reader=open(tagFile)
-	lineList=map(rstrip, reader.readlines())
 
-	tagDict={}
-	changes=False
-	for line in lineList:
-
-		tag, fileStringList=line.split('::')
-		tag=lower(tag)
-
-		filenameList=convertToFilenameList(fileStringList)
-		validFileList=validateFilenameList(filenameList, tag)
-		tagDict[tag]=validFileList
-		#list( set ( validFileList) ) #force rid of duplicates...
-
-		if len(filenameList)!=len(validFileList): #changes to filelist: a file was removed
-			changes=True
-
-	if changes==True:
-		print "Updating changes when loading dictionary"
-		__writeTagFile__(tagDict)
-
-	return tagDict
-	"""
 def getFilenameList(tagList):#str or list
 	if type(tagList)==str:
 		tagList=[tagList]
@@ -258,35 +241,31 @@ def getFilenameList(tagList):#str or list
 	return result
 
 
-
 def getTagList(filename=""):
-	tagDict=loadTagDict()
+	tagDict=reconstructTagDict()
 
 	if len(filename)==0:
 		tagList= tagDict.keys()
 	else:
 		tagList=[]
 		filename=validateFilename(filename)
-		for key in tagDict.keys():
-			if filename in tagDict[key]:
-				tagList.append(key)
+		tagList=[key for key in tagDict.keys() if filename in tagDict[key]]
 
 	return tagList
 
 def getMixedFilenameList(tagList):#for prand
 	res=[]
+
 	for tag in tagList:
 		res.extend(getFilenameList(tag))
 	res=list(set(res))
+
 	return res
 
 if __name__=="__main__":
 
-
 	if len(argv)>1:
 		tagList=raw_input("Enter tag(s). Separate with commas\n").split(',')
-
-
 
 		addTags(tagList,argv[1])
 	else:
