@@ -1,7 +1,6 @@
-#
 from sys import argv
 from os import listdir,path, system
-from root import screeningDir, musicDir, printNumberedList
+from root import screeningDir
 
 
 def convertToMp3(mp4File):
@@ -18,10 +17,10 @@ def getMp4List(givenDir):
 			mp4List[i]="\""+givenDir+"\\"+mp4List[i]+"\""
 		else:
 			mp4List.remove(mp4List[i])
-		
+
 	return mp4List
 if __name__ == "__main__":
-	
+
 	if len(argv) >1:
 		convertToMp3(argv[1])
 	else:
