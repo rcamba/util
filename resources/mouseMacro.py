@@ -186,6 +186,5 @@ if __name__ == '__main__':
 				keyboardType(arg)
 				keyboardType(" ")
 			rightclick()
-			
-	
-	
+
+

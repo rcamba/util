@@ -49,7 +49,7 @@ COLOR_CHOICES=dict(
 	BACKGROUND_MAGENTA   = 0x0050,
 	BACKGROUND_YELLOW    = 0x0060,
 	BACKGROUND_GREY      = 0x0070,
-	BACKGROUND_INTENSITY = 0x0080) 
+	BACKGROUND_INTENSITY = 0x0080)
 
 stdout_handle = windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
 SetConsoleTextAttribute = windll.kernel32.SetConsoleTextAttribute
@@ -73,4 +73,4 @@ def setConsoleColor(color):
 	"""
 
 	SetConsoleTextAttribute(stdout_handle, color)
-  
+
