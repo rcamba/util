@@ -2,7 +2,6 @@ import unittest
 
 
 from string import rstrip, lower
-from tag import addTags, validateFilenameList, getFilenameList, getTagList, validateFilename, removeTags, tagMultipleFiles, getMixedFilenameList,  loadTagDict, reconstructTagDict
 import tag
 from mock import MagicMock, patch, mock_open
 from os import chdir, listdir
@@ -25,7 +24,7 @@ class TestValidateFilenameList(unittest.TestCase):
 
 	def testValidateStrOnly(self):
 		filenameList=f1
-		validFileList=validateFilenameList(filenameList)
+		validFileList=tag.validateFilenameList(filenameList)
 
 		self.assertEqual(validFileList,
 		[f1] )
@@ -33,37 +32,37 @@ class TestValidateFilenameList(unittest.TestCase):
 	def testValidateFileList(self):
 		filenameList=[f1,f2,f3]
 
-		validFileList=validateFilenameList(filenameList)
+		validFileList=tag.validateFilenameList(filenameList)
 
 		self.assertEqual(validFileList, filenameList)
 
 	def testInvalidFileInList(self):
 		filenameList=[f1,f2, invf1]
 
-		validFileList=validateFilenameList(filenameList)
+		validFileList=tag.validateFilenameList(filenameList)
 
 		self.assertEqual(validFileList, filenameList[:-1])
 
 	def testInvalidStrInLList(self):
 		filenameList=invf1
 
-		validFileList=validateFilenameList(filenameList)
+		validFileList=tag.validateFilenameList(filenameList)
 		self.assertEqual(validFileList, [])
 
 	def testNoAbsPath(self):
 		filenameList=r"d2.mp3"
 		chdir(r"c:\users\kevin\util\resources\unittests\testtagfilesdir")
-		validFileList=validateFilenameList(filenameList)
+		validFileList=tag.validateFilenameList(filenameList)
 
 		resultList=[f2]
 
 		self.assertEquals(validFileList,resultList)
 
 	def testValidateFilename(self):
-		res=validateFilename(f1)
+		res=tag.validateFilename(f1)
 		self.assertEqual(res, f1)
 
-		res=validateFilename(invf1)
+		res=tag.validateFilename(invf1)
 		self.assertEqual(res, "")
 
 
@@ -146,7 +145,7 @@ class TestAddAndGetTags(unittest.TestCase):
 
 		tag.reconstructTagDict=MagicMock(side_effect=[res])
 
-		filenameList=getFilenameList("testTag")
+		filenameList=tag.getFilenameList("testTag")
 		self.assertEqual(filenameList, res["testtag"])
 
 		tag.reconstructTagDict=rtdHolder
@@ -160,7 +159,7 @@ class TestAddAndGetTags(unittest.TestCase):
 
 		tag.reconstructTagDict=MagicMock(side_effect=[res])
 
-		filenameList=getFilenameList("oRanGe")
+		filenameList=tag.getFilenameList("oRanGe")
 		self.assertEqual(filenameList, res["orange"])
 
 		tag.reconstructTagDict=rtdHolder
@@ -175,7 +174,7 @@ class TestAddAndGetTags(unittest.TestCase):
 
 		tag.reconstructTagDict=MagicMock(side_effect=[res,res])
 
-		res=getMixedFilenameList(["diamond","purple"])
+		res=tag.getMixedFilenameList(["diamond","purple"])
 		self.assertEqual( len(res), 2)
 		self.assertEqual( set(res),  set( [f1,f2]) )
 
@@ -190,10 +189,10 @@ class TestAddAndGetTags(unittest.TestCase):
 
 		tag.reconstructTagDict=MagicMock(side_effect=[res,res])
 
-		tagList=getTagList(f1)
+		tagList=tag.getTagList(f1)
 		self.assertEqual( tagList, ["testgreen","testred"])
 
-		tagList=getTagList(f2)
+		tagList=tag.getTagList(f2)
 		self.assertEqual( tagList, ["testred"])
 
 		tag.reconstructTagDict=rtdHolder
@@ -224,12 +223,12 @@ class TestAddAndGetTags(unittest.TestCase):
 		tag.__writeTagFile__= MagicMock()
 
 		fList=[f1,f2,f3]
-		tagMultipleFiles("test multi tag", fList)
+		tag.tagMultipleFiles("test multi tag", fList)
 		tag.__writeTagFile__.assert_any_call({"test multi tag":[f1]},'a')
 		tag.__writeTagFile__.assert_any_call({"test multi tag":[f2]},'a')
 		tag.__writeTagFile__.assert_any_call({"test multi tag":[f3]},'a')
 
-		tagMultipleFiles("abc",  fList)
+		tag.tagMultipleFiles("abc",  fList)
 		tag.__writeTagFile__.assert_any_call({"abc":[f2]},'a')
 		tag.__writeTagFile__.assert_any_call({"abc":[f3]},'a')
 
