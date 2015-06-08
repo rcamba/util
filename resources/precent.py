@@ -6,48 +6,41 @@ Plays the x most recent songs
 -default value for x is 10
 
 """
-from os import system, listdir, stat
+from os import system, listdir, path
 from sys import argv
-from root import musicDir
+from root import musicDir, switchParser
+from getNewestFile import sortByCreationTime
+from tag import getFilenameList
 
-def _loadSongs():
-	songList=[]
-	list=listdir(musicDir)
-	for i in range(0, len(list)):
-		
-		fileName="".join([musicDir,"/",list[i]])
-		fileStat= stat(fileName)
-		
-		songList.append([ (fileStat.st_ctime), ("".join([musicDir,"/\"",list[i],"\""])) ])
-		
-	songList.sort()
-	
-	return songList
+AVAILABLE_SWITCHES=['t','#']
+VALID_EXTENSIONS=["mp3","m4a","flac","ogg","mka"]
 
-def _playRecentSongs(numOfSongs=10):
-	
-	songList=_loadSongs()
-	
-	if(numOfSongs>0):
-		start=(len(songList)-1)
-		end=(len(songList)-1)-numOfSongs
-		inc=-1
+def loadSongs():
+	if 't' in switches:
+		return getFilenameList(switches['t'])
 	else:
-		start=0
-		end=(numOfSongs*-1)
-		inc=1
-		
-	for i in range(start, end, inc ):
-		system(songList[i][1])
+		return [path.join(musicDir,f) for f in listdir(musicDir)]
+
+def getMaxNum():
+	if '#' in switches:
+		return switches['#']
+	else:
+		return 10
+
+def playRecentSongs(sortedSongList):
+
+	for song in sortedSongList:
+		if path.splitext(song)[1][1:].lower() in VALID_EXTENSIONS:
+			system(song)
 
 if __name__ == "__main__":
-	
-	if (len(argv)>1):
-		if(int(argv[1])!=0):
-			_playRecentSongs(int(argv[1]))
-		else:
-			print "Number of songs can't be 0"
-	else:
-		_playRecentSongs()
-	
-	
+	switches=switchParser(argv, AVAILABLE_SWITCHES)
+
+	songList=loadSongs()
+	maxNum=getMaxNum()
+	sortedSongList=sortByCreationTime(songList)
+	sortedSongList=sortedSongList[:maxNum]
+	playRecentSongs(sortedSongList)
+
+
+
