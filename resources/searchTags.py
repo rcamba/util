@@ -3,10 +3,12 @@
 """
 from sys import argv, stdin, stdout
 from root import switchParser, printList, setClipboardData, chooseFromList, pipedList
-from tag import getFilenameList, getTagList
+from tag import getFilenameList, getTagList, getMixedFilenameList
 from string import strip
 import re
-AVAILABLE_SWITCHES=['s','f']
+
+#from fnmatch import translate
+AVAILABLE_SWITCHES=['s','f','*']
 
 def main(argList):
 	if 'f' in switches:
@@ -14,26 +16,25 @@ def main(argList):
 		tagList=getTagList(argList[0])
 		print tagList
 
-	elif any([arg for arg in argList if '*' in arg]):
-		#... just one for now
-		pattern=[arg for arg in argList if '*' in arg][0].replace("*","\w+")
-		pattern="^"+pattern
-
-		pattern = re.compile(pattern)
+	elif '*' in switches:
+		res=[]
 		tList=getTagList()
-		for tag in tList[:]	:
-			if pattern.search(tag)==None:
-				tList.remove(tag)
+		for arg in argList:
+			res.extend([tag for tag in tList if arg in tag])
 
-		chooseFromTags(tList)
+		if 's' in switches:
+			chooseFromTags(res)
+		else:
+			res=map(lambda x: "\""+x+"\"", getMixedFilenameList(res))
+			printList(res)
+
 
 	else:
 		tagList= " ".join(map(str, argList)).split(',')
 		tagList=map(strip,tagList)
-		fileList = getFilenameList( tagList)
 
-		for i in range(0,len(fileList)):
-			fileList[i]="\""+fileList[i]+"\""
+
+		fileList=map(lambda x: "\""+x+"\"", getFilenameList(tagList))
 
 		if 's' in switches:
 			if len(switches['s'])>0:
