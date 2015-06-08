@@ -253,14 +253,20 @@ def getTagList(filename=""):
 
 	return tagList
 
-def getMixedFilenameList(tagList):#for prand
-	res=[]
+def getMixedFilenameList(tagList):#for prand + search
+	result=[]
+	tagDict=reconstructTagDict()
 
+	tagList=map(lower,tagList)
 	for tag in tagList:
-		res.extend(getFilenameList(tag))
-	res=list(set(res))
+		if tagDict.has_key(tag):
+			result.extend(tagDict[tag])
+		else:
+			errorAlert("Tag doesn't exist: " + tag)
 
-	return res
+	result=list(set(result))
+
+	return result
 
 if __name__=="__main__":
 
