@@ -1,5 +1,5 @@
 from tag import getFilenameList, addTags, removeTags
-from root import screeningDir, musicDir, deletedScreenedLog
+from root import screeningDir, musicDir, deletedScreenedLog, errorAlert
 from os import listdir, system, kill, path, rename, remove as os_remove
 from string import lower
 from msvcrt import kbhit, getch
@@ -20,18 +20,32 @@ def killVLC(tries=0):
 					kill(pid, SIGILL)
 			except error.NoSuchProcess:
 				tries+=1
-				sleep(1)
+				print "Tries: " + tries
+				print "PID: " + pid
+				sleep(tries)
 				killVLC(tries)
 
 	else:
 		raise Exception("VLC not found after 3 tries")
 
 
-def pollForVLCExistance():
-	procNameList=[ Process(pid).name for pid in  get_pid_list()  ]
+def getProcNameList():
+	procNameList=[]
+	for pid in  get_pid_list():
+		try:
+			procNameList.append( Process(pid).name)
+		except error.NoSuchProcess:
+			pass
 
-	while "vlc.exe" not in procNameList:
-		procNameList=[ Process(pid).name for pid in  get_pid_list()  ]
+	return procNameList
+
+
+def waitUntilVLCDead():
+	procNameList=getProcNameList()
+
+	while "vlc.exe" in procNameList:
+		procNameList=getProcNameList()
+
 		sleep(0.5)
 
 
@@ -39,7 +53,7 @@ def getKeyPress():
 
 	print "Type [k] to keep, [t] to keep and tag, [d] to delete track or [q] for quit"
 	result=""
-	#pollForVLCExistance()
+
 	while (result==""):
 
 		if kbhit():
@@ -50,6 +64,16 @@ def getKeyPress():
 
 	result=lower(result)
 	return result
+
+def getResumeConfirmation():
+	userIn=raw_input().lower()
+	print "Type 'continue' and press enter to resume"
+	if userIn=="continue":
+		return True
+	else:
+		print "You typed : " + userIn
+		errorAlert("Type 'continue' and press enter to resume")
+		return False
 
 def cutDir(fileName):
 	return path.split(fileName)[1]
@@ -150,22 +174,33 @@ def startScreening(musicList):
 
 	quit=False
 	for i in range(len(musicList)-1,-1,-1):
-
+		invalidKeyPress=0
 		if(quit==False):
 
 			system( "".join(["\"",musicList[i],"\""]) )
 
 			print "Playing: ", musicList[i]
-			#system( "\"C:\\Program Files\\Rainmeter\\Rainmeter.exe\" !Refresh  Enigma\\Sidebar\\Music" ) # rid? rarely look at desktop anyway?
 
 			prompt=getKeyPress()
 
 			while all([prompt!="k", prompt!="d" , prompt!="t", prompt!="q"]):
 				print "Invalid selection"
+				invalidKeyPress+=1
+				if invalidKeyPress>2:
+					confirmResume=False
+
+					errorAlert("Too many invalid keypresses->Pausing")
+					while(confirmResume==False):
+
+						confirmResume=getResumeConfirmation()
+
 				prompt=getKeyPress()
+
+
 
 			else:
 				killVLC()
+				waitUntilVLCDead()
 				musicFileName=musicList[i].replace("\"","")
 				if(prompt=="k"):
 					handleKeep(musicFileName, i)
