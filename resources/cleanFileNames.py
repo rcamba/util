@@ -40,7 +40,7 @@ def cleanFileNames(directory):
 
 	for i in range(len(fileList)-1,-1,-1):
 
-		fileList[i]=standardizeFile(fileList[i])
+		#fileList[i]=standardizeFile(fileList[i])
 
 		cleaned=cleanString(fileList[i])
 
@@ -102,7 +102,7 @@ def renameFiles(changesDict, directory):
 		print key + " ---> " + changesDict[key]
 		if 'p' not in switches: #if not printing only...
 			try:
-				rename(key, changesDict[key] )
+				rename(path.join(directory,key), path.join(directory,changesDict[key]))
 			except WindowsError:
 				errorAlert("Unable to rename " + key + " in to " + changesDict[key] +". Stopping program.")
 				sys_exit(1)
@@ -136,5 +136,6 @@ if __name__ == "__main__":
 			choice=raw_input(promptStr).lower()
 
 		if choice=='y':
-			main(getcwd())
+			#main(getcwd())
+			main(u'.')
 
