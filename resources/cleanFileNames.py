@@ -32,6 +32,14 @@ def screenTagging():
 	else:
 		print "Wrong directory: Need screening directory"
 
+def unicodeToRomaji(word):
+
+	word=word.replace("\u3044","i").replace("\u30e0","mu").replace("\u30c9","do").replace("\u3055","sa").replace("\u308f","wa").replace("\u3084","ya").replace("\u304b","ka").replace("\u306a","na").replace("\u671d","asa").replace("\u30e2","mo").replace("\u30ce","no").replace("\u7533","saru").replace("\u3059","su").replace("\u7dca","jin").replace("\u5f35","cho").replace("\u611f","kan").replace("\u51fa","de").replace("\u4f1a","kai").replace("\u697d","raku").replace("\u3057","shi").replace("\u306d","ne").replace("\u3047","e").replace("\u5c0f","ko").replace("\u7af6","keiri").replace("\u5408","go").replace("\u672c","hon").replace("\u266a","").replace("\u308a","ri").replace("\u6c17","ki").replace("\uff01","")
+
+	if "\u30fc" in word:
+		word= word.replace("\u30fc", word[word.index("\u30fc")-1])
+
+	return word
 
 def cleanFileNames(directory):
 
@@ -45,6 +53,7 @@ def cleanFileNames(directory):
 		cleaned=cleanString(fileList[i])
 
 		if(fileList[i]!=cleaned):
+			print "added", fileList[i].encode("unicode_escape")
 			changesDict[fileList[i]]=cleaned
 
 	return changesDict
@@ -72,6 +81,9 @@ def cleanChars(dirtyStr):
 
 
 def cleanString(dirtyStr, testOutput=None):
+	dirtyStr=dirtyStr.encode("unicode_escape")
+	dirtyStr=unicodeToRomaji(dirtyStr)
+
 	cleaned=cleanChars(dirtyStr)
 
 	token=path.splitext(cleaned)
