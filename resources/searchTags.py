@@ -22,7 +22,7 @@ def main(argList):
 		tList=getTagList()
 
 		#res.extend([tag for tag in tList if arg in tag])
-		pattern=translate(argList[0])
+		pattern=translate(" ".join(argList))
 		reObj=re.compile(pattern)
 		for tag in tList:
 			match=reObj.findall(tag)
@@ -35,7 +35,7 @@ def main(argList):
 			printList(fList)
 			print res
 
-		else:
+		elif len(res)>0:
 			chooseFromTags(res)
 
 
