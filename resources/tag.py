@@ -1,10 +1,11 @@
 from os import path, getcwd, listdir, remove as removeFile
-from root import errorAlert, removedFilesLog, createBackUp,  tagFilesLogDir, backUpDir
+from root import errorAlert, removedFilesLog, createBackUp,  tagFilesLogDir, backUpDir, pipedList, keyPressInput
 from string import lower, strip
 from re import findall
-from sys import argv
+from sys import argv, stdin
 from threading import Thread
-
+from fnmatch import translate
+import re
 import inspect
 
 """
@@ -22,7 +23,7 @@ def _splitTagFile():#init -one time
 			writer.write(" ")
 		writer.close()
 """
-def _rtd(f, rTagDict):
+def _rtd(f, rTagDict, changesDict):
 	reader=open(path.join(tagFilesLogDir,f),'rb')
 	line=reader.read()#each file only has one line
 	reader.close()
@@ -33,23 +34,26 @@ def _rtd(f, rTagDict):
 	rTagDict[tag]=validFileList
 
 	if len(filenameList)!=len(validFileList): #changes to filelist: a file was removed
-		changesDict={}
 		changesDict[tag]=validFileList
-		print "Updating changes when loading dictionary"
-		__writeTagFile__(changesDict, 'w')
 
 def reconstructTagDict():
 
 	fList=listdir(tagFilesLogDir)
 	rTagDict={}
 	tList=[]
+
+	changesDict={}
 	for f in fList:
-		#_rtd(f,rTagDict)
-		tList.append(Thread(target=_rtd, args=(f,rTagDict)))
+		tList.append(Thread(target=_rtd, args=(f,rTagDict,changesDict)))
 		tList[len(tList)-1].start()
 
 	for t in tList:
 		t.join()
+
+	if len(changesDict)>0:
+		print "Updating changes when loading dictionary"
+		print "Tags to be updated: " + str(changesDict.keys())
+		__writeTagFile__(changesDict, 'w')
 
 	return rTagDict
 
@@ -86,7 +90,7 @@ def validateFilenameList(filenameList, assocTag=""):
 		if path.isfile(file)==False:
 			if inspect.stack()[1][3]=="addTags":# caller methodName
 				msg=errorAlert("Unable to add to tag " + assocTag + ". "+ file + " is an invalid file. ")
-			elif inspect.stack()[1][3]=="reconstructTagDict":
+			elif inspect.stack()[1][3]=="_rtd":
 				msg=errorAlert(file + " is an invalid file. Removed from "+ assocTag +" tag.")
 			else:
 				msg=errorAlert("Removed invalid file " + file)
@@ -179,14 +183,18 @@ def __writeTagFile__(changesDict, mode):
 	if (mode=='a' or mode=='w')==False:
 		raise ValueError("mode must be either 'a' or 'w'")
 
+	origMode=mode
 	for key in changesDict.keys():
 		tagFile=path.join(tagFilesLogDir, key+".tag")
 
 		if path.exists(tagFile):
 			createBackUp( tagFile, path.join(backUpDir, "tagFile") )
+			if origMode=='a':
+				mode='a'
 		else:
 			mode='w'
-
+			print "Mode set to 'w' for: "  + key
+			print "Number of files: " + str(len(changesDict[key])) + "\n"
 		writer=open(tagFile,mode)
 
 		fileList= changesDict[key]
@@ -203,7 +211,9 @@ def __writeTagFile__(changesDict, mode):
 		content=reader.read()
 		reader.close()
 		if len(  content )==0:
-			print "Empty file list. Removing tag :", key
+			msgLog="Empty file list. Removing tag :" + key
+			errorAlert(msgLog)
+			logRemovedFile(msgLog)
 			removeFile(tagFile)
 
 
@@ -268,11 +278,45 @@ def getMixedFilenameList(tagList):#for prand + search
 
 	return result
 
+def regexGetTag(argList):
+	res=[]
+	tList=getTagList()
+
+	#res.extend([tag for tag in tList if arg in tag])
+
+	pattern=translate(" ".join(argList))
+	reObj=re.compile(pattern)
+	for tag in tList:
+		match=reObj.findall(tag)
+		if len(match)>0:
+			res.append(tag)
+
+
+	return res
+
+def handleTagSwitch(switch, **kwargs):
+	if switch=="e": #exception
+		pass
+	elif switch=="r": #regex
+		print kwargs
+		return regexGetTag(kwargs["argList"])
+	elif switch=="m": #mixed
+		pass
+	elif switch=="": #
+		pass
+
 if __name__=="__main__":
 
 	if len(argv)>1:
 		tagList=raw_input("Enter tag(s). Separate with commas\n").split(',')
 
 		addTags(tagList,argv[1])
+
+	elif stdin.isatty()==False:#for using with nf/search
+		print "Tagging pipes"
+		fileList=pipedList( "".join(map(str,stdin.readlines())) )
+		tagList=keyPressInput("Enter tag(s). Separate with commas").split(',')
+		for tag in tagList:
+			tagMultipleFiles(tag, fileList)
 	else:
 		print "Missing args"

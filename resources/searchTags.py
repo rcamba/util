@@ -3,10 +3,9 @@
 """
 from sys import argv, stdin, stdout
 from root import switchParser, printList, setClipboardData, chooseFromList, pipedList
-from tag import getFilenameList, getTagList, getMixedFilenameList
+from tag import getFilenameList, getTagList, handleTagSwitch
 from string import strip
-from fnmatch import translate
-import re
+
 
 
 AVAILABLE_SWITCHES=['s','f','r']
@@ -18,20 +17,9 @@ def main(argList):
 		print tagList
 
 	elif 'r' in switches:
-		res=[]
-		tList=getTagList()
-
-		#res.extend([tag for tag in tList if arg in tag])
-		pattern=translate(" ".join(argList))
-		reObj=re.compile(pattern)
-		for tag in tList:
-			match=reObj.findall(tag)
-			if len(match)>0:
-				res.append(tag)
-		print res
-
+		res=handleTagSwitch("r", argList=argList)
 		if len(res)==1:
-			fList=map(lambda x: "\""+x+"\"", getMixedFilenameList(res))
+			fList=map(lambda x: "\""+x+"\"", getFilenameList(res))
 			printList(fList)
 			print res
 
