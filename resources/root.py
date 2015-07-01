@@ -866,20 +866,17 @@ def keyboardType(keyChar,targetProgram=""):
 	shell=client.Dispatch("WScript.Shell")
 	if len(targetProgram)>0:
 		shell.AppActivate(targetProgram)
-	if(keyChar=="~"):
-		shell.SendKeys( "{~}")
-	elif(keyChar=="!"):
-		shell.SendKeys( "{!}")
-	elif(keyChar=="+"):
-		shell.SendKeys( "{+}")
+	dictMapping={}
+	dictMapping["~"]= "{~}"
+	dictMapping["!"]="{!}"
+	dictMapping["+"]= "{+}"
+	dictMapping["("]="{(}"
+	dictMapping[")"]= "{)}"
 
-	elif(keyChar=="("):
-		shell.SendKeys( "{(}")
-	elif(keyChar==")"):
-		shell.SendKeys( "{)}")
+	for key in dictMapping.keys():
+		keyChar=keyChar.replace(key, dictMapping[key])
 
-	else:
-		shell.SendKeys(keyChar)
+	shell.SendKeys(keyChar)
 
 def getConsoleColor():
 	from cmdColoring import getConsoleColor as gcc
@@ -1008,6 +1005,31 @@ def drawLoadingBar(drawString):
 	sys.stdout.write("\b"* len(drawString))
 	sys.stdout.flush()
 
+
+def u_listdir(currDir, targ=""):
+	from os import listdir, path
+
+	fList=listdir(unicode(currDir))
+	for i in range(len(fList)-1,-1,-1):
+
+		unicodeFileName=unicode(fList[i])
+		fList[i]= currDir+"\\"+ unicodeFileName
+
+		if targ=="file":
+			if(path.isfile(fList[i])==False):
+				fList.remove(fList[i])
+
+		elif targ=="dir":
+			if(path.isdir(fList[i])==False):
+				fList.remove(fList[i])
+
+	if targ=="dir":
+		fList.insert(0,"..")
+		fList.insert(0,".")
+
+	fList.sort()
+
+	return fList
 
 def __backUpPyAndText__():
 	"""

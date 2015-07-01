@@ -8,5 +8,5 @@ if __name__ == "__main__":
 		keyboardType(arg)
 		keyboardType(" ")
 
-	for ch in cData:
-		keyboardType(ch)
+
+	keyboardType(cData)
