@@ -24,9 +24,8 @@ def _splitTagFile():#init -one time
 		writer.close()
 """
 def _rtd(f, rTagDict, changesDict):
-	reader=open(path.join(tagFilesLogDir,f),'rb')
-	line=reader.read()#each file only has one line
-	reader.close()
+	with open(path.join(tagFilesLogDir,f),'rb') as reader:
+		line=reader.read()#each file only has one line
 
 	tag, fileStringList=line.split('::')
 	filenameList=convertToFilenameList(fileStringList)
@@ -59,9 +58,8 @@ def reconstructTagDict():
 
 
 def logRemovedFile(msg):
-	writer=open(removedFilesLog,'a')
-	writer.write(msg)
-	writer.close()
+	with open(removedFilesLog,'a') as writer:
+		writer.write(msg)
 
 def validateFilename(filename, assocTag=""):
 	validFileList=validateFilenameList( filename, assocTag )
@@ -112,7 +110,8 @@ def addTags(tagList, filename):
 			tagFilesList=[ path.splitext(t)[0] for t in tagFilesList]
 
 			if tag in tagFilesList:
-				tagFileLine=open( path.join(tagFilesLogDir, tag+".tag") ).read()
+				with open(path.join(tagFilesLogDir, tag+".tag")) as  r:
+					tagFileLine=r.read()
 				tag, fileStringList=tagFileLine.split('::')
 				filenameList=convertToFilenameList(fileStringList)
 
@@ -153,7 +152,8 @@ def removeTags(tagList, filename):
 			tag=lower(tag).strip()
 
 			try:
-				tagFileLine=open( path.join(tagFilesLogDir, tag+".tag") ).read()
+				with open(path.join(tagFilesLogDir, tag+".tag")) as r:
+					tagFileLine=r.read()
 				tag, fileStringList=tagFileLine.split('::')
 				filenameList=convertToFilenameList(fileStringList)
 
@@ -195,22 +195,21 @@ def __writeTagFile__(changesDict, mode):
 			mode='w'
 			print "Mode set to 'w' for: "  + key
 			print "Number of files: " + str(len(changesDict[key])) + "\n"
-		writer=open(tagFile,mode)
 
-		fileList= changesDict[key]
-		if len(fileList)>0:
-			if mode=='w':
-				writer.write(key+"::")
+		with open(tagFile,mode) as writer:
 
-			for file in fileList:
-				writer.write("\"" + lower(file) + "\" ")
+			fileList= changesDict[key]
+			if len(fileList)>0:
+				if mode=='w':
+					writer.write(key+"::")
 
-		writer.close()
+				for file in fileList:
+					writer.write("\"" + lower(file) + "\" ")
 
-		reader= open(tagFile)
-		content=reader.read()
-		reader.close()
-		if len(  content )==0:
+		with open(tagFile) as reader:
+			content=reader.read()
+
+		if len(content)==0:
 			msgLog="Empty file list. Removing tag :" + key
 			errorAlert(msgLog)
 			logRemovedFile(msgLog)
@@ -253,7 +252,9 @@ def getFilenameList(tagList):#str or list
 
 def getTagList(filename=""):
 	tagDict=reconstructTagDict()
-
+	#USE THREADING IN reconstructTagDict implement here
+	#check efficiency saved
+	#also do the thing with POPEN on VLC when pranding...
 	if len(filename)==0:
 		tagList= tagDict.keys()
 	else:
@@ -284,7 +285,9 @@ def regexGetTag(argList):
 
 	#res.extend([tag for tag in tList if arg in tag])
 
-	pattern=translate(" ".join(argList))
+	#pattern=translate(" ".join(argList))
+	pattern=(" ".join(argList))
+	print pattern
 	reObj=re.compile(pattern)
 	for tag in tList:
 		match=reObj.findall(tag)
