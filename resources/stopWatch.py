@@ -10,8 +10,9 @@ def wait_for_keypress():
 
 	return True
 
+
 def create_time_diff_str(init_time):
-	DECIMAL_ROUNDING = 3
+	DECIMAL_ROUNDING = 1
 	time_diff = time()-init_time
 	rounded_time_diff = round(time_diff, DECIMAL_ROUNDING)
 
@@ -34,14 +35,18 @@ def create_time_diff_str(init_time):
 
 	return time_diff_str
 
+
+
 def print_time(init_time):
 
+	prev_time_diff_str = ""
 	while kbhit() == False:
 
 		time_diff_str = create_time_diff_str(init_time)
-
-		stdout.write(time_diff_str)
-		stdout.write(len(time_diff_str)*"\b")
+		if time_diff_str != prev_time_diff_str:
+			stdout.write(time_diff_str)
+			stdout.write(len(time_diff_str) * "\b")
+			prev_time_diff_str = time_diff_str
 
 
 def main():
