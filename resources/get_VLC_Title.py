@@ -1,14 +1,15 @@
 from win32gui import GetWindowText, IsWindowEnabled, EnumWindows
 from win32process import GetWindowThreadProcessId
-from psutil import Process, get_pid_list
-from root import vlcTitleFile, setClipboardData, standardizeString, chooseFromList, printList
-from os import listdir, path
+from psutil import process_iter
+from root import vlc_hwnd_log, setClipboardData, printList
+from os import path
+from tag import getTagList
 
 
 def get_hwnds_for_pid (pid):
 	def callback (hwnd, hwnds):
 
-		if (IsWindowEnabled (hwnd)):
+		if (IsWindowEnabled(hwnd)):
 			_, found_pid = GetWindowThreadProcessId(hwnd)
 
 			if found_pid == pid:
@@ -17,112 +18,102 @@ def get_hwnds_for_pid (pid):
 		return True
 
 	hwnds = []
-	EnumWindows (callback, hwnds)
+	EnumWindows(callback, hwnds)
 
 	return hwnds
 
-def get_VLC_Title():
-	vlc_PID=-1
-	vlcTitle=-1
 
-	f=open(vlcTitleFile,"r")
-	vlcNumFromFile=f.read()
+def get_vlc_hwnd():
+	"""
+	Check if vlc_hwnd stored in vlc_hwnd_log file is still for vlc
+	if it is then use it
+	otherwise try to find vlc hwnd
+		finding hwnd requires process ID
+		find PID by iterating through all active processes searching for vlc
+	"""
+
+	vlc_hwnd = -1
+
+	f = open(vlc_hwnd_log, 'r')
+	vlc_num_from_file = f.read()
 	f.close()
 
-	if(vlcNumFromFile.isdigit() and "media player" in GetWindowText( int(vlcNumFromFile) )):
-		vlcHwnd=int(vlcNumFromFile)
-
-		vlcTitle=titleFromHwnd(vlcHwnd)
+	if (vlc_num_from_file.isdigit() and
+			"media player" in GetWindowText(int(vlc_num_from_file))):
+		vlc_hwnd = int(vlc_num_from_file)
 
 	else:
-		pidList=get_pid_list()
-		for i in range(0,len(pidList)):
-			process=Process(pidList[i])
-			if(process.name=="vlc.exe"):
-				vlc_PID=process.pid
-				break;
+		vlc_PID = -1
 
-		hwndList=get_hwnds_for_pid(vlc_PID)
+		for proc in process_iter():
+			if proc.name() == "vlc.exe":
+				vlc_PID = proc.pid
+				break
 
-		for i in range(0,len(hwndList)):
-			if("media player" in GetWindowText (hwndList[i])):
-				#print "-",
-				vlcTitle=titleFromHwnd(hwndList[i])
+		hwnd_list = get_hwnds_for_pid(vlc_PID)
 
-				f=open(vlcTitleFile,"w+")
-				f.write(str(hwndList[i]))
+		for hwnd in hwnd_list:
+			if "VLC media player" in GetWindowText(hwnd):
+				vlc_hwnd = hwnd
+				f = open(vlc_hwnd_log, "w+")
+				f.write(str(hwnd))
 				f.close()
 
-				break;
+	return vlc_hwnd
 
+
+def get_VLC_title(vlc_hwnd):
+
+	vlcTitle = title_from_hwnd(vlc_hwnd)
 	return vlcTitle
 
-def titleFromHwnd(vlcHwnd):
-	return GetWindowText(vlcHwnd).replace("- VLC media player","")
 
-def listAllFiles(fDir):
+def path_from_hwnd(vlc_hwnd):
 
-	fList=[]
-	tempList = listdir(fDir)
+	# VLC Tools -> Preferences -> Show "All" Settings ->
+	# Input/Codecs -> Change title according to current media =$F
+	# Displays file path to current media in VLC window text
 
-	for file in tempList:
-		file="".join([fDir,"\\",file])
+	window_title = GetWindowText(vlc_hwnd)
 
-		if path.isdir(file)==False:
-			fList.append(file)
-		else:
-			fList.extend(listAllFiles(file))
+	translation_dict = {
+		" - VLC media player": "",
+		"file:///": "",
+		"%20": " ",
+		"%28": "(",
+		"%29": ")",
+		"%5B": "[",
+		"%5D": "]",
+		"%27": "'"
+	}
 
-	return fList
+	for key in translation_dict.keys():
+		window_title = window_title.replace(key, translation_dict[key])
+	file_path = path.normpath(window_title)
 
-def searchMusicFileList(musicFileList, targetFile):
-
-	resultsList=[]
-	targetFile=standardizeString(targetFile)
-	resultsList=[musicFile for musicFile in musicFileList if targetFile in standardizeString(musicFile) ]
-
-	return resultsList
-
-
-def findFilePath(vlcTitle):
-	resultsList=[]
-	topLevel="C:\\Users\\Kevin\\Music"
-	musicFileList=listAllFiles(topLevel)
-	if(type(vlcTitle)==str):
-		resultsList=searchMusicFileList(musicFileList,vlcTitle)
-
-		if(len(resultsList)>1):
-			print "More than one result found"
-			printList(resultsList)
-			vlcTitle=chooseFromList(resultsList)
-
-		elif(len(resultsList)==1):
-			vlcTitle=resultsList[0]
-
-		else:
-			print "No results found"
-
-		filePath="".join(['\"',standardizeString(vlcTitle),'\"'])
-	else:
-		print "VLC.exe process not found"
-
-	return filePath
+	return file_path
 
 
+def title_from_hwnd(vlc_hwnd):
+
+	file_path = path_from_hwnd(vlc_hwnd)
+	title = path.split(file_path)[1]
+	return title
 
 
-if __name__ == "__main__":
+def main():
 
-	vlcTitle=get_VLC_Title()
+	vlc_hwnd = get_vlc_hwnd()
+	vlcTitle = get_VLC_title(vlc_hwnd)
+	fp = path_from_hwnd(vlc_hwnd)
+	quoted_fp  = "\"" + fp + "\""
 
 	print "+ Currently playing:"
 	printList([vlcTitle], aes="none")
-	fp=findFilePath(vlcTitle)
-	setClipboardData(fp)
-	printList([fp], aes="none")
+	setClipboardData(quoted_fp)
+	printList([quoted_fp], aes="none")
+	print getTagList(fp)
 
 
-
-
-
-
+if __name__ == "__main__":
+	main()
