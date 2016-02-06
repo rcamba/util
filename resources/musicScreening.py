@@ -151,14 +151,19 @@ def handleKeep(musicFileName, i):
 def startScreening(musicList):
 
 	global glob_vlc_proc
-	quit=False
+
+	class Quit:
+		def __init__(self):
+			self.quit = False
+		def set_to_true(self):
+			self.quit = True
+
+	q = Quit()
 	for i in range(len(musicList)-1,-1,-1):
 		invalidKeyPress=0
-		if(quit==False):
+		if q.quit is False:
 
 			playMusicCommand = [MEDIA_PLAYER_PROGRAM] + MEDIA_PLAYER_OPTIONS + [musicList[i]]
-			exit()
-
 
 			glob_vlc_proc = Popen(playMusicCommand)
 
@@ -184,18 +189,17 @@ def startScreening(musicList):
 			else:
 				killVLC()
 
-				musicFileName=musicList[i].replace("\"","")
-				if(prompt=="k"):
-					handleKeep(musicFileName, i)
+				musicFileName = musicList[i]
 
-				elif(prompt=="d"):
-					handleDelete(musicList, i)
+				charToFuncMapping = {
+					'k': lambda: handleKeep(musicFileName, i),
+					'd': lambda: handleDelete(musicList, i),
+					't': lambda: handleTagging(musicList, musicFileName, i),
+					'q': q.set_to_true
+				}
 
-				elif(prompt=="t"):
-					handleTagging(musicList, musicFileName, i)
+				charToFuncMapping[prompt]()
 
-				elif(prompt=="q"):
-					quit=True
 
 def loadMusic():
 
