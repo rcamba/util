@@ -6,29 +6,30 @@ from os import getenv, path, sep
 utilResourceDir=getenv("utilResources")
 username=getenv("username")
 
-homeDrive="C:"
-homePath="Users"
-musicDir=path.join(homeDrive,sep,homePath,username,"Music","ytcon")
-screeningDir=path.join(homeDrive,sep,homePath,username,"Music","ytcon","screen")
-backUpDir=path.join(homeDrive,sep,homePath,username,"backUp")
-ytAMVDir=path.join(homeDrive,sep,homePath,username,"Videos","ytAMV")
-ytDownloadsDir=path.join(homeDrive,sep,homePath,username,"Videos","ytVids")
-tagFilesLogDir=path.join(utilResourceDir,"logs","tagFilesLog")
+home_drive = "C:"
+home_path ="Users"
+userDir = path.join(home_drive, sep, home_path, username)
+musicDir = path.join(userDir, "Music", "ytcon")
+screeningDir = path.join(userDir ,"Music", "ytcon", "screen")
+backUpDir =path.join(userDir,  "backUp")
+yt_amv_dir = path.join(userDir, "Videos", "ytAMV")
+yt_dls_dir = path.join(userDir, "Videos", "ytVids")
+tagFilesLogDir = path.join(utilResourceDir, "logs", "tagFilesLog")
 
 #Files
 
-songLogFile=path.join(utilResourceDir,"logs","prandomSongsLog.log")
-removedFilesLog=path.join(utilResourceDir,"logs","removedFilesLog.log")
-hibLog=path.join(utilResourceDir,"logs","hibLog.log")
-tagFile=path.join(utilResourceDir,"logs","tagFile.log")
-vlcTitleFile=path.join(utilResourceDir,"logs","vlcTitleFile.log")
-deletedTagFile=path.join(utilResourceDir,"logs","deletedTagFiles.log")
-dirJumpFile=path.join(utilResourceDir,"logs","directoryQ.log")
-downloadedTorFiles=path.join(utilResourceDir,"logs","downloadedAnimeTorrents.log")
-toDoListTextFile=path.join(utilResourceDir,"logs","toDoListFile.log")
-prevDirFile=path.join(utilResourceDir,"logs","prevDir.log")
-prandomExceptions=path.join(utilResourceDir,"logs","prandomexceptiontags.log")
-deletedScreenedLog=path.join(utilResourceDir,"logs","deletedScreenedLog.log")
+songLogFile = path.join(utilResourceDir, "logs", "prandomSongsLog.log")
+removedFilesLog = path.join(utilResourceDir, "logs", "removedFilesLog.log")
+hibLog = path.join(utilResourceDir, "logs", "hibLog.log")
+tagFile = path.join(utilResourceDir, "logs", "tagFile.log")
+vlc_hwnd_log = path.join(utilResourceDir, "logs", "vlc_hwnd.log")
+deletedTagFile =path.join(utilResourceDir, "logs", "deletedTagFiles.log")
+dirJumpFile = path.join(utilResourceDir, "logs", "directoryQ.log")
+downloadedTorFiles = path.join(utilResourceDir, "logs", "downloadedAnimeTorrents.log")
+toDoListTextFile = path.join(utilResourceDir, "logs", "toDoListFile.log")
+prevDirFile = path.join(utilResourceDir, "logs", "prevDir.log")
+prandomExceptions = path.join(utilResourceDir, "logs", "prandomexceptiontags.log")
+deletedScreenedLog = path.join(utilResourceDir, "logs", "deletedScreenedLog.log")
 
 #Variables
 MAX_WAIT_TIME=30 #seconds
@@ -134,7 +135,6 @@ def switchParser(args,validSwitches=[]):#returns dict, will replace switchBoard
 			importFile=getmodulename(module)
 			validSwitches=__import__(importFile).__dict__.get("AVAILABLE_SWITCHES")
 			#AVAILABLE SWITCHES CAN'T BE INSIDE "If __name__==__main__" BLOCK
-
 			if validSwitches==None:
 				print "No valid switches found. Terminating script."
 				sys_exit(1)
@@ -402,14 +402,20 @@ def addMember(originalObject, function="", manAttrib=""):
 	return result
 
 def getAllPageLinks(url):
-
-	import urllib2
-	user_agent = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_4; en-US) AppleWebKit/534.3 (KHTML, like Gecko) Chrome/6.0.472.63 Safari/534.3'
-	headers = { 'User-Agent' : user_agent }
-	req = urllib2.Request(url, None, headers)
-	response = urllib2.urlopen(req)
-	url = response.read()
-
+	"""
+	try:
+		import urllib2
+		user_agent = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_4; en-US) AppleWebKit/534.3 (KHTML, like Gecko) Chrome/6.0.472.63 Safari/534.3'
+		headers = { 'User-Agent' : user_agent }
+		req = urllib2.Request(url, None, headers)
+		# req = urllib2.Request(url)
+		response = urllib2.urlopen(req)
+		url = response.read()
+	except urllib2.socket.error, e:
+		raise (str(e))
+	"""
+	import requests
+	url=requests.get(url).text
 
 	from bs4 import BeautifulSoup, SoupStrainer
 	resultsList=BeautifulSoup(url, parse_only=SoupStrainer('a'))
@@ -620,7 +626,7 @@ def createBackUp(fileName, setBackUpDir=""):#backup before opening/writing to tx
 		chdir(originalDir)
 
 def killProcess(processName="", pid=-1):
-	from psutil import get_pid_list, Process, error
+	from psutil import pids, Process
 	from os import kill
 	from signal import SIGILL
 	from string import lower
@@ -637,14 +643,14 @@ def killProcess(processName="", pid=-1):
 		elif(pid==-1):
 			if(".exe" not in processName):
 				processName=".".join([lower(processName),"exe"])
-			for procPID in get_pid_list():
+			for procPID in pids():
 				try:
 					if lower(Process(procPID).name)==processName:
 						kill(procPID, SIGILL)
 						success=1
 
-				except error.NoSuchProcess:
-					pass
+				except Exception, e:
+					print e.message
 
 
 		else:
@@ -711,7 +717,7 @@ def getProcessPID(target):
 	"""
 		Returns PID of given process name argument
 	"""
-	from psutil import get_pid_list, Process
+	from psutil import pids, Process
 	from string import lower
 	from sys import exit as sys_exit
 
@@ -727,7 +733,7 @@ def getProcessPID(target):
 
 	if type(target)==str and target not in EXCLUDED_PROCESSES:
 
-		for PID in get_pid_list():
+		for PID in pids():
 
 			if lower(Process(PID).name) not in EXCLUDED_PROCESSES and lower(Process(PID).name)==target:
 				resultPID=PID
@@ -903,7 +909,7 @@ def printColored(text, color):
 
 
 def errorAlert(msg="", raiseException=False, errorClass=None):
-
+	# if colouring fails resort ignore it and just print msg
 	originalCmdFGColor=getConsoleColor()
 	setConsoleColor("red")
 	msg= "\nERROR: "+ msg
@@ -961,13 +967,13 @@ def takeScreenshot(appName=""):
 	return fileName
 
 def getPIDFromHandle(handle):
-	from psutil import get_pid_list, Process
+	from psutil import pids, Process
 	from string import lower
 	EXCLUDED_PROCESSES=["audiodg.exe", "system.exe", "svchost.exe", "system idle process.exe", "system", "system idle process"]
 
 	resultPID=-1
 
-	for pid in get_pid_list():
+	for pid in pids():
 		if lower(Process(pid).name) not in EXCLUDED_PROCESSES and handle in get_hwnds_for_pid( getProcessPID( Process(pid).name ) ):
 			resultPID=pid
 			break
@@ -998,11 +1004,11 @@ def moveMouse(x,y):
 	move(x,y)
 
 
-def drawLoadingBar(drawString):
+def stdout_write(w_str):
 	import sys
-	drawString=str(drawString)
-	sys.stdout.write(drawString)
-	sys.stdout.write("\b"* len(drawString))
+	w_str =str(w_str)
+	sys.stdout.write("\b" * len(w_str))
+	sys.stdout.write(w_str)
 	sys.stdout.flush()
 
 
@@ -1054,16 +1060,16 @@ def __backUpPyAndText__():
 
 
 def selfValidateGlobals():
-	rootDirList=[musicDir, screeningDir, backUpDir, ytAMVDir, ytDownloadsDir]
+	rootDirList=[musicDir, screeningDir, backUpDir, yt_amv_dir, yt_dls_dir]
 
-	rootFList=[ songLogFile, removedFilesLog, hibLog,  tagFile, vlcTitleFile, deletedTagFile, dirJumpFile,downloadedTorFiles, toDoListTextFile, prevDirFile, prandomExceptions, deletedScreenedLog]
+	rootFList=[ songLogFile, removedFilesLog, hibLog,  tagFile, vlc_hwnd_log, deletedTagFile, dirJumpFile,downloadedTorFiles, toDoListTextFile, prevDirFile, prandomExceptions, deletedScreenedLog]
 
 	for rd in rootDirList:
 		try:
 			assert path.isdir(rd)
 		except AssertionError:
 			#errorAlert
-			raise AssertionError( rd +  " is not a directory" )
+			raise AssertionError(rd +  " is not a directory")
 
 
 
@@ -1072,7 +1078,7 @@ def selfValidateGlobals():
 			assert path.isfile(rf)
 		except AssertionError:
 			#errorAlert
-			raise AssertionError( rf +  " is not a file" )
+			raise AssertionError(rf +  " is not a file")
 
 
 selfValidateGlobals()
