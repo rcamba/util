@@ -29,6 +29,8 @@ def _rtd(f, rTagDict, changesDict):
 
 	tag, fileStringList=line.split('::')
 	filenameList=convertToFilenameList(fileStringList)
+	if "c:\users\kevin\music\ytcon\kill_la_kill_ost_full_-_01_before_my_body_is_dry_don_t_lose_your_way_wxivyfvclxs.m4a" in filenameList:
+		print path.join(tagFilesLogDir,f)
 	validFileList=validateFilenameList(filenameList, tag)
 	rTagDict[tag]=validFileList
 
@@ -90,6 +92,7 @@ def validateFilenameList(filenameList, assocTag=""):
 				msg=errorAlert("Unable to add to tag " + assocTag + ". "+ file + " is an invalid file. ")
 			elif inspect.stack()[1][3]=="_rtd":
 				msg=errorAlert(file + " is an invalid file. Removed from "+ assocTag +" tag.")
+
 			else:
 				msg=errorAlert("Removed invalid file " + file)
 			logRemovedFile(msg)
@@ -142,10 +145,12 @@ def tagMultipleFiles(tag, filenameList):
 	else:
 		errorAlert( "No valid file to add. No changes have been made")
 
-def removeTags(tagList, filename):
+def removeTags(tagList, filename, validate=True):
 
 	changesDict={}
-	validatedFilename=validateFilename(filename)
+	validatedFilename = filename
+	if validate:
+		validatedFilename = validateFilename(filename)
 	if len(validatedFilename)>0:
 
 		for tag in set(tagList):
@@ -184,6 +189,7 @@ def __writeTagFile__(changesDict, mode):
 		raise ValueError("mode must be either 'a' or 'w'")
 
 	origMode=mode
+
 	for key in changesDict.keys():
 		tagFile=path.join(tagFilesLogDir, key+".tag")
 
@@ -199,6 +205,7 @@ def __writeTagFile__(changesDict, mode):
 		with open(tagFile,mode) as writer:
 
 			fileList= changesDict[key]
+
 			if len(fileList)>0:
 				if mode=='w':
 					writer.write(key+"::")
