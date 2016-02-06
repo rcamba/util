@@ -4,7 +4,9 @@ from os import system, listdir, path
 from threading import Thread
 from bs4 import BeautifulSoup
 from sys import argv
-from cleanFilenames import cleanString
+from cleanFileNames import cleanString
+from urllib2 import quote
+from subprocess import Popen
 
 from root import screeningDir, musicDir, switchBoard, getAllPageLinks, ytDownloadsDir, ytAMVDir, outputFromCommand, errorAlert, deletedScreenedLog
 
@@ -19,13 +21,14 @@ from root import screeningDir, musicDir, switchBoard, getAllPageLinks, ytDownloa
 MAX_TRIES=3
 AVAILABLE_SWITCHES=['v','h','s','m']
 
-YOUTUBE_DL="C:\\Users\\Kevin\\Util\\youtubeDL.py "
+# YT_DL_PROG = "C:\\Users\\Kevin\\Util\\youtubeDL.py"
+YT_DL_PROG = "C:\\Users\\Kevin\\Downloads\\youtube-dl.exe"
+
 
 def getTitleFromSys(ytVidLink):
 
-	YOUTUBE_DL="C:\\Users\\Kevin\\Util\\youtubeDL.py "
 	commandArgs="".join([ytVidLink , " -q -s --get-filename --extract-audio --restrict-filenames --output %(title)s_%(id)s.%(ext)s "])
-	title=outputFromCommand(YOUTUBE_DL+commandArgs)
+	title=outputFromCommand(YT_DL_PROG+" " + commandArgs)
 
 	return title
 
@@ -101,7 +104,7 @@ def alreadyDownloaded(title, targDir):
 
 def downloadMusic(ytVidLink, targetDir):
 
-	command="".join([YOUTUBE_DL, ytVidLink , " --quiet --restrict-filenames --no-mtime --no-overwrites --extract-audio --output \"",targetDir,"\\%(title)s_%(id)s.%(ext)s\""])
+	command="".join([YT_DL_PROG, ytVidLink , " --quiet --restrict-filenames --no-mtime --no-overwrites --extract-audio --output \"",targetDir,"\\%(title)s_%(id)s.%(ext)s\""])
 	title=getTitleFromSys(ytVidLink)
 	if len(title)>0:
 
@@ -127,20 +130,35 @@ def downloadMusic(ytVidLink, targetDir):
 	else:
 		errorAlert( "Empty title for " + ytVidLink)
 
-def downloadVideo(ytVidLink, targetDir):
+def dl_single_video(ytVidLink, targetDir):
 
-	command="".join([YOUTUBE_DL, ytVidLink , " --quiet --rate-limit 100m  --no-mtime --no-overwrites --output \"",targetDir,"\\%(title)s_%(id)s.%(ext)s\""])
-	title=getTitleFromSys(ytVidLink)
+	YT_DL_OPTS = "--quiet --rate-limit 100m  --no-mtime --no-overwrites --output".split()
+	YT_DL_OUTPUT_FILE = "{targDir}\\%(title)s_%(id)s.%(ext)s".format(targDir=targetDir)
 
+	dl_vid_cmd = [YT_DL_PROG, ytVidLink] + YT_DL_OPTS + [YT_DL_OUTPUT_FILE]
+
+	title = getTitleFromSys(ytVidLink)
 	print "Downloading:", title
-	system(command)
+
+	proc = Popen(dl_vid_cmd)
+
 
 if __name__ == "__main__":
 
-	switchList=switchBoard(argv)
 	vidList=[]
 
-	if 's' in switchList:#single video
+	char_func_mapping = {
+		's': lambda: dl_single_video(vid_link, ytDownloadsDir),
+		'v': lambda: dl_multi_video(),
+		'm': lambda: dl_sing_song(),
+		'': lambda: dl_multi_song()
+	}
+
+	opt = argv[1].replace('-', '')
+	vid_link = quote(argv[2], safe="%/:=&?~#+!$,;'@()*[]")
+	char_func_mapping[opt]()
+	"""
+	if 's' in switchList:  # single video
 		print "Dowloading single video"
 		vidLink=" ".join(map(str,argv[1:])).replace('\\','/')
 		downloadVideo(vidLink,ytDownloadsDir)
@@ -180,3 +198,4 @@ if __name__ == "__main__":
 				#downloadMusic(vidLink,screeningDir)
 				Thread(target=downloadMusic,args=(vidLink,screeningDir,)).start()
 				sleep(3)
+	"""
