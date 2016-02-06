@@ -1,32 +1,42 @@
-from os import system, getpid
+from os import getpid
 from time import sleep
-
-from root import resizeWindow, moveWindow, getClipboardData, setClipboardData
-from mouseMacro import getpos, move
-from get_VLC_Title import get_VLC_Title, findFilePath
-from tag import getTagList
-
-windowWidth=950
-windowHeight=150
-
-resizeWindow(windowWidth,windowHeight,"",getpid())
-#moveWindow( (1920/2)-(windowWidth/2), (1080/2)-(windowHeight/2), "", getpid())
-if getpos()[0]>1920:
-	moveWindow( int(3840*0.75)-(windowWidth/2), getpos()[1]-200, "", getpid())
-
-else:
-	moveWindow( (1920/2)-(windowWidth/2), getpos()[1]-200, "", getpid())
+from root import resizeWindow, moveWindow
+from mouseMacro import getpos
+from get_vlc_title import main as show_vlc_title
 
 
+if __name__ == "__main__":
 
+	DETACHED_WINDOW_WIDTH = 950
+	DETACHED_WINDOW_HEIGHT = 150
 
+	MONITOR_WIDTH_RESOLUTION = 1920
+	WIDTH_PCT = 0.75
 
-vlcTitle=get_VLC_Title()
-fp=findFilePath(vlcTitle)
-setClipboardData(fp)
+	HEIGHT_OFFSET_FROM_CURSOR = -200
 
-print  vlcTitle
-print getTagList(getClipboardData().replace("\"",""))
+	CURR_PID = getpid()
 
+	resizeWindow(DETACHED_WINDOW_WIDTH, DETACHED_WINDOW_HEIGHT,
+		pid=CURR_PID)
 
-sleep(2)
+	# if cursor is in the 2nd monitor, place window in center of that monitor
+	if getpos()[0] > MONITOR_WIDTH_RESOLUTION:
+		#calculate x,y coord to position detached window in middle of  monitor
+		x_coord = (int((MONITOR_WIDTH_RESOLUTION * 2) * WIDTH_PCT) -
+			(DETACHED_WINDOW_WIDTH / 2))
+		y_coord = getpos()[1] + HEIGHT_OFFSET_FROM_CURSOR
+
+		moveWindow(x_coord, y_coord, pid=CURR_PID)
+
+	else:
+		x_coord = ((MONITOR_WIDTH_RESOLUTION / 2) -
+			(DETACHED_WINDOW_WIDTH / 2))
+		y_coord = getpos()[1] + HEIGHT_OFFSET_FROM_CURSOR
+
+		moveWindow(x_coord, y_coord, pid=CURR_PID)
+
+	show_vlc_title()
+
+	#wait two seconds to allow viewing of input since can't toggle - yet
+	sleep(2)
