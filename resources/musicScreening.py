@@ -1,52 +1,30 @@
 from tag import getFilenameList, addTags, removeTags
 from root import screeningDir, musicDir, deletedScreenedLog, errorAlert
-from os import listdir, system, kill, path, rename, remove as os_remove
+from os import listdir, kill, path, rename, getenv, pardir, remove as os_remove
 from string import lower
 from msvcrt import kbhit, getch
 
-from psutil import Process, get_pid_list, error
+from psutil import process_iter
 from shutil import move, Error as shutil_error
 from sys import exit as sys_exit, argv
-from time import sleep
-from signal import SIGILL
 from random import shuffle
-
-def killVLC(tries=0):
-
-	if tries<2:
-		for pid in get_pid_list():
-			try:
-				if(Process(pid).name=="vlc.exe"):
-					kill(pid, SIGILL)
-			except error.NoSuchProcess:
-				tries+=1
-				print "Tries: " + tries
-				print "PID: " + pid
-				sleep(tries)
-				killVLC(tries)
-
-	else:
-		raise Exception("VLC not found after 3 tries")
+from subprocess import Popen
 
 
-def getProcNameList():
-	procNameList=[]
-	for pid in  get_pid_list():
-		try:
-			procNameList.append( Process(pid).name)
-		except error.NoSuchProcess:
-			pass
+def killVLC():
 
-	return procNameList
+	vlc_killed = False
+	for proc in process_iter():
 
+		if proc.pid == glob_vlc_proc.pid:
+			proc.kill()
+			vlc_killed = True
+			break
 
-def waitUntilVLCDead():
-	procNameList=getProcNameList()
-
-	while "vlc.exe" in procNameList:
-		procNameList=getProcNameList()
-
-		sleep(0.5)
+	if not vlc_killed:
+		raise Exception(
+			"Failed to kill VLC process. PID: {} not found".format(
+				glob_vlc_proc.pid))
 
 
 def getKeyPress():
@@ -66,8 +44,8 @@ def getKeyPress():
 	return result
 
 def getResumeConfirmation():
-	userIn=raw_input().lower()
 	print "Type 'continue' and press enter to resume"
+	userIn=raw_input().lower()
 	if userIn=="continue":
 		return True
 	else:
@@ -172,12 +150,17 @@ def handleKeep(musicFileName, i):
 
 def startScreening(musicList):
 
+	global glob_vlc_proc
 	quit=False
 	for i in range(len(musicList)-1,-1,-1):
 		invalidKeyPress=0
 		if(quit==False):
 
-			system( "".join(["\"",musicList[i],"\""]) )
+			playMusicCommand = [MEDIA_PLAYER_PROGRAM] + MEDIA_PLAYER_OPTIONS + [musicList[i]]
+			exit()
+
+
+			glob_vlc_proc = Popen(playMusicCommand)
 
 			print "Playing: ", musicList[i]
 
@@ -200,7 +183,7 @@ def startScreening(musicList):
 
 			else:
 				killVLC()
-				waitUntilVLCDead()
+
 				musicFileName=musicList[i].replace("\"","")
 				if(prompt=="k"):
 					handleKeep(musicFileName, i)
@@ -216,23 +199,28 @@ def startScreening(musicList):
 
 def loadMusic():
 
-	musicList=getFilenameList(["screen"])
+	musicList = getFilenameList(["screen"])
 
-	#move from creation time sort to random
 	shuffle(musicList)
 
 	finalList=[]
 	for i in range(0,len(musicList)):
-		finalList.append("\"" + musicList[i] + "\"")
+		finalList.append(musicList[i])
 
 	return finalList
 
 
 if __name__ == "__main__":
 
-	musicList=loadMusic()
+	MEDIA_PLAYER_PROGRAM = "C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe"
 
-	if(len(musicList)>0):
+	MEDIA_PLAYER_OPTIONS = "--qt-start-minimized --one-instance --playlist-enqueue --playlist-autostart --no-crashdump -L".split()
+
+	glob_vlc_proc = None
+
+	musicList = loadMusic()
+
+	if(len(musicList) > 0):
 		startScreening(musicList)
 
 	else:
