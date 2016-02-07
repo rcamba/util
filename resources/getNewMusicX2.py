@@ -12,7 +12,6 @@ from random import randint
 from root import screeningDir, musicDir, switchBoard, getAllPageLinks, yt_dls_dir, yt_amv_dir, outputFromCommand, errorAlert, deletedScreenedLog
 
 
-
 """
  -m single music
  -v multiple video
@@ -20,9 +19,8 @@ from root import screeningDir, musicDir, switchBoard, getAllPageLinks, yt_dls_di
 """
 
 MAX_TRIES=3
-AVAILABLE_SWITCHES=['v','h','s','m']
-
 YT_DL_PROG = "C:\\Users\\Kevin\\Downloads\\youtube-dl.exe"
+
 
 def rand_sleep():
 	sleep(randint(1,3))
@@ -95,52 +93,89 @@ def parse_yt_links(page_links):
 	return page_links
 
 
-def alreadyDownloaded(title, targDir):
-	retVal=False
-	fList= listdir(targDir)
-	t=path.splitext(title)[0].lower()
-	for f in fList:
+def already_downloaded(title, targDir):
 
-		if t==path.splitext(f)[0].lower():
-			retVal=True
+	retVal = False
+	fList = listdir(targDir)
+	t = path.splitext(title)[0].lower()
+	for f in fList:
+		if t == path.splitext(f)[0].lower():
+			retVal = True
 			break
 
 	return retVal
 
-def downloadMusic(vid_link, target_dir):
+def apply_convert_command(song_path):
 
-	command="".join([YT_DL_PROG, vid_link , " --quiet --restrict-filenames --no-mtime --no-overwrites --extract-audio --output \"",target_dir,"\\%(title)s_%(id)s.%(ext)s\""])
-	title=get_dry_title(vid_link)
-	if len(title)>0:
+	if path.splitext(song_path)[1] in [".mp4", ".mp3"]:
+		convert_prog = "ffmpeg"
+		convert_args = ("-y -loglevel panic -i {in_file} -f mp3 " +
+			"-ab 192000 -vn {out_file}").split()
 
-		title=cleanString(title)
-		if alreadyDownloaded(title, musicDir)==False:#check musicDir instead of screening dir since there's no overwrites anyway
-			if path.splitext(title.lower())[0] not in deletedMusicList:
+		out_pos = convert_args.index("{out_file}")
+		convert_args[out_pos] = convert_args[out_pos].format(
+			out_file=song_path.replace(
+			".mp4", ".mp3").replace(
+			".m4a", ".mp3")
+		)
+
+		in_pos = convert_args.index("{in_file}")
+		convert_args[in_pos] = convert_args[in_pos].format(in_file=song_path)
+
+		print "Converting : ", song_path
+
+		convert_args.insert(0, convert_prog)
+		convert_cmd = convert_args
+		print convert_cmd
+
+		proc = Popen(convert_cmd, shell=True)
+
+	else:
+		errorAlert(("Unable to convert file {}. " +
+						   "Extension not accepted\n").format(song_path))
+
+
+def dl_single_song(vid_link, target_dir):
+
+	print "Downloading single music"
+	deleted_music_list = open(deletedScreenedLog).read().split('\n')
+
+	yt_dl_opts = ("--quiet --restrict-filenames --no-mtime --no-overwrites " +
+						  "--extract-audio --output").split()
+	yt_dl_output_file = "{target_dir}\\%(title)s_%(id)s.%(ext)s".format(
+		target_dir=target_dir)
+
+	dl_music_cmd = [YT_DL_PROG, vid_link] + yt_dl_opts + [yt_dl_output_file]
+
+	title = get_dry_title(vid_link)
+
+	if len(title) > 0:
+
+		title = cleanString(title)
+		if already_downloaded(title, musicDir) is False:
+			if path.splitext(title.lower())[0] not in deleted_music_list:
 				print "Downloading:", title
-				title="".join([target_dir,"\\",title])
+				song_full_path = "{t1}\\{t2}".format(t1=target_dir, t2=title)
 
-				system(command)
+				proc = Popen(dl_music_cmd)
 
-				#conversion
-				convertCommand="%UtilResources%/convertToMp3.py " + "\""+title+"\""
-				print "Converting : ", title
-				sleep(2)
-				system(convertCommand)
+				apply_convert_command(song_full_path)
+
 
 			else:
-				errorAlert( title + " already screened and deleted before" )
-
+				errorAlert(title + " already screened and deleted before")
 		else:
-			errorAlert( title + " already in main music directory" )
+			errorAlert(title + " already in main music directory")
 	else:
 		errorAlert( "Empty title for " + vid_link)
+
 
 def dl_single_video(vid_link, target_dir):
 
 	yt_dl_opts = "--quiet --rate-limit 100m  --no-mtime --no-overwrites --output".split()
-	YT_DL_OUTPUT_FILE = "{targDir}\\%(title)s_%(id)s.%(ext)s".format(targDir=target_dir)
+	yt_dl_output_file = "{target_dir}\\%(title)s_%(id)s.%(ext)s".format(target_dir=target_dir)
 
-	dl_vid_cmd = [YT_DL_PROG, vid_link] + yt_dl_opts + [YT_DL_OUTPUT_FILE]
+	dl_vid_cmd = [YT_DL_PROG, vid_link] + yt_dl_opts + [yt_dl_output_file]
 
 	title = get_dry_title(vid_link)
 	print "Downloading:", title
@@ -166,7 +201,7 @@ if __name__ == "__main__":
 	char_func_mapping = {
 		's': lambda: dl_single_video(vid_link, yt_dls_dir),
 		'v': lambda: dl_multi_video(vid_link) if len(vid_link) > 0 else dl_multi_video(),
-		'm': lambda: dl_single_song(),
+		'm': lambda: dl_single_song(vid_link, musicDir),
 		'': lambda: dl_multi_song()
 	}
 
@@ -199,7 +234,7 @@ if __name__ == "__main__":
 
 	elif 'm' in switchList:#single music
 		print "Downloading single music"
-		deletedMusicList=open(deletedScreenedLog).read().split("\n")
+		deleted_music_list=open(deletedScreenedLog).read().split("\n")
 		vid_link=" ".join(map(str,argv[1:])).replace('\\','/')
 		downloadMusic(vid_link,musicDir)
 
@@ -211,7 +246,7 @@ if __name__ == "__main__":
 			DEFAULT_LINKS=argv[1:]
 
 		vid_list=get_vid_list(DEFAULT_LINKS)
-		deletedMusicList=open(deletedScreenedLog).read().split("\n")
+		deleted_music_list=open(deletedScreenedLog).read().split("\n")
 
 		for vid_link in vid_list:
 			if(vid_link is not None):
