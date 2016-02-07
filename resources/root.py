@@ -179,11 +179,19 @@ def printList(list, endRange=-1,aes="full",pressToContinue=True):#(list, pretty=
 #pretty is for colors+numbering  and "++,--,etc." , noPrint is just returning the str to print and no actual "print" command inside
 	return printNumberedList(list,endRange,aes,pressToContinue)
 
-def outputFromCommand(commandAndArgs):
+def outputFromCommand(cmd_and_args):
+
 	import subprocess
-	c=commandAndArgs.split()
-	proc=subprocess.Popen(c, stdout=subprocess.PIPE, shell=True)
+
+	if type(cmd_and_args) == list:
+		c = cmd_and_args
+
+	elif type(cmd_and_args) == str:
+		c = cmd_and_args.split()
+
+	proc = subprocess.Popen(c, stdout=subprocess.PIPE, shell=True)
 	(output, error)=proc.communicate()
+
 	return output.strip()
 
 def printNumberedList(list,endRange=-1,aes="full", pressToContinue=True):
