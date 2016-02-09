@@ -253,11 +253,37 @@ def unicodeToRomaji(word):
 		"\u3075" : "fu",
 		"\u308c" : "re",
 		"\u61d0" : "Futokoro ",
-		"\u65e5" : "hi"
+		"\u65e5" : "hi",
+		"\u03a6" :  "",
+		"\u5e0c" : "Nozomi ",
+		"\u671b" : "mochi",
+		"\u74b0" : "wa",
+		"\\xb0" : "",
+		"\u306b" : "ni",
+		"\u305f" : "ta",
+		"\u304b" : "ka",
+		"\u3089" : "ra",
+		"\u4e88" : "yo",
+		"\u30ed" : "ro",
+		"\u6708" : "Tsuki",
+		"\u98df" : "shoku ",
+		"\u6765" : "ki",
+		"\u300c" : "",
+		"\u597d" : "ko",
+		"\u304d" : "ki",
+		"\u3002" : "",
+		"\u300d" : "",
+		"\u8a00" : "gen",
+		"\u5206" : "bun",
+		"\u9593" : "kan",
+		"\u5b66" : "gaku",
+		"\u6821" : "ko"
 	}
+
 
 	for unicodeStr in unicodeToRomajiMapping.keys():
 		word=word.replace(unicodeStr, unicodeToRomajiMapping[unicodeStr])
+
 
 	if "\u3063" in word:
 		word= word.replace("\u3063", word[word.index("\u3063")+1])
@@ -295,7 +321,10 @@ def cleanChars(dirtyStr):
 			cleaned="".join([cleaned,dirtyStr[i] ])
 
 	#clean extra spaces
+	tokens=path.splitext(cleaned)
+	cleaned=tokens[0]
 	cleaned=cleaned.strip()
+	cleaned=cleaned+tokens[1]
 	while("  " in cleaned):
 		cleaned=cleaned.replace(("  "), " ")
 
@@ -341,8 +370,9 @@ def renameFiles(changesDict, directory):
 		if 'p' not in switches: #if not printing only...
 			try:
 				rename(path.join(directory,key), path.join(directory,changesDict[key]))
-			except WindowsError:
+			except WindowsError, e:
 				errorAlert("Unable to rename " + key + " in to " + changesDict[key] +". Stopping program.")
+				errorAlert(str(e))
 				sys_exit(1)
 
 
@@ -360,10 +390,10 @@ def main(directory):
 
 if __name__ == "__main__":
 
-	switches=switchParser(argv)
+	switches=switchParser(argv, AVAILABLE_SWITCHES)
 
 	if(len(argv)>1):
-		main(argv[1])
+		main(unicode(argv[1]))
 
 
 	else:
@@ -374,6 +404,6 @@ if __name__ == "__main__":
 			choice=raw_input(promptStr).lower()
 
 		if choice=='y':
-			#main(getcwd())
+			#main(unicode(getcwd()))
 			main(u'.')
 
