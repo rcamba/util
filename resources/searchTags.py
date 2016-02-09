@@ -7,13 +7,14 @@ from tag import getFilenameList, getTagList, handleTagSwitch
 from string import strip
 
 
-
 AVAILABLE_SWITCHES=['s','f','r']
 
 def main(argList):
-	if 'f' in switches:
+	switches = switchParser(argList)
 
-		tagList=getTagList(argList[0])
+	if 'f' in switches:
+		file = argList[0]
+		tagList=getTagList(file)
 		print tagList
 
 	elif 'r' in switches:
@@ -28,11 +29,9 @@ def main(argList):
 
 
 	else:
-		tagList= " ".join(map(str, argList)).split(',')
-		tagList=map(strip,tagList)
+		tags = map(lambda xStr: xStr.replace(',', ''), argList)
 
-
-		fileList=map(lambda x: "\""+x+"\"", getFilenameList(tagList))
+		fileList=map(lambda x: "\""+x+"\"", getFilenameList(tags))
 
 		if 's' in switches:
 			if len(switches['s'])>0:
@@ -51,6 +50,9 @@ def main(argList):
 			setClipboardData(choice)
 
 		else:
+			if len(fileList)>0:
+				choice = fileList[len(fileList)-1]
+				setClipboardData(choice)
 			printList( fileList, pressToContinue=stdout.isatty() )
 
 
@@ -63,17 +65,15 @@ def chooseFromTags(tList):
 	setClipboardData ( choice)
 
 if __name__=="__main__":
-	switches=switchParser(argv)
 
 
-	if stdin.isatty()==False:#for using with nf/search
+	if stdin.isatty() is False:#for using with nf/search
 		print "Piped search"
-		argList=pipedList( "".join(map(str,stdin.readlines())) )
+		argList = pipedList("".join(map(str, stdin.readlines())))
 		main(argList)
 
-	elif len(argv)>1:
+	elif len(argv) > 1:
 		main(argv[1:])
-
 
 	else:
 
