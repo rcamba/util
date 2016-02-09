@@ -1,7 +1,7 @@
 from win32api import SetCursorPos
 from win32gui import GetWindowText, IsWindowEnabled, EnumWindows, GetWindowRect
 from win32process import GetWindowThreadProcessId
-from psutil import Process, get_pid_list
+from psutil import process_iter
 from pywintypes import error as winTypeError
 from root import get_hwnds_for_pid
 from sys import argv
@@ -12,12 +12,9 @@ def get_CMD_HWND():
 	cmd_PID=-1
 	cmdHwnd=-1
 
-	pidList=get_pid_list()
-
-	for i in range(0,len(pidList)):
-		process=Process(pidList[i])
-		if(process.name=="cmd.exe"):
-			cmd_PID=process.pid
+	for proc in process_iter():
+		if proc.name() == "cmd.exe":
+			cmd_PID = proc.pid
 			break
 
 	if(cmd_PID!=-1):
@@ -50,16 +47,16 @@ def centerCMD():
 
 		SetCursorPos([x,y])
 
-	except winTypeError:
+	except winTypeError, e:
 		print "cmdHwnd not found"
+		print e.message
+		print str(e)
 
 
 
 if __name__ == '__main__':
 
-
-
-	if(len(argv)==1):
+	if(len(argv) == 1):
 		centerCMD()
 
 	else:
