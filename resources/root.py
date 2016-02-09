@@ -297,7 +297,8 @@ def chooseFromNumberedList(list, centering=True, noInvalidResult=False):
 	from sys import exit as sys_exit
 
 	if(centering==True):
-		cen()
+		pass # not really needed anymore due to "tc"
+		# cen()
 
 	result=-1
 	if(len(list)>1):
@@ -423,7 +424,7 @@ def getAllPageLinks(url):
 		raise (str(e))
 	"""
 	import requests
-	url=requests.get(url).text
+	url = requests.get(url).text
 
 	from bs4 import BeautifulSoup, SoupStrainer
 	resultsList=BeautifulSoup(url, parse_only=SoupStrainer('a'))
@@ -920,7 +921,7 @@ def errorAlert(msg="", raiseException=False, errorClass=None):
 	# if colouring fails resort ignore it and just print msg
 	originalCmdFGColor=getConsoleColor()
 	setConsoleColor("red")
-	msg= "\nERROR: "+ msg
+	msg= "ERROR: "+ msg
 
 	print msg
 	setConsoleColor(originalCmdFGColor)
