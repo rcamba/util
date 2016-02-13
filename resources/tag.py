@@ -29,8 +29,7 @@ def _rtd(f, rTagDict, changesDict):
 
 	tag, fileStringList=line.split('::')
 	filenameList=convertToFilenameList(fileStringList)
-	if "c:\users\kevin\music\ytcon\kill_la_kill_ost_full_-_01_before_my_body_is_dry_don_t_lose_your_way_wxivyfvclxs.m4a" in filenameList:
-		print path.join(tagFilesLogDir,f)
+
 	validFileList=validateFilenameList(filenameList, tag)
 	rTagDict[tag]=validFileList
 
@@ -62,6 +61,7 @@ def reconstructTagDict():
 def logRemovedFile(msg):
 	with open(removedFilesLog,'a') as writer:
 		writer.write(msg)
+		writer.write('\n')
 
 def validateFilename(filename, assocTag=""):
 	validFileList=validateFilenameList( filename, assocTag )
