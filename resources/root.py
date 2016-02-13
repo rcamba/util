@@ -411,20 +411,11 @@ def addMember(originalObject, function="", manAttrib=""):
 	return result
 
 def getAllPageLinks(url):
-	"""
-	try:
-		import urllib2
-		user_agent = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_4; en-US) AppleWebKit/534.3 (KHTML, like Gecko) Chrome/6.0.472.63 Safari/534.3'
-		headers = { 'User-Agent' : user_agent }
-		req = urllib2.Request(url, None, headers)
-		# req = urllib2.Request(url)
-		response = urllib2.urlopen(req)
-		url = response.read()
-	except urllib2.socket.error, e:
-		raise (str(e))
-	"""
+
 	import requests
-	url = requests.get(url).text
+	user_agent = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_4; en-US) AppleWebKit/534.3 (KHTML, like Gecko) Chrome/6.0.472.63 Safari/534.3'
+	headers = { 'User-Agent' : user_agent }
+	url = requests.get(url, headers=headers).text
 
 	from bs4 import BeautifulSoup, SoupStrainer
 	resultsList=BeautifulSoup(url, parse_only=SoupStrainer('a'))
