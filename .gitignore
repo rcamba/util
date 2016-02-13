@@ -1,8 +1,7 @@
 *.pyc
 *.class
-*.log
 *.tag
-resources/log
+resources/logs/
 resources/dependencies
 resources/BETA_getAnimeTorrents.py
 resources/getAnimeTorrents.py
@@ -12,3 +11,4 @@ resources/testDir/BETA_getAnimeTorrents.py
 resources/testDir/betaTorForCurrWeek.py
 resources/testDir/downloadedAnimeTorrents.txt
 resources/testDir/tagFile.txt
+resources/unitTests/*.log
