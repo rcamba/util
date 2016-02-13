@@ -1,7 +1,7 @@
 from win32gui import GetWindowText, IsWindowEnabled, EnumWindows
 from win32process import GetWindowThreadProcessId
 from psutil import process_iter
-from root import vlc_hwnd_log, setClipboardData, printList
+from root import vlc_hwnd_log, setClipboardData, printList, errorAlert
 from os import path
 from tag import getTagList
 
@@ -104,15 +104,19 @@ def title_from_hwnd(vlc_hwnd):
 def main():
 
 	vlc_hwnd = get_vlc_hwnd()
-	vlcTitle = get_VLC_title(vlc_hwnd)
-	fp = path_from_hwnd(vlc_hwnd)
-	quoted_fp  = "\"" + fp + "\""
+	if vlc_hwnd != -1:
+		vlcTitle = get_VLC_title(vlc_hwnd)
+		fp = path_from_hwnd(vlc_hwnd)
+		quoted_fp  = "\"" + fp + "\""
 
-	print "+ Currently playing:"
-	printList([vlcTitle], aes="none")
-	setClipboardData(quoted_fp)
-	printList([quoted_fp], aes="none")
-	print getTagList(fp)
+		print "+ Currently playing:"
+		printList([vlcTitle], aes="none")
+		setClipboardData(quoted_fp)
+		printList([quoted_fp], aes="none")
+		print getTagList(fp)
+
+	else:
+		errorAlert("VLC process not found.")
 
 
 if __name__ == "__main__":
