@@ -1,4 +1,4 @@
-from os import listdir, path, system, getcwd
+from os import listdir, path, getcwd
 from string import rstrip, strip, lower
 from random import randint
 from operator import attrgetter
@@ -7,15 +7,15 @@ from threading import Thread
 
 from root import musicDir, switchParser, songLogFile, pipedList, errorAlert, prandomExceptions
 from tag import getFilenameList, getMixedFilenameList
+from subprocess import Popen
 
-VALID_EXTENSIONS=["mp3","m4a","flac","ogg","mka"]
+VALID_EXTENSIONS=["mp3", "m4a", "flac", "ogg", "mka", "opus"]
 AVAILABLE_SWITCHES=['#','e','m']
 
 class SongLogHandler:
 	def __init__(self,songsLogFile):
 		self.songsLogFile=songsLogFile
 		self.loadLog(songsLogFile)
-
 
 	def logSongs(self,songList):
 		songList=map(lower,songList)
@@ -82,7 +82,7 @@ def getSongList(musicDir):
 	return songList
 
 
-def getSongListFromTag	(tagList):
+def getSongListFromTag(tagList, switches):
 	tagList=map(strip, tagList)
 
 	if 'm' in switches:
@@ -93,7 +93,7 @@ def getSongListFromTag	(tagList):
 
 	if len(songList)==0:
 		errorAlert("No file list available for given tag(s)")
-		
+
 
 	return  songList
 
@@ -122,9 +122,9 @@ def pruneExceptions(songList, switches, default=True):
 def playSongs(songList):
 	for song in songList:
 
-		Thread(target=system, args=("\""+song+"\"",)).start()
-		#if system("\""+song+"\"")==1:
-		#	print song
+
+		Popen([song], shell=True)
+
 
 def randomSelect(songList,maxNum):
 	finalSongList=[]
@@ -165,24 +165,22 @@ def handlePiping():
 		i=i+1
 	return songList
 
-def main():
-	if stdin.isatty()==False:#for using with nf/search
-		print "Playing piped songs"
-		prunedSongList=handlePiping()#set to prunedSL because no pruning anyway?
+def main(argv):
+	switches = switchParser(argv)
+	if stdin.isatty() is False:#for using with nf/search
+		prunedSongList=handlePiping()
 		maxNum=len(prunedSongList)
+		print "Playing " + str(maxNum) + " piped songs"
 	else:
 
-
 		if len(argv)>1:
-			songList=getSongListFromTag(" ".join(map(str,argv[1:])).split(','))
+			songList=getSongListFromTag(" ".join(map(str,argv[1:])).split(','), switches)
 			prunedSongList=pruneExceptions(songList, switches, default=False)
 		else:
 			songList=getSongList(musicDir)
 			prunedSongList=pruneExceptions(songList, switches)
 
 		maxNum=getMaxNum(argv,switches,prunedSongList)
-
-
 
 	finalSongList=randomSelect(prunedSongList,maxNum)
 
@@ -192,5 +190,4 @@ def main():
 	playSongs(finalSongList)
 
 if __name__=="__main__":
-	switches=switchParser(argv)
-	main()
+	main(argv)
