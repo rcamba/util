@@ -135,7 +135,7 @@ def apply_convert_command(song_path):
 
 	else:
 		errorAlert(("Unable to convert file {}\n" +
-						   "  Extension not accepted\n").format(song_path))
+						   "  Extension not accepted").format(song_path))
 
 
 def dl_single_song(vid_link, target_dir):
@@ -188,7 +188,7 @@ def dl_multi_song(vid_links=["https://www.reddit.com/r/japanesemusic",
 
 def dl_single_video(vid_link, target_dir):
 
-	yt_dl_opts = "--quiet --rate-limit 100m  --no-mtime --no-overwrites --output".split()
+	yt_dl_opts = "--quiet --rate-limit 100m --no-mtime --no-overwrites --output".split()
 	yt_dl_output_file = "{target_dir}\\%(title)s_%(id)s.%(ext)s".format(target_dir=target_dir)
 
 	dl_vid_cmd = [YT_DL_PROG, vid_link] + yt_dl_opts + [yt_dl_output_file]
@@ -223,8 +223,10 @@ if __name__ == "__main__":
 	}
 
 	# don't allow multiple switches for this program
-
-	opt = switches.keys()[0]
+	if len(switches) > 0:
+		opt = switches.keys()[0]
+	else:
+		opt = ''
 	vid_link = ""
 	if len(argv) > 1:
 		vid_link = vid_link = quote(argv[1], safe="%/:=&?~#+!$,;'@()*[]")
