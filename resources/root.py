@@ -284,9 +284,9 @@ def printNumberedList(list,endRange=-1,aes="full", pressToContinue=True):
 	return finalPrintStr
 
 def cen():
-	from cmdCursorPos import centerCMD
+	from cmdCursorPos import center_cmd
 	from threading import Thread
-	Thread(target=centerCMD).start()
+	Thread(target=center_cmd).start()
 
 #add prompt as argument similar to raw_input(prompt), overwrite default prompt
 #support for mulitple choices?
