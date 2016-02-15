@@ -284,7 +284,7 @@ def printNumberedList(list,endRange=-1,aes="full", pressToContinue=True):
 	return finalPrintStr
 
 def cen():
-	from cmdCursorPos import center_cmd
+	from cmd_cursor_pos import center_cmd
 	from threading import Thread
 	Thread(target=center_cmd).start()
 
