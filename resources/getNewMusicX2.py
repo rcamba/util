@@ -3,7 +3,7 @@ from string import lower
 from os import listdir, path
 from threading import Thread
 from sys import argv
-from cleanFileNames import cleanString
+from cleanFileNames import clean_string
 from urllib2 import quote
 from subprocess import Popen
 from random import randint
@@ -153,7 +153,7 @@ def dl_single_song(vid_link, target_dir):
 
 	if len(title) > 0:
 
-		title = cleanString(title)
+		title = clean_string(title)
 		if already_downloaded(title, musicDir) is False:
 			if path.splitext(title.lower())[0] not in deleted_music_list:
 				print "\nDownloading:", title
