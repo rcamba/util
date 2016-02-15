@@ -2,6 +2,7 @@
 *.class
 *.log
 *.tag
+.idea
 resources/log
 resources/dependencies
 resources/BETA_getAnimeTorrents.py
