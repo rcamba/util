@@ -894,11 +894,11 @@ def keyboardType(keyChar,targetProgram=""):
 	shell.SendKeys(keyChar)
 
 def getConsoleColor():
-	from cmdColoring import get_console_color as gcc
+	from cmd_coloring import get_console_color as gcc
 	return gcc()
 
 def setConsoleColor(color):#include string argument? color print, change color to original
-	from cmdColoring import set_console_color as scc, COLOR_CHOICES
+	from cmd_coloring import set_console_color as scc, COLOR_CHOICES
 
 	if type(color)==int:
 		scc(color)
