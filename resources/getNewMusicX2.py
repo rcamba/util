@@ -3,7 +3,7 @@ from string import lower
 from os import listdir, path
 from threading import Thread
 from sys import argv
-from cleanFileNames import clean_string
+from clean_filenames import clean_string
 from urllib2 import quote
 from subprocess import Popen
 from random import randint
@@ -224,8 +224,9 @@ if __name__ == "__main__":
 
 	# don't allow multiple switches for this program
 
-	opt = switches.keys()[0]
+	opt = ""
 	vid_link = ""
 	if len(argv) > 1:
+		opt = switches.keys()[0]
 		vid_link = vid_link = quote(argv[1], safe="%/:=&?~#+!$,;'@()*[]")
 	char_func_mapping[opt]()
