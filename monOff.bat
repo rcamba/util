@@ -1,2 +1,2 @@
 @ECHO OFF
-%UtilResources%/monitorOff.pyc
+%UtilResources%/monitor_sleep.py
