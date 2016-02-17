@@ -4,7 +4,7 @@ import inspect
 from string import rstrip, lower
 
 
-from prandom import VALID_EXTENSIONS, pruneSongList, getSongList, SongLogHandler, SongLog
+from prandom import VALID_EXTENSIONS, prune_song_list, get_song_list, SongLogHandler, SongLog
 
 def clearTestSongLog(songsLogFile):
 	w=open(songsLogFile,'w')#clear test log file
@@ -17,14 +17,14 @@ class Test_GetSongList(unittest.TestCase):
 
 	def testFullPath(self):
 		songDirectory=r"C:\Users\Kevin\Util\resources\unitTests\testSongDirectory"
-		songList=getSongList(songDirectory)
+		songList=get_song_list(songDirectory)
 		self.assertEqual (songList,
 		[r"c:\users\kevin\util\resources\unittests\testsongdirectory\songfile1.mp3",r"c:\users\kevin\util\resources\unittests\testsongdirectory\songfile2.m4a",	r"c:\users\kevin\util\resources\unittests\testsongdirectory\songfile3.flac"] )
 
 	def testMaxNumber(self):
 		songDirectory=r"C:\Users\Kevin\Util\resources\unitTests\testSongDirectory"
 
-		songList=getSongList(songDirectory)
+		songList=get_song_list(songDirectory)
 		self.assertEqual(len(songList), 3)
 
 
@@ -32,7 +32,7 @@ class Test_GetSongList(unittest.TestCase):
 
 		songList=[r"C:\textfile.txt",r"C:\songFile1.mp3",r"C:\NoExt", r"C:\vidFile.mp4",r"C:\songFile2.flac"]
 
-		self.assertEqual(pruneSongList(songList), [r"C:\songFile1.mp3",r"C:\songFile2.flac"])
+		self.assertEqual(prune_song_list(songList), [r"C:\songFile1.mp3", r"C:\songFile2.flac"])
 
 class Test_SongLogClasses(unittest.TestCase):
 	def setUp(self):
@@ -45,23 +45,23 @@ class Test_SongLogClasses(unittest.TestCase):
 
 		clearTestSongLog(songsLogFile)
 
-		songList=getSongList(songDirectory)
+		songList=get_song_list(songDirectory)
 
 		slh=SongLogHandler(songsLogFile)
 
-		slh.logSongs(songList)
+		slh.log_songs(songList)
 
 		resultList=[r"c:\users\kevin\util\resources\unittests\testsongdirectory\songfile1.mp3=1",r"c:\users\kevin\util\resources\unittests\testsongdirectory\songfile2.m4a=1",	r"c:\users\kevin\util\resources\unittests\testsongdirectory\songfile3.flac=1"]
 
 		slh.reload()
-		songLogList= slh.songLogList
+		songLogList= slh.song_log_list
 		self.assertEqual( resultList, map(str,songLogList) )
 
-		slh.logSongs(songList)
+		slh.log_songs(songList)
 		resultList=[r"c:\users\kevin\util\resources\unittests\testsongdirectory\songfile1.mp3=2",r"c:\users\kevin\util\resources\unittests\testsongdirectory\songfile2.m4a=2",	r"c:\users\kevin\util\resources\unittests\testsongdirectory\songfile3.flac=2"]
 
 		slh.reload()
-		songLogList= slh.songLogList
+		songLogList= slh.song_log_list
 		self.assertEqual( resultList, map(str,songLogList) )
 
 
@@ -76,11 +76,11 @@ class Test_SongLogClasses(unittest.TestCase):
 		clearTestSongLog(songsLogFile)
 
 		slh=SongLogHandler(songsLogFile)
-		songLogList= slh.songLogList
+		songLogList= slh.song_log_list
 		self.assertEqual(len(songLogList),0)
 
-		songList=getSongList(songDirectory)
-		slh.logSongs(songList)
+		songList=get_song_list(songDirectory)
+		slh.log_songs(songList)
 		self.assertEqual(len(songLogList),3)
 
 		filenameList=[]
