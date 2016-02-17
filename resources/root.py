@@ -1002,7 +1002,7 @@ def cropImage(imageFileName, cropBox):
 	return saveFileName
 
 def moveMouse(x,y):
-	from mouseMacro import move
+	from mouse_macro import move
 
 	try:
 		x=int(x)

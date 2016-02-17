@@ -1,7 +1,7 @@
 from os import getpid
 from time import sleep
 from root import resizeWindow, moveWindow
-from mouseMacro import getpos
+from mouse_macro import getpos
 from get_vlc_title import main as show_vlc_title
 
 
