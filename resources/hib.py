@@ -1,7 +1,7 @@
 from sys import stdout, argv
 from time import sleep, time, strftime, localtime
 from root import hibLog, errorAlert
-from toDoList import viewToDoList
+from toDoList import view_to_do_list
 from os import system
 
 
@@ -94,7 +94,7 @@ def main(time_limit):
 
     create_log()
     hibernate()
-    viewToDoList()
+    view_to_do_list()
 
 
 if __name__ == "__main__":
