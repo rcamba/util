@@ -1,7 +1,7 @@
 from sys import stdout, argv
 from time import sleep, time, strftime, localtime
 from root import hibLog, errorAlert
-from toDoList import view_to_do_list
+from to_do_list import view_to_do_list
 from os import system
 
 
