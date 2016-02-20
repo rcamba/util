@@ -217,7 +217,7 @@ if __name__ == "__main__":
     YT_DL_PROG = "C:\\Users\\Kevin\\Downloads\\youtube-dl.exe"
     AVAILABLE_SWITCHES = ['s', 'v', 'm']
 
-    switches = switchParser(argv)
+    switches = switchParser(argv, AVAILABLE_SWITCHES)
     if len(switches) > 1:
         raise Exception("More than one switch found: {}. ".format(switches) +
                         "Only one switch at a time.")
