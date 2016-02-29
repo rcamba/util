@@ -1,3 +1,3 @@
 @ECHO OFF
 
-%UtilResources%/jump_dir.py.py -a %1 %2 %3
+%UtilResources%/jump_dir.py -a %1 %2 %3
