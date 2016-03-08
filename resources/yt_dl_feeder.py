@@ -1,5 +1,5 @@
 from time import sleep
-from os import listdir, path
+from os import listdir, path, remove
 from sys import argv
 from clean_filenames import clean_string
 from urllib2 import quote
@@ -8,7 +8,6 @@ from random import randint
 
 from root import screeningDir, musicDir, switchParser, getAllPageLinks, \
     yt_dls_dir, yt_amv_dir, outputFromCommand, errorAlert, deletedScreenedLog
-
 
 """
 -m: single music
@@ -23,7 +22,6 @@ def rand_sleep():
 
 
 def get_dry_title(_vid_link):
-
     yt_dl_opts = ("-q -s --get-filename --extract-audio "
                   "--restrict-filenames --output ").split()
     output_format = "%(title)s_%(id)s.%(ext)s"
@@ -33,7 +31,6 @@ def get_dry_title(_vid_link):
 
 
 def get_vid_list(links_list):
-
     vid_list = []
 
     for link in links_list:
@@ -44,7 +41,6 @@ def get_vid_list(links_list):
         page_links = getAllPageLinks(link)
 
         while len(page_links) <= 1 and i < MAX_TRIES:
-
             page_links = getAllPageLinks(link)
             i += 1
             print "Retry #", i
@@ -59,7 +55,6 @@ def get_vid_list(links_list):
 
 
 def parse_yt_links(page_links):
-
     v_id_list = []
     for i in range(len(page_links) - 1, -1, -1):
 
@@ -96,7 +91,6 @@ def parse_yt_links(page_links):
 
 
 def already_downloaded(title, targ_dir):
-
     ret_val = False
     f_list = listdir(targ_dir)
     t = path.splitext(title)[0].lower()
@@ -109,7 +103,6 @@ def already_downloaded(title, targ_dir):
 
 
 def apply_convert_command(song_path):
-
     if path.splitext(song_path)[1] in [".mp4", ".mp3", ".m4a"]:
         convert_prog = "ffmpeg"
         convert_args = ("-y -loglevel panic -i {in_file} -f mp3 " +
@@ -117,10 +110,7 @@ def apply_convert_command(song_path):
 
         out_pos = convert_args.index("{out_file}")
         convert_args[out_pos] = convert_args[out_pos].format(
-            out_file=song_path.replace(
-                ".mp4", ".mp3").replace(
-                ".m4a", ".mp3")
-        )
+            out_file=song_path.replace(".mp4", ".mp3").replace(".m4a", ".mp3"))
 
         in_pos = convert_args.index("{in_file}")
         convert_args[in_pos] = convert_args[in_pos].format(in_file=song_path)
@@ -131,6 +121,9 @@ def apply_convert_command(song_path):
         convert_cmd = convert_args
 
         proc = Popen(convert_cmd, shell=True)
+        proc.communicate()
+        if proc.returncode == 0:
+            remove(song_path)
 
     else:
         errorAlert(("Unable to convert file {}\n" +
@@ -138,7 +131,6 @@ def apply_convert_command(song_path):
 
 
 def dl_single_song(vid_link, target_dir):
-
     deleted_music_list = open(deletedScreenedLog).read().split('\n')
 
     yt_dl_opts = ("--quiet --restrict-filenames --no-mtime --no-overwrites " +
@@ -174,7 +166,6 @@ def dl_single_song(vid_link, target_dir):
 def dl_multi_song(vid_links=["https://www.reddit.com/r/japanesemusic",
                              "https://www.reddit.com/r/animemusic/",
                              "https://www.reddit.com/r/vocaloid"]):
-
     print "Downloading multiple songs from {}".format(vid_links)
 
     vid_list = get_vid_list(vid_links)
@@ -185,7 +176,6 @@ def dl_multi_song(vid_links=["https://www.reddit.com/r/japanesemusic",
 
 
 def dl_single_video(vid_link, target_dir):
-
     yt_dl_opts = ("--quiet --rate-limit 100m  "
                   "--no-mtime --no-overwrites --output").split()
     yt_dl_output_file = "{target_dir}\\%(title)s_%(id)s.%(ext)s".format(
@@ -201,7 +191,6 @@ def dl_single_video(vid_link, target_dir):
 
 
 def dl_multi_video(_vid_link="http://www.reddit.com/r/amv"):
-
     print "Downloading multiple videos from {}".format(_vid_link)
 
     vid_list = get_vid_list([_vid_link])
