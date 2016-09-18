@@ -123,7 +123,10 @@ def apply_convert_command(song_path):
         proc = Popen(convert_cmd, shell=True)
         proc.communicate()
         if proc.returncode == 0:
-            remove(song_path)
+            try:
+                remove(song_path)
+            except WindowsError:
+                errorAlert("Can't delete " + song_path)
 
     else:
         errorAlert(("Unable to convert file {}\n" +
@@ -220,12 +223,17 @@ if __name__ == "__main__":
         'm': lambda: dl_single_song(vid_link, musicDir),
 
         '': lambda:
-        dl_multi_song([vid_link]) if len([vid_link]) > 1 else dl_multi_song()
+        dl_multi_song([vid_link]) if len([vid_link]) > 0 else dl_multi_song()
     }
 
     opt = ""
     vid_link = ""
-    if len(argv) > 1:
+    if len(switches) > 0:
         opt = switches.keys()[0]
-        vid_link = vid_link = quote(argv[1], safe="%/:=&?~#+!$,;'@()*[]")
+        if len(argv) > 1:
+            vid_link = quote(argv[1], safe="%/:=&?~#+!$,;'@()*[]")
+
+    elif len(argv) > 1:
+        vid_link = quote(argv[1], safe="%/:=&?~#+!$,;'@()*[]")
+
     char_func_mapping[opt]()
