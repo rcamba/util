@@ -263,7 +263,11 @@ def unicode_to_romaji(word):
         "\u5206": "bun",
         "\u9593": "kan",
         "\u5b66": "gaku",
-        "\u6821": "ko"
+        "\u6821": "ko",
+        "\u3010": "[",
+        "u3010": "[",
+        "\u3011": "] ",
+        "u3011": "] "
     }
 
     for unicodeStr in unicode_romaji_mapping.keys():
