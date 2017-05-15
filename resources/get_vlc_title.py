@@ -115,6 +115,8 @@ def main():
     printList([quoted_fp], aes="none")
     print getTagList(fp)
 
+    return fp
+
 
 if __name__ == "__main__":
     main()

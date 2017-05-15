@@ -1,4 +1,4 @@
-from os import getpid
+from os import getpid, system
 from time import sleep
 from root import resizeWindow, moveWindow
 from mouse_macro import getpos
@@ -36,7 +36,10 @@ if __name__ == "__main__":
 
         moveWindow(x_coord, y_coord, pid=CURR_PID)
 
-    show_vlc_title()
+    fp = show_vlc_title()
+    if(fp == "."):
+        system("cmd /k prand")
+
 
     # wait two seconds to allow viewing of input since can't toggle - yet
     sleep(2)
