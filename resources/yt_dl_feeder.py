@@ -223,7 +223,7 @@ if __name__ == "__main__":
         'm': lambda: dl_single_song(vid_link, musicDir),
 
         '': lambda:
-        dl_multi_song([vid_link]) if len([vid_link]) > 0 else dl_multi_song()
+        dl_multi_song([vid_link]) if len(vid_link) > 0 else dl_multi_song()
     }
 
     opt = ""
