@@ -4,6 +4,7 @@ from random import randint
 from operator import attrgetter
 from sys import argv, stdin
 from subprocess import Popen
+from ast import literal_eval
 
 from root import musicDir, switchParser, songLogFile, pipedList, errorAlert, \
     prandomExceptions
@@ -17,8 +18,8 @@ class SongLogHandler:
 
     def __init__(self, songs_log_file):
         self.songs_log_file = songs_log_file
-        self.load_log(songs_log_file)
         self.song_log_list = []
+        self.load_log(songs_log_file)
 
     def log_songs(self, song_list):
         song_list = map(lower, song_list)
@@ -109,21 +110,19 @@ def get_song_list_from_tag(tag_list):
     return song_list
 
 
-def prune_exceptions(song_list, switches, default=True):
+def prune_exceptions(song_list, switches_, default=True):
+
+    exception_tag_list = []
+    exception_song_list = []
 
     if default:
         # ... default exceptions
-        # TODO probably get rid of this
-        exec("exception_list=" + open(prandomExceptions).read())
-    else:
-        exception_list = []
+        exception_tag_list = literal_eval(open(prandomExceptions).read())
 
-    exception_song_list = []
+    if 'e' in switches_:  # exception, i.e don't play songs with this tag
+        exception_tag_list.extend(switches_['e'].split(','))
 
-    if 'e' in switches:  # exception, i.e don't play songs with this tag
-        exception_list.extend(switches['e'].split(','))
-
-    for exception in exception_list:
+    for exception in exception_tag_list:
         exception_song_list.extend(getFilenameList(exception))
 
     for exceptionSong in exception_song_list:
@@ -209,6 +208,7 @@ def main():
     slh.log_songs(final_song_list)
 
     play_songs(final_song_list)
+
 
 if __name__ == "__main__":
 
