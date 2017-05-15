@@ -24,7 +24,7 @@ def play_recent_songs(sorted_song_list):
 
     for sorted_song in sorted_song_list:
         if path.splitext(sorted_song)[1][1:].lower() in VALID_EXTENSIONS:
-            Popen(path.normpath(sorted_song))
+            Popen(["C:/Users/Kevin/Util/vlc.bat", path.normpath(sorted_song)])
 
 
 if __name__ == "__main__":
