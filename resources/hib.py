@@ -5,17 +5,16 @@ from to_do_list import view_to_do_list
 from os import system
 
 
-def loading_splash(time_limit, output="", splash=['', '.', "..", "..."]):
+def loading_splash(time_limit, output="", splash=None):
     """
-
     :param time_limit: number of minutes that the splash will run for
     :param output: static text for splash
     :param splash: list of string that will be used as splash
 
     How writing to stdout works:
-    output -> this is output plus the first splash string which is empty
+    output -> this is output + the first splash string which is empty
     output. -> output + '.' (i.e second splash string)
-    output -> output + \b  (move cursor to previous char)
+    output. -> output + \b  (move cursor to previous char)
     output.. -> output. + ".." ('.' from second splash string is overwritten)
 
     at the end clear the entire splash strings by overwriting with " " char
@@ -35,6 +34,9 @@ def loading_splash(time_limit, output="", splash=['', '.', "..", "..."]):
         stdout.write(clear)
 
         return clear
+
+    if splash is None:
+        splash = ['', '.', "..", "..."]
 
     stdout.write(output)
 
@@ -80,9 +82,9 @@ def hibernate():
 
 def main(time_limit):
     """
-    Sets program to sleep for timeLimit minutes
+    Sets program to sleep for time_limit minutes
     Hibernate log is created after sleep with time stamp
-    Calls toDoList to be viewable when resuming from hibernation
+    Calls view_to_do_list to be viewable when resuming from hibernation
     Sets the computer to hibernate
 
     :param time_limit: time limit in minutes
