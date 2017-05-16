@@ -1,6 +1,6 @@
 @ECHO OFF
 
-%UtilResources%/jump_dir.py %1 %2 %3
-set /p var= <%UtilResources%/logs/directoryQ.log
+%Util%/resources/jump_dir.py %1 %2 %3
+set /p var= <%Util%/logs/directoryQ.log
 
 CD /D %var%

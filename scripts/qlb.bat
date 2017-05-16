@@ -1,4 +1,4 @@
 @ECHO OFF
 
-set /p var= <%UtilResources%/logs/prevDir.log
+set /p var= <%Util%/logs/prevDir.log
 CD /D %var%

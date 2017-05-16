@@ -3,7 +3,7 @@ Contains all constants and some utility methods
 """
 
 from os import getenv, path, sep
-utilResourceDir = getenv("utilResources")
+parent_dir = path.join(path.dirname(__file__), path.pardir)
 username = getenv("username")
 
 main_drive = "C:"
@@ -15,22 +15,22 @@ screeningDir = r"F:\Users\Kevin\Music\ytcon\screen"  # path.join(userDir ,"Music
 backUpDir = path.join(home_dir, "backUp")
 yt_amv_dir = r"F:\Users\Kevin\Videos\ytAMV"  # path.join(userDir, "Videos", "ytAMV")
 yt_dls_dir = path.join(home_dir, "Videos", "ytVids")
-tagFilesLogDir = path.join(utilResourceDir, "logs", "tagFilesLog")
+tagFilesLogDir = path.join(parent_dir, "logs", "tagFilesLog")
 
 # Files
-
-songLogFile = path.join(utilResourceDir, "logs", "prandomSongsLog.log")
-removedFilesLog = path.join(utilResourceDir, "logs", "removedFilesLog.log")
-hibLog = path.join(utilResourceDir, "logs", "hibLog.log")
-tagFile = path.join(utilResourceDir, "logs", "tagFile.log")
-vlc_hwnd_log = path.join(utilResourceDir, "logs", "vlc_hwnd.log")
-deletedTagFile = path.join(utilResourceDir, "logs", "deletedTagFiles.log")
-dirJumpFile = path.join(utilResourceDir, "logs", "directoryQ.log")
-downloadedTorFiles = path.join(utilResourceDir, "logs", "downloadedAnimeTorrents.log")
-toDoListTextFile = path.join(utilResourceDir, "logs", "toDoListFile.log")
-prevDirFile = path.join(utilResourceDir, "logs", "prevDir.log")
-prandomExceptions = path.join(utilResourceDir, "logs", "prandomexceptiontags.log")
-deletedScreenedLog = path.join(utilResourceDir, "logs", "deletedScreenedLog.log")
+# TODO move to APPDATA?
+songLogFile = path.join(parent_dir, "logs", "prandomSongsLog.log")
+removedFilesLog = path.join(parent_dir, "logs", "removedFilesLog.log")
+hibLog = path.join(parent_dir, "logs", "hibLog.log")
+tagFile = path.join(parent_dir, "logs", "tagFile.log")
+vlc_hwnd_log = path.join(parent_dir, "logs", "vlc_hwnd.log")
+deletedTagFile = path.join(parent_dir, "logs", "deletedTagFiles.log")
+dirJumpFile = path.join(parent_dir, "logs", "directoryQ.log")
+downloadedTorFiles = path.join(parent_dir, "logs", "downloadedAnimeTorrents.log")
+toDoListTextFile = path.join(parent_dir, "logs", "toDoListFile.log")
+prevDirFile = path.join(parent_dir, "logs", "prevDir.log")
+prandomExceptions = path.join(parent_dir, "logs", "prandomexceptiontags.log")
+deletedScreenedLog = path.join(parent_dir, "logs", "deletedScreenedLog.log")
 
 # Variables
 MAX_WAIT_TIME = 30  # seconds

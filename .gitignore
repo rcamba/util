@@ -7,12 +7,4 @@ autopep8.bat
 pycharm.bat
 pyflakes.bat
 resources/log
-resources/dependencies
-resources/BETA_getAnimeTorrents.py
-resources/getAnimeTorrents.py
-resources/keptForRef/tagFile.txt
-resources/keptForRef/zGetNewMusic.py
-resources/testDir/BETA_getAnimeTorrents.py
-resources/testDir/betaTorForCurrWeek.py
-resources/testDir/downloadedAnimeTorrents.txt
 resources/testDir/tagFile.txt

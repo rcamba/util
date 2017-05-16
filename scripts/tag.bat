@@ -1,3 +1,3 @@
 @ECHO OFF
-%UtilResources%/tag.pyc %1
+%Util%/resources/tag.pyc %1
 

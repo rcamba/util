@@ -1,2 +1,2 @@
 @ECHO OFF
-%UtilResources%/to_do_list.py -v %1
+%Util%/resources/to_do_list.py -v %1
