@@ -24,7 +24,7 @@ from ctypes import*
 from ctypes.wintypes import *
 from time import sleep
 from sys import argv
-from root import keyboardType
+from root import keyboard_type
 
 
 __all__ = ['click', 'hold', 'release',
@@ -202,6 +202,6 @@ if __name__ == '__main__':
         elif "rc" in argv:
             argv.remove("rc")
             for arg in argv:
-                keyboardType(arg)
-                keyboardType(" ")
+                keyboard_type(arg)
+                keyboard_type(" ")
             rightclick()  # paste in cmd - requires QuickEdit Mode enabled

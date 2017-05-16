@@ -1,7 +1,7 @@
 from win32gui import GetWindowText, IsWindowEnabled, EnumWindows
 from win32process import GetWindowThreadProcessId
 from psutil import process_iter
-from root import vlc_hwnd_log, setClipboardData, printList
+from root import vlc_hwnd_log, set_clipboard_data, print_list
 from os import path
 from tag import getTagList
 
@@ -110,9 +110,9 @@ def main():
     quoted_fp = "\"" + fp + "\""
 
     print "+ Currently playing:"
-    printList([vlc_title], aes="none")
-    setClipboardData(quoted_fp)
-    printList([quoted_fp], aes="none")
+    print_list([vlc_title], scheme="none")
+    set_clipboard_data(quoted_fp)
+    print_list([quoted_fp], scheme="none")
     print getTagList(fp)
 
     return fp

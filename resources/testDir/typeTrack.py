@@ -1,8 +1,8 @@
 
-from root import getConsoleColor, setConsoleColor
+from root import get_console_color, set_console_color
 from msvcrt import kbhit, getch
 res=""
-occ=getConsoleColor()
+occ=get_console_color()
 tagList=["red","blue","1red1"]
 userIn=-1
 while userIn!=13:
@@ -15,9 +15,9 @@ while userIn!=13:
         else:
             res=res+charG
         if res not in tagList:
-            setConsoleColor("red")
+            set_console_color("red")
         else:
-            setConsoleColor(occ)
+            set_console_color(occ)
         print res
 
-setConsoleColor(occ)
+set_console_color(occ)

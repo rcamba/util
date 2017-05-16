@@ -7,7 +7,7 @@ from random import shuffle
 from subprocess import Popen
 
 from tag import getFilenameList, addTags, removeTags
-from root import screeningDir, musicDir, deletedScreenedLog, errorAlert
+from root import screeningDir, musicDir, deletedScreenedLog, error_alert
 
 from psutil import process_iter
 
@@ -59,7 +59,7 @@ def confirmation_resume():
         return True
     else:
         print "You typed : ", user_input
-        errorAlert("Type 'continue' and press enter to resume")
+        error_alert("Type 'continue' and press enter to resume")
         return False
 
 
@@ -88,7 +88,7 @@ def handle_tagging(music_filename):
 
     except shutil_error, e:
 
-        errorAlert(("{m} already exists in music directory." +
+        error_alert(("{m} already exists in music directory." +
                     "\nDeleting {m}").format(m=music_filename))
         handle_delete(music_filename)
 
@@ -103,7 +103,7 @@ def handle_delete(music_filename):
         log_deleted_song(music_filename)
 
     except OSError, e:
-        errorAlert(
+        error_alert(
             "Failed to delete file {}. No changes have been made.".format(
                 music_filename))
         print e.message
@@ -119,7 +119,7 @@ def handle_keep(music_filename):
 
     except shutil_error, e:
 
-        errorAlert(
+        error_alert(
             "{m} already exists in music directory.\nDeleting {m}".format(
                 m=music_filename))
         handle_delete(music_filename)
@@ -158,7 +158,7 @@ def start_screening(song_list):
                 invalid_key_press += 1
                 if invalid_key_press > 2:
                     confirm_resume = False
-                    errorAlert("Too many invalid keypresses->Pausing")
+                    error_alert("Too many invalid keypresses->Pausing")
 
                     while(confirm_resume is False):
                         confirm_resume = confirmation_resume()
@@ -206,4 +206,4 @@ if __name__ == "__main__":
         start_screening(song_list)
 
     else:
-        errorAlert("No music to be screened available")
+        error_alert("No music to be screened available")

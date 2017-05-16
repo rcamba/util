@@ -3,27 +3,28 @@ Contains all constants and some utility methods
 """
 
 from os import getenv, path, sep
-utilResourceDir=getenv("utilResources")
-username=getenv("username")
+utilResourceDir = getenv("utilResources")
+username = getenv("username")
 
-home_drive = "C:"
-home_path ="Users"
-userDir = path.join(home_drive, sep, home_path, username)
-musicDir = path.join(userDir, "Music", "ytcon")
-screeningDir = path.join(userDir ,"Music", "ytcon", "screen")
-backUpDir =path.join(userDir,  "backUp")
-yt_amv_dir = path.join(userDir, "Videos", "ytAMV")
-yt_dls_dir = path.join(userDir, "Videos", "ytVids")
+main_drive = "C:"
+alt1_drive = "F:"
+user_path = "Users"
+home_dir = path.join(main_drive, sep, user_path, username)
+musicDir = path.join(alt1_drive, sep, user_path, username, "Music", "ytcon")
+screeningDir = r"F:\Users\Kevin\Music\ytcon\screen"  # path.join(userDir ,"Music", "ytcon", "screen")
+backUpDir = path.join(home_dir, "backUp")
+yt_amv_dir = r"F:\Users\Kevin\Videos\ytAMV"  # path.join(userDir, "Videos", "ytAMV")
+yt_dls_dir = path.join(home_dir, "Videos", "ytVids")
 tagFilesLogDir = path.join(utilResourceDir, "logs", "tagFilesLog")
 
-#Files
+# Files
 
 songLogFile = path.join(utilResourceDir, "logs", "prandomSongsLog.log")
 removedFilesLog = path.join(utilResourceDir, "logs", "removedFilesLog.log")
 hibLog = path.join(utilResourceDir, "logs", "hibLog.log")
 tagFile = path.join(utilResourceDir, "logs", "tagFile.log")
 vlc_hwnd_log = path.join(utilResourceDir, "logs", "vlc_hwnd.log")
-deletedTagFile =path.join(utilResourceDir, "logs", "deletedTagFiles.log")
+deletedTagFile = path.join(utilResourceDir, "logs", "deletedTagFiles.log")
 dirJumpFile = path.join(utilResourceDir, "logs", "directoryQ.log")
 downloadedTorFiles = path.join(utilResourceDir, "logs", "downloadedAnimeTorrents.log")
 toDoListTextFile = path.join(utilResourceDir, "logs", "toDoListFile.log")
@@ -31,1064 +32,1046 @@ prevDirFile = path.join(utilResourceDir, "logs", "prevDir.log")
 prandomExceptions = path.join(utilResourceDir, "logs", "prandomexceptiontags.log")
 deletedScreenedLog = path.join(utilResourceDir, "logs", "deletedScreenedLog.log")
 
-#Variables
-MAX_WAIT_TIME=30 #seconds
-
-#Utility methods
-def reverseSlash(string,targetSlash):
-	result=""
-	if(targetSlash=="\\"):
-		result=string.replace("/","\\")
-
-	elif(targetSlash=="/"):
-		result=string.replace("\\","/")
-
-	else:
-		print "Invalid target slash"
-
-	return result
-
-def compareLists(list1, list2, similar=True):
-	"""
-	Deletes differences between list1 and list2
-	"""
-	list=[]
-
-	if(similar==True):
-		for i in range(0, len(list1)):
-			if(list1[i] in list2):
-				list.append(list1[i])
-	else:
-		for i in range(len(list1)-1,-1,-1):
-			if(list1[i] not in list2):
-				list.append(list1[i])
-
-	return list
-
-
-def switchBoard(args, validSwitches=[]):
-	from string import lower
-	from inspect import stack, getmodule, getmodulename
-	from sys import exit as sys_exit
-	if(len(validSwitches)==0):
-
-		try:
-			frame=stack()[1]
-			module=getmodule(frame[0]).__file__
-			importFile=getmodulename(module)
-			validSwitches=__import__(importFile).__dict__.get("AVAILABLE_SWITCHES")
-			#AVAILABLE SWITCHES CAN'T BE INSIDE "If __name__==__main__" BLOCK
-
-			if validSwitches==None:
-				print "No valid switches found. Terminating script."
-				sys_exit(1)
-
-		except TypeError:
-			print "Module of ", frame[0], " not found"
-			sys_exit(1)
+# Variables
+MAX_WAIT_TIME = 30  # seconds
 
-		except AttributeError:
-			validSwitches=[arg.replace("-","") for arg in args]
+# Utility methods
 
-	switchList=[]
-	if(type(args)==list):
 
-		for i in range(len(args)-1,-1,-1):
+def reverse_slash(string, target_slash):
+    result = ""
+    if target_slash == "\\":
+        result = string.replace("/", "\\")
+
+    elif target_slash == "/":
+        result = string.replace("\\", "/")
+
+    else:
+        print "Invalid target slash"
+
+    return result
+
+
+def compare_lists(list1, list2, similar=True):
+    """
+    Deletes differences between list1 and list2
+    :param similar:
+    :param list2:
+    :param list1:
+    """
+    list_ = []
 
-			if("-" in args[i][0]):
-				switch=args[i].replace("-","")
-				if(len(switch)>0):
+    if similar:
+        for i in range(0, len(list1)):
+            if list1[i] in list2:
+                list_.append(list1[i])
+    else:
+        for i in range(len(list1) - 1, -1, -1):
+            if list1[i] not in list2:
+                list_.append(list1[i])
+
+    return list_
 
-					if(":" in switch):
-						token=switch.split(":")
-						if token[0] in validSwitches:
-							switchList.append( (token[0], token[1]) )
-						else:
-							print token[0], ": not a valid switch"
-							sys_exit(1)
 
-					elif(lower(switch) in validSwitches ):
-						switchList.append(lower(switch))
-					else:
-						print "Invalid switch: ", switch
-						print "Terminating script."
-						sys_exit(1)
-				args.remove(args[i])
+def switch_board(args, valid_switches=None):
+    from string import lower
+    from inspect import stack, getmodule, getmodulename
+    from sys import exit as sys_exit
+    if valid_switches is None:
 
-		#standard/ normalize slashes for file accesses
-			elif("/" in args[i]):
-				args[i]=args[i].replace("/","\\")
+        frame = stack()[1]
+        try:
+            module = getmodule(frame[0]).__file__
+            import_file = getmodulename(module)
+            valid_switches = __import__(import_file).__dict__.get("AVAILABLE_SWITCHES")
+            # AVAILABLE SWITCHES CAN'T BE INSIDE "If __name__==__main__" BLOCK
 
-	else:
-		print "Not a list"
+            if valid_switches is None:
+                print "No valid switches found. Terminating script."
+                sys_exit(1)
 
-	return switchList
+        except TypeError:
+            print "Module of ", frame[0], " not found"
+            sys_exit(1)
 
-def switchParser(args,validSwitches=[]):#returns dict, will replace switchBoard
-	from inspect import stack, getmodule, getmodulename
-	from sys import exit as sys_exit
+        except AttributeError:
+            valid_switches = [arg.replace("-", "") for arg in args]
 
-	if(len(validSwitches)==0):
-		try:
-			frame=stack()[1]
-			module=getmodule(frame[0]).__file__
-			importFile=getmodulename(module)
-			validSwitches=__import__(importFile).__dict__.get("AVAILABLE_SWITCHES")
-			#AVAILABLE SWITCHES CAN'T BE INSIDE "If __name__==__main__" BLOCK
-			if validSwitches==None:
-				print "No valid switches found. Terminating script."
-				sys_exit(1)
+    switch_list = []
+    if type(args) == list:
 
-		except TypeError:
-			print "Module of ", frame[0], " not found"
-			sys_exit(1)
+        for i in range(len(args) - 1, -1, -1):
 
-		except AttributeError:
-			validSwitches=[arg.replace("-","") for arg in args]
+            if "-" in args[i][0]:
+                switch = args[i].replace("-", "")
+                if len(switch) > 0:
 
-	#
-	switchDict={}
-	for arg in args[:]:
-		if arg[0]=='-':
+                    if ":" in switch:
+                        token = switch.split(":")
+                        if token[0] in valid_switches:
+                            switch_list.append((token[0], token[1]))
+                        else:
+                            print token[0], ": not a valid switch"
+                            sys_exit(1)
 
-			token=arg.split(':')
+                    elif lower(switch) in valid_switches:
+                        switch_list.append(lower(switch))
+                    else:
+                        print "Invalid switch: ", switch
+                        print "Terminating script."
+                        sys_exit(1)
+                args.remove(args[i])
 
-			if token[0][1:] in validSwitches:
-				if len(token)==1:
-					switchDict[token[0][1:]]=''
+        # standard/ normalize slashes for file accesses
+            elif "/" in args[i]:
+                args[i] = args[i].replace("/", "\\")
 
-				elif len(token)==2:
-					switchDict[token[0][1:]]=token[1]
+    else:
+        print "Not a list"
 
-				else:
-					switchDict[token[0][1:]]=" ".join([ token[1:] ] )
+    return switch_list
 
-			else:
-				print "\nInvalid switch: ", token[0][1:]
-				print "Valid switches: ", validSwitches
-				sys_exit(1)
 
-			args.remove(arg)
+def switch_parser(args, valid_switches=None):  # returns dict, will replace switch_board
+    from inspect import stack, getmodule, getmodulename
+    from sys import exit as sys_exit
 
-	return switchDict
+    if valid_switches is None:
+        frame = stack()[1]
+        try:
+            module = getmodule(frame[0]).__file__
+            import_file = getmodulename(module)
+            valid_switches = __import__(import_file).__dict__.get("AVAILABLE_SWITCHES")
+            # AVAILABLE SWITCHES CAN'T BE INSIDE "If __name__==__main__" BLOCK
+            if valid_switches is None:
+                print "No valid switches found. Terminating script."
+                sys_exit(1)
 
-def listFromPiped():
-	pass#get list from piped printNumberedList/ printList
+        except TypeError:
+            print "Module of ", frame[0], " not found"
+            sys_exit(1)
 
-def printList(list, endRange=-1,aes="full",pressToContinue=True):#(list, pretty="on",noPrint=False,endRange=-1)
-#pretty is for colors+numbering  and "++,--,etc." , noPrint is just returning the str to print and no actual "print" command inside
-	return printNumberedList(list,endRange,aes,pressToContinue)
+        except AttributeError:
+            valid_switches = [arg.replace("-", "") for arg in args]
 
-def outputFromCommand(cmd_and_args):
+    switch_dict = {}
+    for arg in args[:]:
+        if arg[0] == '-':
 
-	import subprocess
+            token = arg.split(':')
 
-	if type(cmd_and_args) == list:
-		c = cmd_and_args
+            if token[0][1:] in valid_switches:
+                if len(token) == 1:
+                    switch_dict[token[0][1:]] = ''
 
-	elif type(cmd_and_args) == str:
-		c = cmd_and_args.split()
+                elif len(token) == 2:
+                    switch_dict[token[0][1:]] = token[1]
 
-	proc = subprocess.Popen(c, stdout=subprocess.PIPE, shell=True)
-	(output, error)=proc.communicate()
+                else:
+                    switch_dict[token[0][1:]] = " ".join([token[1:]])
 
-	return output.strip()
+            else:
+                print "\nInvalid switch: ", token[0][1:]
+                print "Valid switches: ", valid_switches
+                sys_exit(1)
 
-def printNumberedList(list,endRange=-1,aes="full", pressToContinue=True):
+            args.remove(arg)
 
-	from msvcrt import kbhit, getch
-	from sys import stdout, exit as sys_exit
-	import subprocess
+    return switch_dict
 
-	origConsoleColor=getConsoleColor()
 
-	out=outputFromCommand("powershell -Command $host.UI.RawUI.WindowSize.Height")
-	cmd_height=int(out)-1 # -1 for prompt ("Press any key to continue")
+def list_from_piped():
+    pass  # get list from piped print_numbered_list/ print_list
 
 
-	out=outputFromCommand("powershell -Command $host.UI.RawUI.WindowSize.Width")
-	cmd_width=int(out)
+def print_list(list_, end_range=-1, scheme="full", press_to_continue=True):
+    # pretty is for colors+numbering  and "++,--,etc." , noPrint is just
+    # returning the str to print and no actual "print" command inside
+    return print_numbered_list(list_, end_range, scheme, press_to_continue)
 
-	finalPrintStr= ""
 
-	if(endRange==-1):
-		endRange=len(list)
-	elif endRange> len(list):
-		errorAlert("Size of list is greater than given endRange of " + str(endRange))
-		sys_exit(1)
+def output_from_command(cmd_and_args):
+    import subprocess
+    c_ = None
+    if type(cmd_and_args) == list:
+        c_ = cmd_and_args
 
-	aesDict={}
+    elif type(cmd_and_args) == str:
+        c_ = cmd_and_args.split()
 
-	aesDict["full"]={
-		"printBorder": "-"*((cmd_width)-1),
-		"consoleColors":[3,6],
-		"charSymbols":['+','-','!']
-	}
+    if c_ is None:
+        raise Exception("Argument must be either list or string")
 
-	aesDict["borderOnly"]={
-		"printBorder": "-"*((cmd_width)-1),
-		"consoleColors":[origConsoleColor,origConsoleColor],
-		"charSymbols":['','','']
-	}
+    proc = subprocess.Popen(c_, stdout=subprocess.PIPE, shell=True)
+    (output, error) = proc.communicate()
 
+    return output.strip()
 
-	aesDict["none"]={
-		"printBorder": "",
-		"consoleColors":[origConsoleColor,origConsoleColor],
-		"charSymbols":['','','']
-	}
 
-	if len(aesDict[aes]["printBorder"])>0:
-		print aesDict[aes]["printBorder"]
+def print_numbered_list(list_, end_range=-1, scheme="full", press_to_continue=True):
 
-	try:
-		for i in range(0,endRange):
+    from msvcrt import kbhit, getch
+    from sys import stdout, exit as sys_exit
 
-			if( i % 2 == 0):
-				setConsoleColor(aesDict[aes]["consoleColors"][0])
-			else:
-				setConsoleColor(aesDict[aes]["consoleColors"][1])
+    orig_console_color = get_console_color()
 
-			charSymbols=aesDict[aes]["charSymbols"]
+    out = output_from_command("powershell -Command $host.UI.RawUI.WindowSize.Height")
+    cmd_height = int(out) - 1  # -1 for prompt ("Press any key to continue")
 
-			cSymbol=charSymbols[i% len(charSymbols)]
-			if aes=="none" or aes=="borderOnly":
-				line=str(list[i])
+    out = output_from_command("powershell -Command $host.UI.RawUI.WindowSize.Width")
+    cmd_width = int(out)
 
-			else:
-				line="["+cSymbol+" "+str(i+1)+" "+cSymbol+"] " + str(list[i]) + " ["+(cSymbol*2)+"]"
-			print line
-			finalPrintStr+=line+"\n"
+    final_print_str = ""
 
+    if end_range == -1:
+        end_range = len(list_)
+    elif end_range > len(list_):
+        error_alert("Size of list is greater than given endRange of " + str(end_range))
+        sys_exit(1)
 
+    # noinspection PyDictCreation
+    schemesDict = {}
 
-			if ( (i+1) % (cmd_height) )==0 and pressToContinue==True:
-				stdout.write( "Press any key to continue" )
-				if(kbhit()==False):
-					inputChar=ord(getch())
-					if(inputChar==224 or inputChar==0):
-						getch()
+    schemesDict["full"] = {
+        "printBorder": "-" * (cmd_width - 1),
+        "consoleColors": [3, 6],
+        "charSymbols": ['+', '-', '!']
+    }
 
-					stdout.write(len("Press any key to continue")*"\b")
+    schemesDict["borderOnly"] = {
+        "printBorder": "-" * (cmd_width - 1),
+        "consoleColors": [orig_console_color, orig_console_color],
+        "charSymbols": ['', '', '']
+    }
 
-	except KeyboardInterrupt:
-		setConsoleColor(origConsoleColor)
+    schemesDict["none"] = {
+        "printBorder": "",
+        "consoleColors": [orig_console_color, orig_console_color],
+        "charSymbols": ['', '', '']
+    }
 
-	finally:
-		setConsoleColor(origConsoleColor)
+    if len(schemesDict[scheme]["printBorder"]) > 0:
+        print schemesDict[scheme]["printBorder"]
 
-	if len(aesDict[aes]["printBorder"])>0:
-		print aesDict[aes]["printBorder"]
+    try:
+        for i in range(0, end_range):
 
-	finalPrintStr=finalPrintStr.strip()
-	return finalPrintStr
+            if i % 2 == 0:
+                set_console_color(schemesDict[scheme]["consoleColors"][0])
+            else:
+                set_console_color(schemesDict[scheme]["consoleColors"][1])
+
+            char_symbols = schemesDict[scheme]["charSymbols"]
+
+            c_symbol = char_symbols[i % len(char_symbols)]
+            if scheme == "none" or scheme == "borderOnly":
+                line = str(list_[i])
+
+            else:
+                line = "[" + c_symbol + " " + str(i + 1) + " " + c_symbol + "] " + \
+                    str(list_[i]) + " [" + (c_symbol + c_symbol) + "]"
+            print line
+            final_print_str += line + "\n"
+
+            if ((i + 1) % cmd_height) == 0 and press_to_continue:
+                stdout.write("Press any key to continue")
+                if kbhit() is False:
+                    input_char = ord(getch())
+                    if input_char == 224 or input_char == 0:
+                        getch()
+
+                    stdout.write(len("Press any key to continue") * "\b")
+
+    except KeyboardInterrupt:
+        set_console_color(orig_console_color)
+
+    finally:
+        set_console_color(orig_console_color)
+
+    if len(schemesDict[scheme]["printBorder"]) > 0:
+        print schemesDict[scheme]["printBorder"]
+
+    final_print_str = final_print_str.strip()
+    return final_print_str
+
 
 def cen():
-	from cmd_cursor_pos import center_cmd
-	from threading import Thread
-	Thread(target=center_cmd).start()
+    from cmd_cursor_pos import center_cmd
+    from threading import Thread
+    Thread(target=center_cmd).start()
 
-#add prompt as argument similar to raw_input(prompt), overwrite default prompt
-#support for mulitple choices?
-def chooseFromList(list, centering=True, noInvalidResult=False):
-	return chooseFromNumberedList(list, centering, noInvalidResult)
+# add prompt as argument similar to raw_input(prompt), overwrite default prompt
+# support for mulitple choices?
 
-def chooseFromNumberedList(list, centering=True, noInvalidResult=False):
-	from sys import exit as sys_exit
 
-	if(centering==True):
-		pass # not really needed anymore due to "tc"
-		# cen()
+def choose_from_list(list_, centering=True, no_invalid_result=False):
+    return choose_from_numbered_list(list_, centering, no_invalid_result)
 
-	result=-1
-	if(len(list)>1):
-		print "Enter number of desired result: ",
-		try:
-			choice= raw_input()
-		except EOFError:#pipes
-			choice=keyPressInput()
 
+def choose_from_numbered_list(list_, centering=True, no_invalid_result=False):
+    from sys import exit as sys_exit
 
-		if(choice.isdigit() and int(choice)<=len(list) and int(choice)>0):
-			result=int(choice)-1
-		elif noInvalidResult==True:
-			result=choice
+    if centering:
+        pass  # not really needed anymore due to "tc"
+        # cen()
 
-		else:
-			errorAlert("Error: Invalid choice. Choice was not a valid number.")
-			sys_exit(1)
+    result = -1
+    if len(list_) > 1:
+        print "Enter number of desired result: ",
+        try:
+            choice = raw_input()
+        except EOFError:  # pipes
+            choice = key_press_input()
 
-	elif(len(list)==1):
-		result=0
+        if choice.isdigit() and int(choice) <= len(list_) and int(choice) > 0:
+            result = int(choice) - 1
+        elif no_invalid_result:
+            result = choice
 
-	else:
-		errorAlert( "Error: Empty list." )
+        else:
+            error_alert("Error: Invalid choice. Choice was not a valid number.")
+            sys_exit(1)
 
-	return list[result]
+    elif len(list_) == 1:
+        result = 0
 
-def pipedList(stdinOutput):
-	from re import findall
-	from string import replace
-	try:
+    else:
+        error_alert("Error: Empty list.")
 
-		pipedList=findall("\".+\"",stdinOutput)
-		finalList= [x.replace('\"','') for x in pipedList]
+    return list_[result]
 
-	except Exception, e:
-		errorAlert( str(e) )
-		errorAlert( "Cannot convert: " +stdinOutput + "from pipes in to list" )
-		finalList=[]
 
-	return finalList
+def piped_list(stdin_output):
+    from re import findall
+    try:
 
-def setClipboardData(data):
+        piped_list_ = findall("\".+\"", stdin_output)
+        final_list = [x.replace('\"', '') for x in piped_list_]
 
-	from win32clipboard import OpenClipboard, EmptyClipboard, SetClipboardData, CloseClipboard
-	from win32con import CF_TEXT
-	OpenClipboard()
-	EmptyClipboard()
-	SetClipboardData(CF_TEXT, data)
-	CloseClipboard()
+    except Exception, e:
+        error_alert(str(e))
+        error_alert("Cannot convert: " + stdin_output + "from pipes in to list")
+        final_list = []
 
+    return final_list
 
 
+def set_clipboard_data(data):
 
+    from win32clipboard import OpenClipboard, EmptyClipboard, SetClipboardData, CloseClipboard
+    from win32con import CF_TEXT
+    OpenClipboard()
+    EmptyClipboard()
+    SetClipboardData(CF_TEXT, data)
+    CloseClipboard()
 
-def getClipboardData():
 
-	from win32clipboard import OpenClipboard, CloseClipboard, GetClipboardData
-	from win32con import CF_TEXT
-	OpenClipboard()
-	data=GetClipboardData(CF_TEXT)
-	CloseClipboard()
+def get_clipboard_data():
 
-	return data
+    from win32clipboard import OpenClipboard, CloseClipboard, GetClipboardData
+    from win32con import CF_TEXT
+    OpenClipboard()
+    data = GetClipboardData(CF_TEXT)
+    CloseClipboard()
 
-def standardizeFile(filePath):
-	"""Cast to string, replace forward slash with backslash, lower string"""
-	from string import lower
-	return lower( str(filePath).replace('/','\\').strip() )
+    return data
 
-def standardizeString(targetString):
-	"""Cast to string, strip string, lower string """
-	from string import lower
-	return lower( str(targetString).strip() )
 
-def addMember(originalObject, function="", manAttrib=""):
+def standardize_file(file_path):
+    """Cast to string, replace forward slash with backslash, lower string"""
+    from string import lower
+    return lower(str(file_path).replace('/', '\\').strip())
 
-	#function must contain a function call that can be applied to originalObject
 
-	class Metamorph:
+def standardize_string(target_string):
+    """Cast to string, strip string, lower string """
+    from string import lower
+    return lower(str(target_string).strip())
 
-		def __init__(self, originalObject, function):
-			self.object=originalObject
 
-			if(len(manAttrib)>0):
-				self.attribute=manAttrib
-			elif(len(function.__name__)>0):
-				try:
-					self.attribute=function(originalObject)
-				except:
-					self.attribute=None
-					print "Failed to set", function, "for: ", originalObject
-					raise WindowsError#TODO: CREATE OWN ERROR EXCEPTION
-			else:
-				print "Missing function or manual attribute parameter."
-
-
-		def getObject(self):
-			return self.object
-
-		def getAttribute(self):
-			return self.attribute
+def add_member(original_obj, function=None, man_attrib=""):
 
-		def __str__(self):
-			return originalObject.__str__()
+    # function must contain a function call that can be applied to originalObject
 
+    class Metamorph:
 
-	result=Metamorph(originalObject,function)
+        def __init__(self, original_obj_, func_):
+            self.object = original_obj_
 
-	return result
+            if len(man_attrib) > 0:
+                self.attribute = man_attrib
+            elif len(func_.__name__) > 0:
+                try:
+                    self.attribute = func_(original_obj_)
+                except:
+                    self.attribute = None
+                    print "Failed to set", func_, "for: ", original_obj_
+                    raise WindowsError  # TODO: CREATE OWN ERROR EXCEPTION
+            else:
+                print "Missing function or manual attribute parameter."
 
-def getAllPageLinks(url):
-	"""
-	try:
-		import urllib2
-		user_agent = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_4; en-US) AppleWebKit/534.3 (KHTML, like Gecko) Chrome/6.0.472.63 Safari/534.3'
-		headers = { 'User-Agent' : user_agent }
-		req = urllib2.Request(url, None, headers)
-		# req = urllib2.Request(url)
-		response = urllib2.urlopen(req)
-		url = response.read()
-	except urllib2.socket.error, e:
-		raise (str(e))
-	"""
-	import requests
-	url = requests.get(url).text
+        def get_object(self):
+            return self.object
 
-	from bs4 import BeautifulSoup, SoupStrainer
-	resultsList=BeautifulSoup(url, parse_only=SoupStrainer('a'))
-	resultsList=resultsList.findAll('a')
+        def get_attribute(self):
+            return self.attribute
 
-	return resultsList
+        def __str__(self):
+            return original_obj.__str__()
 
-def prompt(cwd=""):
+    result = Metamorph(original_obj, function)
 
-	from sys import stdout
-	from os import system
-	system("echo %CD%")
-	stdout.write(">>>")
+    return result
 
 
-def keyPressInput(promptStr=""):
+def get_all_page_links(url):
+    import requests
+    # user-agent?
+    url = requests.get(url).text
 
-	if(len(promptStr)>0):
-		print promptStr
-	"""
-	Gets input from keypress until enter is pressed.
-	Tries to emulates raw_input() ; insert/overwrite always on
-	For use with pipes
-	"""
+    from bs4 import BeautifulSoup, SoupStrainer
+    resultsList = BeautifulSoup(url, parse_only=SoupStrainer('a'))
+    resultsList = resultsList.findAll('a')
 
-	def clear(length=1):
-		stdout.write("\b"*length) #stdout cursor move back by length
-		stdout.write(" "*length) #display clearing of character(s)
-		stdout.write("\b"*length) #get rid of " " moving cursor forward
+    return resultsList
 
-	from msvcrt import kbhit, getch
-	from sys import stdout
-	from os import getenv
 
+def prompt():
+    from sys import stdout
+    from os import system
+    system("echo %CD%")
+    stdout.write(">>>")
 
-	userInput=""
-	result=[]
-	cursorPos=0
 
-	while(userInput!=13):
-		charG=getch()
-		userInput= ord(charG)
+def key_press_input(prompt_str=""):
+    """
+    Gets input from keypress until enter is pressed.
+    Tries to emulates raw_input() ; insert/overwrite always on
+    For use with pipes
+    """
 
-		if userInput==13:
-			clear(len("".join(result)))
-			stdout.write( "".join(result)+"\n")
+    if len(prompt_str) > 0:
+        print prompt_str
 
-		elif userInput==8:
-			if len(result) >0 and cursorPos<=len(result) :
-				clear(len(result))
-				cursorPos-=1
-				result.pop( "".join(result).rindex( result[cursorPos] ) )
+    def clear(length=1):
+        stdout.write("\b" * length)  # stdout cursor move back by length
+        stdout.write(" " * length)  # display clearing of character(s)
+        stdout.write("\b" * length)  # get rid of " " moving cursor forward
 
-				stdout.write( "".join(result) )
-				stdout.write( "\b"* (len(result)-cursorPos) )
+    from msvcrt import kbhit, getch
+    from sys import stdout
 
-		elif userInput==224:
-			userInput=ord(getch())
+    user_input = ""
+    result = []
+    cursor_pos = 0
 
-			if userInput==75: #left
-				cursorPos-=1
-				stdout.write("\b")
+    while user_input != 13:
+        char_g = getch()
+        user_input = ord(char_g)
 
+        if user_input == 13:
+            clear(len("".join(result)))
+            stdout.write("".join(result) + "\n")
 
-			elif userInput==77: #right
-				if cursorPos < len(result):
-					stdout.write(result[cursorPos])
-				else:
-					stdout.write(" ")
-				cursorPos+=1
+        elif user_input == 8:
+            if len(result) > 0 and cursor_pos <= len(result):
+                clear(len(result))
+                cursor_pos -= 1
+                result.pop("".join(result).rindex(result[cursor_pos]))
+
+                stdout.write("".join(result))
+                stdout.write("\b" * (len(result) - cursor_pos))
+
+        elif user_input == 224:
+            user_input = ord(getch())
 
-			elif userInput==119: #ctrl+home
-				clear(len(result))
+            if user_input == 75:  # left
+                cursor_pos -= 1
+                stdout.write("\b")
 
-				result=result[cursorPos:]
+            elif user_input == 77:  # right
+                if cursor_pos < len(result):
+                    stdout.write(result[cursor_pos])
+                else:
+                    stdout.write(" ")
+                cursor_pos += 1
+
+            elif user_input == 119:  # ctrl+home
+                clear(len(result))
+
+                result = result[cursor_pos:]
 
-				stdout.write("".join(result)) #let cursor remain at end
-				cursorPos=len(result)
+                stdout.write("".join(result))  # let cursor remain at end
+                cursor_pos = len(result)
 
-			elif userInput==117: #ctrl+end
-				clear(len(result))
-				result=result[:cursorPos]
+            elif user_input == 117:  # ctrl+end
+                clear(len(result))
+                result = result[:cursor_pos]
 
-				stdout.write("".join(result))
-				cursorPos=len(result)
+                stdout.write("".join(result))
+                cursor_pos = len(result)
 
-			elif userInput==115: #ctrl+left
+            elif user_input == 115:  # ctrl+left
 
+                diff_pos = cursor_pos - "".join(result).rindex(" ")
+                stdout.write("\b" * diff_pos)
+                cursor_pos = cursor_pos - diff_pos
 
-				diffPos=cursorPos-"".join(result).rindex( " " )
-				stdout.write("\b"*diffPos)
-				cursorPos=cursorPos-diffPos
+            elif user_input == 116:  # ctrl + right
+                pass
 
+        else:
 
-			elif userInput==116:#ctrl + right
-				pass
+            stdout.write(char_g)
+            result.insert(cursor_pos, char_g)
+            cursor_pos += 1
 
-		else:
+    return "".join(result)
 
-			stdout.write(charG)
-			result.insert(cursorPos,charG)
-			cursorPos+=1
 
-	return "".join(result)
+def file_search(target_file, top_lvl="C:\\Users\\Kevin\\", strict=True):
+    from string import lower
 
-def fileSearch(targetFile, topLevel="C:\\Users\\Kevin\\", strict=True):
-	from string import lower
-	from threading import Thread
-	from os import system, getcwd, path, listdir
-	"""search for targetFile from current top level drive recursively through folders except for folders in EXCLUDED_FOLDERS(system folders, temp/cache, etc.)"""
+    from os import path, listdir
 
-	EXCLUDED_FOLDERS=[r"c:\users\kevin\application data",r"c:\users\kevin\cookies",r"c:\users\kevin\local settings",r"c:\users\kevin\nethood",r"c:\users\kevin\printhood",r"c:\users\kevin\recent",r"c:\users\kevin\sendto",r"c:\users\kevin\start menu",r"c:\users\kevin\templates",r"c:\users\kevin\appdata\local\temporary internet files",r"c:\users\kevin\appdata\local\application data",
-	r"c:\users\kevin\appdata\local\history",
-	r"c:\users\kevin\my documents",
-	r"c:\users\kevin\documents\my music",r"c:\users\kevin\documents\my videos",r"c:\users\kevin\documents\my pictures"]
-	def listDirFullPath(topLevel):
-		from string import lower
-		fList=[]
-		if topLevel not in EXCLUDED_FOLDERS:
-			try:
-				fList= listdir(topLevel)
-				for i in range(0,len(fList)):
-					fList[i]=lower(path.join(topLevel, fList[i]))
-			except WindowsError:
-				#pass
-				errorAlert("Cannot access " + topLevel)
+    EXCLUDED_FOLDERS = [
+        path.join(home_dir, "application data"),
+        path.join(home_dir, "cookies"),
+        path.join(home_dir, "local settings"),
+        path.join(home_dir, "nethood"),
+        path.join(home_dir, "printhood"),
+        path.join(home_dir, "recent"),
+        path.join(home_dir, "sendto"),
+        path.join(home_dir, "start menu"),
+        path.join(home_dir, "templates"),
+        path.join(home_dir, "appdata", "local", "temporary internet files"),
+        path.join(home_dir, "appdata", "local", "application data"),
+        path.join(home_dir, "appdata", "local", "history"),
+        path.join(home_dir, "documents"),
+    ]
 
-		return fList
+    def list_dir_full_path(top_lvl_):
+        from string import lower
+        f_list_ = []
+        if top_lvl_ not in EXCLUDED_FOLDERS:
+            try:
+                f_list_ = listdir(top_lvl_)
+                for i in range(0, len(f_list_)):
+                    f_list_[i] = lower(path.join(top_lvl_, f_list_[i]))
+            except WindowsError:
+                # pass
+                error_alert("Cannot access " + top_lvl_)
+
+        return f_list_
 
+    res_list = []
+    target_file = lower(target_file)
+    f_list = list_dir_full_path(top_lvl)
 
-	resList=[]
-	targetFile=lower(targetFile)
-	fList=listDirFullPath(topLevel)
+    for f in f_list:
+        filename = path.split(f)[1]
+        if path.isfile(filename):
+            if strict:
+                if target_file == filename:
+                    res_list.append(f)
+            else:
+                if target_file in filename:
+                    res_list.append(f)
 
-	for f in fList:
-		filename=path.split(f)[1]
-		if path.isfile( filename ):
-			if strict:
-				if targetFile==filename:
-					resList.append(f)
-			else:
-				if targetFile in filename:
-					resList.append(f)
+        elif path.isdir(f):
+            f_list.extend(list_dir_full_path(f))
 
-		elif path.isdir(f):
-			fList.extend( listDirFullPath(f) )
+    print_list(res_list)
+    return res_list
 
 
-	printList( resList)
-	return resList
+def create_back_up(file_name, set_back_up_dir=""):  # backup before opening/writing to txt files
+    from shutil import copy2
+    from os import mkdir, path, rename, chdir, getcwd
+    from datetime import datetime
+    from time import time
+    global backUpDir
 
+    orig_dir = getcwd()
+    # print "Creating backup copy of: ", fileName
+    if path.exists(file_name) and path.isdir(file_name) is False:
+
+        time_format = "%b-%d-%Y@%H_%M_%f"
+        extension = path.splitext(file_name)[1]
+        sliced_fname = path.splitext(path.split(file_name)[1])[0]  # cuts extension and path from filename
+
+        if len(set_back_up_dir) > 0:
+            backUpDir = set_back_up_dir
+
+        dir_name = path.join(backUpDir, sliced_fname)
+
+        if path.isdir(dir_name) is False:
+            print "Creating new directory: ", dir_name
+            mkdir(dir_name)
+
+        dated_fname = "".join([sliced_fname, "@", str(datetime.now().strftime(time_format)), extension])
+
+        try:
+            copy2(file_name, dir_name)
+
+        except IOError:
+            error_alert("Error, cannot access directory or directory is invalid.", True, IOError)
 
+        chdir(dir_name)
 
-def createBackUp(fileName, setBackUpDir=""):#backup before opening/writing to txt files
-	from shutil import copy2
-	from os import mkdir, path, rename, chdir, getcwd
-	from datetime import datetime
-	from time import sleep, time
-	global backUpDir
+        if getcwd() == dir_name:
+            win_error = None  # /lock?
+            time_counter = 0
+            init_time = time()
+            while win_error is None and time_counter < MAX_WAIT_TIME:
+                try:
+                    dated_fname = "".join([sliced_fname, "@", str(datetime.now().strftime(time_format)), extension])
+                    rename(str(path.split(file_name)[1]), dated_fname)
 
-	originalDir=getcwd()
-	#print "Creating backup copy of: ", fileName
-	if(path.exists(fileName) and path.isdir(fileName)==False):
+                    win_error = "clear"
+                except:
+                    time_counter = time() - init_time
+                    # print "Failed to rename ", str(path.split(fileName)[1]), " to ", datedFileName
 
-		timeFormat="%b-%d-%Y@%H_%M_%f"
-		extension=path.splitext(fileName)[1]
-		slicedFileName=path.splitext( path.split(fileName)[1] )[0]#cuts extension and path from filename
+    else:
+        print file_name, " is not a valid file."
 
-		if len(setBackUpDir)>0:
-			backUpDir=setBackUpDir
+    if getcwd() != orig_dir:
+        chdir(orig_dir)
 
-		dirName=path.join(backUpDir,slicedFileName)
 
-		if(path.isdir(dirName)==False):
-			print "Creating new directory: ", dirName
-			mkdir(dirName)
+def kill_proc(proc_name="", pid=-1):
+    from psutil import pids, Process
+    from os import kill
+    from signal import SIGILL
+    from string import lower
 
-		datedFileName="".join([ slicedFileName,"@",str(datetime.now().strftime(timeFormat)),extension ])
+    success = -1
+    if len(proc_name) > 0 or pid != -1:
 
-		try:
-			copy2(fileName,dirName)
+        if proc_name.isdigit():
+            pid = int(proc_name)
+            kill(pid, SIGILL)
+            success = 1
 
-		except IOError:
-			errorAlert("Error, cannot access directory or directory is invalid.", True, IOError)
+        elif pid == -1:
+            if ".exe" not in proc_name:
+                proc_name = ".".join([lower(proc_name), "exe"])
+            for procPID in pids():
+                try:
+                    if lower(Process(procPID).name) == proc_name:
+                        kill(procPID, SIGILL)
+                        success = 1
 
+                except Exception, e:
+                    print e.message
 
-		chdir(dirName)
+        else:
+            error_alert("Unable to find process.")
+    else:
+        error_alert("Missing processName or pid parameter")
 
-		if(getcwd()==dirName):
-			winError=None #/lock?
-			timeCounter=0
-			initTime=time()
-			while winError==None and timeCounter<MAX_WAIT_TIME:
-				try:
-					datedFileName="".join([ slicedFileName,"@",str(datetime.now().strftime(timeFormat)),extension ])
-					rename( str(path.split(fileName)[1]), datedFileName)
+    return success
 
-					winError="clear"
-				except:
-					timeCounter=time()-initTime
-					#print "Failed to rename ", str(path.split(fileName)[1]), " to ", datedFileName
 
+def get_pixel(x=-1, y=-1):
+    """
+    Returns RGB of given x and y location.
+    If no arguments given then default location will be current mouse position
+    :param x: x coordinate of pixel to obtain
+    :param y: y coordinate of pixel to obtain
+    """
 
-	else:
-		print fileName ," is not a valid file."
+    from win32gui import GetDesktopWindow, GetWindowDC, GetPixel
+    from win32api import GetCursorPos
+    from sys import exit as sys_exit
 
-	if(getcwd()!=originalDir):
-		chdir(originalDir)
+    if x == -1 and y == -1:
+        x = GetCursorPos()[0]
+        y = GetCursorPos()[1]
 
-def killProcess(processName="", pid=-1):
-	from psutil import pids, Process
-	from os import kill
-	from signal import SIGILL
-	from string import lower
+    if x != -1 and y != -1:
+        i_desktop_window_id = GetDesktopWindow()
+        i_desktop_window_dc = GetWindowDC(i_desktop_window_id)  # device context
+        try:
+            long_colour = GetPixel(i_desktop_window_dc, x, y)
+        except:
+            print "Coordinates ", x, ",", y, "out of screen size"
+            sys_exit(1)
 
-	if(len(processName)>0 or pid!=-1):
+        i_colour = int(long_colour)
 
-		success=-1
+    elif x == -1:
+        print "Missing 'y' coordinate"
+        sys_exit(1)
+    elif y == -1:
+        print "Missing 'x' coordinate"
+        sys_exit(1)
 
-		if(processName.isdigit()):
-			pid=int(processName)
-			kill(pid, SIGILL)
-			success=1
+    return (i_colour & 0xff), ((i_colour >> 8) & 0xff), ((i_colour >> 16) & 0xff)  # magical bit-shifting
 
-		elif(pid==-1):
-			if(".exe" not in processName):
-				processName=".".join([lower(processName),"exe"])
-			for procPID in pids():
-				try:
-					if lower(Process(procPID).name)==processName:
-						kill(procPID, SIGILL)
-						success=1
 
-				except Exception, e:
-					print e.message
+def get_hwnds_for_pid(pid):
+    from win32gui import IsWindowEnabled, EnumWindows
+    from win32process import GetWindowThreadProcessId
 
+    def callback(hwnd, hwnds):
 
-		else:
-			errorAlert( "Unable to find process.")
-	else:
-		errorAlert( "Missing processName or pid parameter" )
+        if IsWindowEnabled(hwnd):
+            _, found_pid = GetWindowThreadProcessId(hwnd)
 
-	return success
+            if found_pid == pid:
+                hwnds.append(hwnd)
 
-def getPixel(x=-1,y=-1):
-	"""
-		Returns RGB of given x and y location.
-		If no arguments given then default location will be current mouse position
-	"""
+        return True
 
-	from win32gui import GetDesktopWindow, GetWindowDC, GetPixel
-	from win32api import GetCursorPos
-	from sys import exit as sys_exit
+    hwnds = []
+    EnumWindows(callback, hwnds)
 
-	if(x==-1 and y==-1):
-		x=GetCursorPos()[0]
-		y=GetCursorPos()[1]
+    return hwnds
 
 
-	if(x!=-1 and y!=-1):
-		i_desktop_window_id = GetDesktopWindow()
-		i_desktop_window_dc = GetWindowDC(i_desktop_window_id)#device context
-		try:
-			long_colour = GetPixel(i_desktop_window_dc, x, y)
-		except:
-			print "Coordinates ", x,",",y, "out of screen size"
-			sys_exit(1)
+def get_proc_pid(target):
+    """
+            Returns PID of given process name argument
+    """
+    from psutil import pids, Process
+    from string import lower
+    from sys import exit as sys_exit
 
-		i_colour = int(long_colour)
+    EXCLUDED_PROCESSES = ["audiodg.exe", "soffice.bin.exe", "system.exe",
+                          "svchost.exe", "system idle process.exe", "system", "system idle process"]
 
-	elif(x==-1):
-		print "Missing 'y' coordinate"
-		sys_exit(1)
-	elif(y==-1):
-		print "Missing 'x' coordinate"
-		sys_exit(1)
+    result_pid = -9000
+    target = lower(target)
 
-	return (i_colour & 0xff), ((i_colour >> 8) & 0xff), ((i_colour >> 16) & 0xff)#magical bit-shifting
+    if ".exe" not in target:
+        target = ".".join([target, "exe"])
 
-def get_hwnds_for_pid (pid):
-	from win32gui import IsWindowEnabled, EnumWindows
-	from win32process import GetWindowThreadProcessId
-	def callback (hwnd, hwnds):
+    if type(target) == str and target not in EXCLUDED_PROCESSES:
 
-		if (IsWindowEnabled (hwnd)):
-			_, found_pid = GetWindowThreadProcessId(hwnd)
+        for PID in pids():
 
-			if found_pid == pid:
-				hwnds.append (hwnd)
+            if lower(Process(PID).name) not in EXCLUDED_PROCESSES and lower(Process(PID).name) == target:
+                result_pid = PID
+                break
 
-		return True
+        if result_pid == -9000:
+            error_alert("No PID found for " + target)
+            error_alert("Terminating script")
+            sys_exit(1)
 
-	hwnds = []
-	EnumWindows (callback, hwnds)
+    else:
+        error_alert("Passed argument: ", target, " is invalid. Must be string type argument and not an excluded process")
 
-	return hwnds
+    return result_pid
 
-def getProcessPID(target):
-	"""
-		Returns PID of given process name argument
-	"""
-	from psutil import pids, Process
-	from string import lower
-	from sys import exit as sys_exit
 
-	EXCLUDED_PROCESSES=["audiodg.exe", "soffice.bin.exe", "system.exe", "svchost.exe", "system idle process.exe", "system", "system idle process"]
+def resize_window(width, height, proc_name="cmd", pid=-1):
+    from win32gui import MoveWindow, GetWindowRect
 
-	resultPID=-9000
-	target=lower(target)
+    if pid == -1:
+        proc_pid = get_proc_pid(proc_name)
+    else:
+        proc_pid = pid
 
-	if ".exe" not in target:
-		target=".".join([target,"exe"])
+    hwnd_list = get_hwnds_for_pid(proc_pid)
+    # hwnd=hwndList[0]
+    for hwnd in hwnd_list:
 
+        win_rect = GetWindowRect(hwnd)
+        x = win_rect[0]
+        y = win_rect[1]
 
+        MoveWindow(hwnd, x, y, width, height, True)
 
-	if type(target)==str and target not in EXCLUDED_PROCESSES:
 
-		for PID in pids():
+def move_window(x, y, proc_name="", pid=-1, hwnd=-1, width=-1, height=-1):
+    from win32gui import MoveWindow, GetWindowRect
+    from sys import exit as sys_exit
+    from pywintypes import error as pywintypesError
 
-			if lower(Process(PID).name) not in EXCLUDED_PROCESSES and lower(Process(PID).name)==target:
-				resultPID=PID
-				break
+    if type(proc_name) == int:
+        process_pid = proc_name
 
-		if resultPID==-9000:
-			errorAlert( "No PID found for " + target )
-			errorAlert( "Terminating script" )
-			sys_exit(1)
+    elif len(proc_name) == 0 and pid == -1:
+        error_alert("Must pass at least one argument, either process name or PID")
+        sys_exit(1)
 
+    elif len(proc_name) > 0 and pid == -1:  # case for just the process name passed
 
-	else:
-		errorAlert( "Passed argument: ", target ," is invalid. Must be string type argument and not an excluded process")
+        if proc_name.isdigit():  # case for accidentally pid as first argument
+            process_pid = int(proc_name)
 
+        else:
+            process_pid = get_proc_pid(proc_name)
 
-	return resultPID
+    elif len(proc_name) == 0 and pid != -1:
+        process_pid = pid
 
-def resizeWindow(width,height, processName="cmd",pid=-1):
-	from win32gui import MoveWindow, GetWindowRect
+    else:
+        error_alert("Cannot have both process name and PID argument passed.")
+        sys_exit(1)
 
-	if pid==-1:
-		processPID=getProcessPID(processName)
-	else:
-		processPID= pid
+    hwnd_list = get_hwnds_for_pid(process_pid)
 
-	hwndList=get_hwnds_for_pid (processPID)
-	#hwnd=hwndList[0]
-	for hwnd in hwndList:
+    hwnd = hwnd_list[0]
 
+    if width == -1 and height == -1:
 
-		winRect=GetWindowRect(hwnd)
-		x=winRect[0]
-		y=winRect[1]
+        try:
+            rect = GetWindowRect(hwnd)  # get window sizes to keep the window sizes similar when moving them
+            width = rect[2] - rect[0]
+            height = rect[3] - rect[1]
 
+        except pywintypesError:
+            print "Invalid window handle."
+            sys_exit(1)
 
+    MoveWindow(hwnd, x, y, width, height, True)
 
-		MoveWindow(hwnd,x,y,width,height,True)
 
-def moveWindow(x, y, processName="", pid=-1, hwnd=-1, width=-1, height=-1):
+def get_handle(proc_name):
+    try:
+        return get_hwnds_for_pid(get_proc_pid(proc_name))[0]
+    except IndexError:
+        print "No handle found"
+        return -1
 
-	from win32gui import MoveWindow, GetWindowRect
-	from sys import exit as sys_exit
-	from pywintypes import error as pywintypesError
-	"""
-		Moves window of given process name/pid to the x,y coordinates given
-		-Must be passed ONLY one argument: process name or a pid, but not both
-	"""
 
-	if type(processName)==int:
-		processPID=processName
+def keyboard_type(key_char, targ_prog_name=""):
+    from win32com import client
 
-	elif len(processName)==0 and pid==-1:
-		errorAlert( "Must pass at least one argument, either process name or PID")
-		sys_exit(1)
+    """
+    Alt=%, CTRL=^, Shift=+
+    Shift + F10= Context Menu/ Menu Key
+    ~ 	{~} 	send a tilde (~)
+    ! 	{!} 	send an exclamation point (!)
+    ^ 	{^} 	send a caret (^)
+    + 	{+} 	send a plus sign (+)
+    Alt 	{ALT} 	send an Alt keystroke
+    Backspace 	{BACKSPACE} 	send a Backspace keystroke
+    Clear 	{CLEAR} 	Clear the field
+    Delete 	{DELETE} 	send a Delete keystroke
+    Down Arrow 	{DOWN} 	send a Down Arrow keystroke
+    End 	{END} 	send an End keystroke
+    Enter 	{ENTER} 	send an Enter keystroke
+    Escape 	{ESCAPE} 	send an Esc keystroke
+    F1 through F16 	{F1} through {F16} 	send the appropriate Function key
+    Page Down 	{PGDN} 	send a Page Down keystroke
+    Space 	{SPACE} 	send a Spacebar keystroke
+    Tab 	{TAB} 	send a Tab keystroke
 
-	elif len(processName)>0 and pid==-1:#case for just the process name passed
+    {Ctrl+Esc} send Windows keystroke
+    """
 
-		if( processName.isdigit() ):#case for accidentally pid as first argument
-			processPID=int(processName)
+    shell = client.Dispatch("WScript.Shell")
+    if len(targ_prog_name) > 0:
+        shell.AppActivate(targ_prog_name)
+    dict_mapping = {"~": "{~}", "!": "{!}", "+": "{+}", "(": "{(}", ")": "{)}"}
 
-		else:
-			processPID=getProcessPID(processName)
+    for key in dict_mapping.keys():
+        key_char = key_char.replace(key, dict_mapping[key])
 
-	elif len(processName)==0 and pid!=-1:
-		processPID=pid
+    shell.SendKeys(key_char)
 
-	else:
-		errorAlert( "Cannot have both process name and PID argument passed.")
-		sys_exit(1)
 
-	hwndList=get_hwnds_for_pid (processPID)
+def get_console_color():
+    from cmd_coloring import get_console_color as gcc
+    return gcc()
 
-	#if len(hwndList)==1:
-	hwnd=hwndList[0]
-	'''
-	else:
-		printNumberedList(hwndList)
-		hwnd=chooseFromNumberedList(hwndList)
-	'''
 
-	'''
-	else:
-		print "Error. More than one instance of the process was found."
-		print "List of PIDs found: ", hwndList
-		sys_exit(1)
-	'''
-	if width==-1 and height==-1:
+def set_console_color(color):  # include string argument? color print, change color to original
+    from cmd_coloring import set_console_color as scc, COLOR_CHOICES
 
-		try:
-			rect=GetWindowRect(hwnd)#get window sizes to keep the window sizes similar when moving them
-			width=rect[2]-rect[0]
-			height=rect[3]-rect[1]
+    if type(color) == int:
+        scc(color)
 
-		except pywintypesError:
-			print "Invalid window handle."
-			sys_exit(1)
+    else:
+        try:
+            scc(COLOR_CHOICES["".join(["FOREGROUND_", color.upper()])])
+        except KeyError:
+            err_msg = "".join(["Invalid foreground color: ", color])
+            error_alert(err_msg)
 
 
+def print_colored(text, color):
+    orig_color = get_console_color()
+    set_console_color(color)
+    print text
+    set_console_color(orig_color)
 
-	MoveWindow(hwnd,x,y,width,height,True)
 
+def error_alert(msg="", raise_exception=False, err_class=None):
+    # if colouring fails resort ignore it and just print msg
+    orig_cmd_fg_color = get_console_color()
+    set_console_color("red")
+    msg = "ERROR: " + msg
 
-def getHandle(processName):
-	try:
-		return get_hwnds_for_pid( getProcessPID(processName) )[0]
-	except IndexError:
-		print "No handle found"
-		return -1
+    print msg
+    set_console_color(orig_cmd_fg_color)
 
-def keyboardType(keyChar,targetProgram=""):
-	from win32com import client
-	from time import sleep
+    if raise_exception:
+        if err_class is not None:
+            raise err_class(msg)
+        else:
+            raise Exception(msg)
 
-	"""
-		Alt=%, CTRL=^, Shift=+
-		Shift + F10= Context Menu/ Menu Key
-		~ 	{~} 	send a tilde (~)
-		! 	{!} 	send an exclamation point (!)
-		^ 	{^} 	send a caret (^)
-		+ 	{+} 	send a plus sign (+)
-		Alt 	{ALT} 	send an Alt keystroke
-		Backspace 	{BACKSPACE} 	send a Backspace keystroke
-		Clear 	{CLEAR} 	Clear the field
-		Delete 	{DELETE} 	send a Delete keystroke
-		Down Arrow 	{DOWN} 	send a Down Arrow keystroke
-		End 	{END} 	send an End keystroke
-		Enter 	{ENTER} 	send an Enter keystroke
-		Escape 	{ESCAPE} 	send an Esc keystroke
-		F1 through F16 	{F1} through {F16} 	send the appropriate Function key
-		Page Down 	{PGDN} 	send a Page Down keystroke
-		Space 	{SPACE} 	send a Spacebar keystroke
-		Tab 	{TAB} 	send a Tab keystroke
+    return msg
 
-		{Ctrl+Esc} send Windows keystroke
-	"""
-	shell=client.Dispatch("WScript.Shell")
-	if len(targetProgram)>0:
-		shell.AppActivate(targetProgram)
-	dictMapping={}
-	dictMapping["~"]= "{~}"
-	dictMapping["!"]="{!}"
-	dictMapping["+"]= "{+}"
-	dictMapping["("]="{(}"
-	dictMapping[")"]= "{)}"
 
-	for key in dictMapping.keys():
-		keyChar=keyChar.replace(key, dictMapping[key])
+def take_screenshot(prog_name=""):
 
-	shell.SendKeys(keyChar)
+    from win32gui import GetDesktopWindow, GetWindowRect, GetWindowDC, ReleaseDC, GetWindowText, GetForegroundWindow
+    from win32ui import CreateDCFromHandle, CreateBitmap
+    from win32con import SRCCOPY
+    from datetime import datetime
+    from psutil import Process
 
-def getConsoleColor():
-	from cmd_coloring import get_console_color as gcc
-	return gcc()
+    # appName=GetWindowText(GetForegroundWindow())
+    if len(prog_name) == 0:
+        prog_name = Process(get_pid_from_handle(GetForegroundWindow())).name
 
-def setConsoleColor(color):#include string argument? color print, change color to original
-	from cmd_coloring import set_console_color as scc, COLOR_CHOICES
+    windows_handle = GetDesktopWindow()
 
-	if type(color)==int:
-		scc(color)
+    rect = GetWindowRect(windows_handle)
+    width = rect[2] - rect[0]
+    height = rect[3] - rect[1]
+    left = rect[0]  # win32api.GetSystemMetrics(win32con.SM_XVIRTUALSCREEN)
+    top = rect[1]  # win32api.GetSystemMetrics(win32con.SM_YVIRTUALSCREEN)
 
-	else:
-		try:
-			scc( COLOR_CHOICES[ "".join( ["FOREGROUND_", color.upper()] ) ] )
-		except KeyError:
-			errorMessage= "".join( ["Invalid foreground color: ", color ])
-			errorAlert(errorMessage)
+    hwindc = GetWindowDC(windows_handle)
+    srcdc = CreateDCFromHandle(hwindc)
+    memdc = srcdc.CreateCompatibleDC()
+    data_bitmap = CreateBitmap()
 
-def printColored(text, color):
-	origColor=getConsoleColor()
-	setConsoleColor(color)
-	print text
-	setConsoleColor(origColor)
+    data_bitmap.CreateCompatibleBitmap(srcdc, width, height)
+    memdc.SelectObject(data_bitmap)
+    memdc.BitBlt((0, 0), (width, height), srcdc, (left, top), SRCCOPY)
+    fname = "".join(["SS_", prog_name, "_", str(datetime.now().strftime("%b-%d-%Y@%H_%M_%S")).strip(), ".bmp"])
+    print "Saved screenshot as :", fname
+    data_bitmap.SaveBitmapFile(memdc, fname)
 
+    srcdc.DeleteDC()
+    memdc.DeleteDC()
+    ReleaseDC(windows_handle, hwindc)
 
-def errorAlert(msg="", raiseException=False, errorClass=None):
-	# if colouring fails resort ignore it and just print msg
-	originalCmdFGColor=getConsoleColor()
-	setConsoleColor("red")
-	msg= "ERROR: "+ msg
+    return fname
 
-	print msg
-	setConsoleColor(originalCmdFGColor)
 
-	if raiseException==True:
-		if errorClass!=None:
-			raise errorClass(msg)
-		else:
-			raise Exception(msg)
+def get_pid_from_handle(handle):
+    from psutil import pids, Process
+    from string import lower
+    EXCLUDED_PROCESSES = ["audiodg.exe", "system.exe", "svchost.exe",
+                          "system idle process.exe", "system", "system idle process"]
 
-	return msg
+    result_pid = -1
 
+    for pid in pids():
+        if lower(Process(pid).name) not in EXCLUDED_PROCESSES and \
+                        handle in get_hwnds_for_pid(get_proc_pid(Process(pid).name)):
+            result_pid = pid
+            break
 
-def takeScreenshot(appName=""):
-	"""Takes screenshot of current window/ foreground"""
+    return result_pid
 
-	from win32gui import GetDesktopWindow, GetWindowRect, GetWindowDC, ReleaseDC, GetWindowText, GetForegroundWindow
-	from win32ui import CreateDCFromHandle, CreateBitmap
-	from win32con import SRCCOPY
-	from datetime import datetime
-	from psutil import Process
 
-	#appName=GetWindowText(GetForegroundWindow())
-	if len(appName)==0:
-		appName=Process( getPIDFromHandle(GetForegroundWindow()) ).name
+def crop_img(img_fname, crop_box):
+    import Image
 
-	windowsHandle = GetDesktopWindow()
+    img = Image.open(img_fname)
+    extension = img_fname[img_fname.rindex('.'):]
+    frame = img.crop(crop_box)
+    save_filename = "".join(["cropped_", img_fname, extension])
+    frame.save(save_filename)
 
-	rect=GetWindowRect(windowsHandle)
-	width=rect[2]-rect[0]
-	height=rect[3]-rect[1]
-	left = rect[0] #win32api.GetSystemMetrics(win32con.SM_XVIRTUALSCREEN)
-	top = rect[1] #win32api.GetSystemMetrics(win32con.SM_YVIRTUALSCREEN)
+    return save_filename
 
-	hwindc = GetWindowDC(windowsHandle)
-	srcdc = CreateDCFromHandle(hwindc)
-	memdc = srcdc.CreateCompatibleDC()
-	dataBitMap = CreateBitmap()
 
-	dataBitMap.CreateCompatibleBitmap(srcdc, width, height)
-	memdc.SelectObject(dataBitMap)
-	memdc.BitBlt((0, 0), (width, height), srcdc, (left, top), SRCCOPY)
-	#fileName="".join(["SS_", appName,"_", str(datetime.now().strftime("%b-%d-%Y@%H_%M_%S")).strip(), ".png"])
-	fileName="".join(["SS_", appName,"_", str(datetime.now().strftime("%b-%d-%Y@%H_%M_%S")).strip(), ".bmp"])
-	print "Saved screenshot as :", fileName
-	dataBitMap.SaveBitmapFile(memdc, fileName)
+def move_mouse(x, y):
+    from mouse_macro import move
 
-	srcdc.DeleteDC()
-	memdc.DeleteDC()
-	ReleaseDC(windowsHandle, hwindc)
+    try:
+        x = int(x)
+        y = int(y)
+    except ValueError:
+        error_alert("Invalid arguments. Must be integer")
 
-	return fileName
-
-def getPIDFromHandle(handle):
-	from psutil import pids, Process
-	from string import lower
-	EXCLUDED_PROCESSES=["audiodg.exe", "system.exe", "svchost.exe", "system idle process.exe", "system", "system idle process"]
-
-	resultPID=-1
-
-	for pid in pids():
-		if lower(Process(pid).name) not in EXCLUDED_PROCESSES and handle in get_hwnds_for_pid( getProcessPID( Process(pid).name ) ):
-			resultPID=pid
-			break
-
-	return resultPID
-
-def cropImage(imageFileName, cropBox):
-	import Image
-
-
-	img=Image.open(imageFileName)
-	extension=imageFileName[imageFileName.rindex('.'):]
-	frame=img.crop(cropBox)
-	saveFileName="".join(["cropped_", imageFileName ,extension])
-	frame.save(saveFileName)
-
-	return saveFileName
-
-def moveMouse(x,y):
-	from mouse_macro import move
-
-	try:
-		x=int(x)
-		y=int(y)
-	except ValueError:
-		errorAlert( "Invalid arguments. Must be integer" )
-
-	move(x,y)
+    move(x, y)
 
 
 def stdout_write(w_str):
-	import sys
-	w_str =str(w_str)
-	sys.stdout.write("\b" * len(w_str))
-	sys.stdout.write(w_str)
-	sys.stdout.flush()
+    import sys
+    w_str = str(w_str)
+    sys.stdout.write("\b" * len(w_str))
+    sys.stdout.write(w_str)
+    sys.stdout.flush()
 
 
-def u_listdir(currDir, targ=""):
-	from os import listdir, path
+def u_listdir(curr_dir, targ=""):
+    from os import listdir, path
 
-	fList=listdir(unicode(currDir))
-	for i in range(len(fList)-1,-1,-1):
+    f_list = listdir(unicode(curr_dir))
+    for i in range(len(f_list) - 1, -1, -1):
 
-		unicodeFileName=unicode(fList[i])
-		fList[i]= currDir+"\\"+ unicodeFileName
+        unicode_fname = unicode(f_list[i])
+        f_list[i] = curr_dir + "\\" + unicode_fname
 
-		if targ=="file":
-			if(path.isfile(fList[i])==False):
-				fList.remove(fList[i])
+        if targ == "file":
+            if path.isfile(f_list[i]) is False:
+                f_list.remove(f_list[i])
 
-		elif targ=="dir":
-			if(path.isdir(fList[i])==False):
-				fList.remove(fList[i])
+        elif targ == "dir":
+            if path.isdir(f_list[i]) is False:
+                f_list.remove(f_list[i])
 
-	if targ=="dir":
-		fList.insert(0,"..")
-		fList.insert(0,".")
+    if targ == "dir":
+        f_list.insert(0, u"..")
+        f_list.insert(0, u".")
 
-	fList.sort()
+    f_list.sort()
 
-	return fList
-
-def __backUpPyAndText__():
-	"""
-		backs up .py and txt files
-	"""
-
-	from os import getcwd, listdir, getenv, path
-	filesList=listdir(getenv("UtilResources"))
-	pathStr=getenv("UtilResources")
-	for i in range(len(filesList)-1,-1,-1):
-		file=filesList[i]
-		#if ".pyc" in file or ".exe" in file or ".java" in file or ".class" in file or ".c" in file or ".o" in file:
-		extension=path.splitext(file)[1]#extension of file
-		if all([extension!=".py", extension!=".log", extension!=".txt"]) :
-			filesList.remove(file)
+    return f_list
 
 
-	from os import path
-	for file in filesList:
-		file="".join([pathStr,"\\",file])
-		createBackUp(file)
+def __backup_py_n_text__():
+    """
+    backs up .py and txt files
+    """
+
+    from os import getcwd, listdir, getenv, path
+    f_list = listdir(getenv("UtilResources"))
+    path_str = getenv("UtilResources")
+    for i in range(len(f_list) - 1, -1, -1):
+        file_ = f_list[i]
+        extension = path.splitext(file_)[1]  # extension of file
+        if all([extension != ".py", extension != ".log", extension != ".txt"]):
+            f_list.remove(file_)
+
+    for file_ in f_list:
+        file_ = "".join([path_str, "\\", file_])
+        create_back_up(file_)
 
 
-def selfValidateGlobals():
-	rootDirList=[musicDir, screeningDir, backUpDir, yt_amv_dir, yt_dls_dir]
+def self_validate_globals():
+    root_dir_list = [musicDir, screeningDir, backUpDir, yt_amv_dir, yt_dls_dir]
 
-	rootFList=[ songLogFile, removedFilesLog, hibLog,  tagFile, vlc_hwnd_log, deletedTagFile, dirJumpFile,downloadedTorFiles, toDoListTextFile, prevDirFile, prandomExceptions, deletedScreenedLog]
+    root_f_list = [songLogFile, removedFilesLog, hibLog,  tagFile, vlc_hwnd_log, deletedTagFile, dirJumpFile,
+                   downloadedTorFiles, toDoListTextFile, prevDirFile, prandomExceptions, deletedScreenedLog]
 
-	for rd in rootDirList:
-		try:
-			assert path.isdir(rd)
-		except AssertionError:
-			#errorAlert
-			raise AssertionError(rd +  " is not a directory")
+    for rd in root_dir_list:
+        try:
+            assert path.isdir(rd)
+        except AssertionError:
+            # error_alert
+            raise AssertionError(rd + " is not a directory")
+
+    for rf in root_f_list:
+        try:
+            assert path.isfile(rf)
+        except AssertionError:
+            # error_alert
+            raise AssertionError(rf + " is not a file")
 
 
-
-	for rf in rootFList:
-		try:
-			assert path.isfile(rf)
-		except AssertionError:
-			#errorAlert
-			raise AssertionError(rf +  " is not a file")
-
-
-selfValidateGlobals()
-
+self_validate_globals()

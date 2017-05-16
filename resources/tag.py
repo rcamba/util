@@ -1,5 +1,5 @@
 from os import path, getcwd, listdir, remove as removeFile
-from root import errorAlert, removedFilesLog, createBackUp,  tagFilesLogDir, backUpDir, pipedList, keyPressInput
+from root import error_alert, removedFilesLog, create_back_up,  tagFilesLogDir, backUpDir, piped_list, key_press_input
 from string import lower, strip
 from re import findall
 from sys import argv, stdin
@@ -89,12 +89,12 @@ def validateFilenameList(filenameList, assocTag=""):
 
 		if path.isfile(file)==False:
 			if inspect.stack()[1][3]=="addTags":# caller methodName
-				msg=errorAlert("Unable to add to tag " + assocTag + ". "+ file + " is an invalid file. ")
+				msg=error_alert("Unable to add to tag " + assocTag + ". " + file + " is an invalid file. ")
 			elif inspect.stack()[1][3]=="_rtd":
-				msg=errorAlert(file + " is an invalid file. Removed from "+ assocTag +" tag.")
+				msg=error_alert(file + " is an invalid file. Removed from " + assocTag + " tag.")
 
 			else:
-				msg=errorAlert("Removed invalid file " + file)
+				msg=error_alert("Removed invalid file " + file)
 			logRemovedFile(msg)
 
 		else:
@@ -119,7 +119,7 @@ def addTags(tagList, filename):
 				filenameList=convertToFilenameList(fileStringList)
 
 				if validatedFilename in filenameList:#check if tag already has file in its filelist
-					errorAlert(validatedFilename + " already has tag: "+ tag)
+					error_alert(validatedFilename + " already has tag: " + tag)
 				else:
 					if changesDict.has_key(tag):
 						changesDict[tag].extend([validatedFilename])
@@ -131,7 +131,7 @@ def addTags(tagList, filename):
 				changesDict[tag]=[validatedFilename]
 
 		else:
-			errorAlert( "Unable to tag invalid file: " + filename)
+			error_alert("Unable to tag invalid file: " + filename)
 
 	__writeTagFile__(changesDict,'a')
 
@@ -143,7 +143,7 @@ def tagMultipleFiles(tag, filenameList):
 			addTags([tag], file)
 
 	else:
-		errorAlert( "No valid file to add. No changes have been made")
+		error_alert("No valid file to add. No changes have been made")
 
 def removeTags(tagList, filename, validate=True):
 
@@ -168,15 +168,15 @@ def removeTags(tagList, filename, validate=True):
 					print "Successfully removed " + validatedFilename + " from tag: " + tag
 
 				else:
-					errorAlert("Tag:" + tag + " doesn't have filename : " + validatedFilename + "\nNo changes have been made.")
+					error_alert("Tag:" + tag + " doesn't have filename : " + validatedFilename + "\nNo changes have been made.")
 
 			except IOError:
-				errorAlert( "Tag file: " + tag + ".tag doesn't exist.")
+				error_alert("Tag file: " + tag + ".tag doesn't exist.")
 
 		__writeTagFile__(changesDict,'w')
 
 	else:
-		errorAlert( "Invalid file. No changes have been made.")
+		error_alert("Invalid file. No changes have been made.")
 
 
 def __writeTagFile__(changesDict, mode):
@@ -194,7 +194,7 @@ def __writeTagFile__(changesDict, mode):
 		tagFile=path.join(tagFilesLogDir, key+".tag")
 
 		if path.exists(tagFile):
-			createBackUp( tagFile, path.join(backUpDir, "tagFile") )
+			create_back_up(tagFile, path.join(backUpDir, "tagFile"))
 			if origMode=='a':
 				mode='a'
 		else:
@@ -218,7 +218,7 @@ def __writeTagFile__(changesDict, mode):
 
 		if len(content)==0:
 			msgLog="Empty file list. Removing tag :" + key
-			errorAlert(msgLog)
+			error_alert(msgLog)
 			logRemovedFile(msgLog)
 			removeFile(tagFile)
 
@@ -251,7 +251,7 @@ def getFilenameList(tagList):#str or list
 			else:
 				result.extend(tagDict[tag])
 		else:
-			errorAlert("Tag doesn't exist: " + tag)
+			error_alert("Tag doesn't exist: " + tag)
 		counter=counter+1
 
 	return result
@@ -280,7 +280,7 @@ def getMixedFilenameList(tagList):#for prand + search
 		if tagDict.has_key(tag):
 			result.extend(tagDict[tag])
 		else:
-			errorAlert("Tag doesn't exist: " + tag)
+			error_alert("Tag doesn't exist: " + tag)
 
 	result=list(set(result))
 
@@ -324,8 +324,8 @@ if __name__=="__main__":
 
 	elif stdin.isatty()==False:#for using with nf/search
 		print "Tagging pipes"
-		fileList=pipedList( "".join(map(str,stdin.readlines())) )
-		tagList=keyPressInput("Enter tag(s). Separate with commas").split(',')
+		fileList=piped_list("".join(map(str, stdin.readlines())))
+		tagList=key_press_input("Enter tag(s). Separate with commas").split(',')
 		for tag in tagList:
 			tagMultipleFiles(tag, fileList)
 	else:

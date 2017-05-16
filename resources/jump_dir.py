@@ -3,8 +3,8 @@ Used with ql.bat
 QL reads from the jump file and changes to the directory written in that file
 Required to do it from cmd/bat since python process is separate from cmd
 """
-from root import dirJumpFile, printList, chooseFromList, prevDirFile, \
-    switchParser, createBackUp, errorAlert
+from root import dirJumpFile, print_list, choose_from_list, prevDirFile, \
+    switch_parser, create_back_up, error_alert
 from sys import argv
 from string import strip
 from os import getcwd
@@ -29,7 +29,7 @@ def sort_dir_jump(targ_pos):
 
 def add_to_dir_jump(targ_dir):
 
-    createBackUp(dirJumpFile)
+    create_back_up(dirJumpFile)
     print "Adding: " + targ_dir
     with open(dirJumpFile, "a") as f:
         f.write(str(getcwd()))
@@ -40,7 +40,7 @@ def remove_from_dir_jump(targ_pos):
     jump_list = get_jump_list()
     print "Removing: " + jump_list[targ_pos]
     jump_list.remove(jump_list[targ_pos])
-    createBackUp(dirJumpFile)
+    create_back_up(dirJumpFile)
     write_to_dir_jump(jump_list)
 
 
@@ -63,7 +63,7 @@ def get_jump_list():
 
 if __name__ == "__main__":
 
-    switches = switchParser(argv)
+    switches = switch_parser(argv)
     if 'a' in switches:
         add_to_dir_jump(getcwd())
 
@@ -71,7 +71,7 @@ if __name__ == "__main__":
         try:
             targ_pos = int(switches['d'])
         except ValueError:
-            errorAlert(
+            error_alert(
                 "-d must contain int for dir to be deleted from jump list")
         remove_from_dir_jump(targ_pos)
 
@@ -79,12 +79,12 @@ if __name__ == "__main__":
         try:
             targ_pos = int(argv[1])
         except ValueError:
-            errorAlert("# out of directory listing", True)
+            error_alert("# out of directory listing", True)
         sort_dir_jump(targ_pos)
 
     else:
         jumpList = get_jump_list()
-        printList(jumpList[1:])
-        choice = chooseFromList(jumpList[1:])
+        print_list(jumpList[1:])
+        choice = choose_from_list(jumpList[1:])
         # +1 for skipping first line of jumped route
         sort_dir_jump(jumpList.index(choice))

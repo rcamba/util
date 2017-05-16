@@ -1,3 +1,3 @@
-from root import killProcess
+from root import kill_proc
 from sys import argv
-killProcess(argv[1])
+kill_proc(argv[1])

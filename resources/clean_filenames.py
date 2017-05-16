@@ -1,5 +1,5 @@
 from os import listdir, chdir, getcwd, path, rename, sep
-from root import screeningDir, standardizeFile, errorAlert, switchParser
+from root import screeningDir, standardize_file, error_alert, switch_parser
 from tag import tagMultipleFiles, getFilenameList
 from sys import argv, exit as sys_exit
 from string import ascii_letters, digits
@@ -289,7 +289,7 @@ def clean_file_names(directory):
 
     for i in range(len(file_list) - 1, -1, -1):
 
-        # fileList[i]=standardizeFile(fileList[i])
+        # fileList[i]=standardize_file(fileList[i])
 
         cleaned = clean_string(file_list[i])
 
@@ -342,7 +342,7 @@ def clean_string(dirty_str, test_output=None):
 
         out = "Error: Cleaned filename is empty because it only consisted " + \
               "of non-alphanumeric characters."
-        errorAlert(out)
+        error_alert(out)
 
         if type(test_output) == list:
             test_output.append(out)
@@ -367,9 +367,9 @@ def rename_files(changes_dict, directory):
                 rename(path.join(directory, key), path.join(
                     directory, changes_dict[key]))
             except WindowsError, e:
-                errorAlert("Unable to rename " + key + " in to " +
-                           changes_dict[key] + ". Stopping program.")
-                errorAlert(str(e))
+                error_alert("Unable to rename " + key + " in to " +
+                            changes_dict[key] + ". Stopping program.")
+                error_alert(str(e))
                 sys_exit(1)
 
 
@@ -379,15 +379,15 @@ def main(directory):
         changes_dict = clean_file_names(directory)
         rename_files(changes_dict, directory)
 
-        if standardizeFile(directory) == standardizeFile(screeningDir):
+        if standardize_file(directory) == standardize_file(screeningDir):
             if 'p' not in switches:
                 screen_tagging()
     else:
-        errorAlert("Argument must be a valid directory")
+        error_alert("Argument must be a valid directory")
 
 if __name__ == "__main__":
 
-    switches = switchParser(argv, AVAILABLE_SWITCHES)
+    switches = switch_parser(argv, AVAILABLE_SWITCHES)
 
     if len(argv) > 1:
         main(unicode(argv[1]))

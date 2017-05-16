@@ -1,4 +1,4 @@
-from root import switchBoard, getProcessPID, standardizeString
+from root import switch_board, get_proc_pid, standardize_string
 from sys import argv, exit as sys_exit
 from win32api import OpenProcess
 from win32process import SetPriorityClass, BELOW_NORMAL_PRIORITY_CLASS, \
@@ -59,7 +59,7 @@ def getProcessPIDList(argsList):
     processPIDList = []
 
     for arg in argsList:
-        processPIDList.append(getProcessPID(arg))
+        processPIDList.append(get_proc_pid(arg))
 
     return processPIDList
 
@@ -90,7 +90,7 @@ def setProcessPriority(procPIDList, priority, exception=False):
     if exception == False:
         for procPID in procPIDList:
 
-            if standardizeString(Process(procPID).name) not in EXCLUDED_PROCESSES:
+            if standardize_string(Process(procPID).name) not in EXCLUDED_PROCESSES:
                 handle = OpenProcess(PROCESS_ALL_ACCESS, True, procPID)
                 SetPriorityClass(handle, priority)
                 print "Changing ", Process(procPID).name, " priority to: ", printPriority(priority)
@@ -105,12 +105,12 @@ def setProcessPriority(procPIDList, priority, exception=False):
 
         for procPID in pids():
 
-            if standardizeString(Process(procPID).name) not in EXCLUDED_PROCESSES and procPID not in exceptionPIDList:
+            if standardize_string(Process(procPID).name) not in EXCLUDED_PROCESSES and procPID not in exceptionPIDList:
 
                 handle = OpenProcess(PROCESS_ALL_ACCESS, True, procPID)
                 SetPriorityClass(handle, priority)
 
-            elif standardizeString(Process(procPID).name) not in EXCLUDED_PROCESSES:
+            elif standardize_string(Process(procPID).name) not in EXCLUDED_PROCESSES:
                 print "\t", Process(procPID).name
 
 
@@ -123,18 +123,18 @@ if __name__ == "__main__":
         argv[i] = argv[i].replace(',', '')
 
     exceptionProcessList = getExceptionList(argv)
-    switches = switchBoard(argv)
+    switches = switch_board(argv)
 
     if "p" in switches:
         if len(argv) == 0:
             tPIDList = pids()
             for i in range(0, len(tPIDList)):
-                if standardizeString(Process(tPIDList[i]).name) not in EXCLUDED_PROCESSES:
+                if standardize_string(Process(tPIDList[i]).name) not in EXCLUDED_PROCESSES:
                     argv.append(Process(tPIDList[i]).name)
 
         for procPID in getProcessPIDList(argv):
             try:
-                if standardizeString(Process(procPID).name) not in EXCLUDED_PROCESSES:
+                if standardize_string(Process(procPID).name) not in EXCLUDED_PROCESSES:
                     print Process(procPID).name.strip(), " priority =", printPriority(GetPriorityClass(OpenProcess(PROCESS_ALL_ACCESS, True, procPID)))
             except error.NoSuchProcess:
                 pass
@@ -152,7 +152,7 @@ if __name__ == "__main__":
 def changeProcPriority(processName, priorityName):  # for use of other scripts
 
     def getPriorityFromString(priorityName):
-        priorityName = standardizeString(priorityName)
+        priorityName = standardize_string(priorityName)
         if priorityName == "high":
             priority = HIGH_PRIORITY_CLASS
         elif priorityName == "normal":
@@ -170,6 +170,6 @@ def changeProcPriority(processName, priorityName):  # for use of other scripts
     priority = getPriorityFromString(priorityName)
     print "Changing ", processName, " priority to: ", printPriority(priority)
 
-    procPID = getProcessPID(processName)
+    procPID = get_proc_pid(processName)
     handle = OpenProcess(PROCESS_ALL_ACCESS, True, procPID)
     SetPriorityClass(handle, priority)

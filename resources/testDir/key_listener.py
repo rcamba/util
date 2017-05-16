@@ -1,5 +1,5 @@
 import ctypes
-from root import keyboardType
+from root import keyboard_type
 import pythoncom
 import pyHook
 import win32gui
@@ -25,7 +25,7 @@ def alKlog():
 
         elif (str(event.Key) == str("A")):
             print "Clear"
-            keyboardType("{Clear}")
+            keyboard_type("{Clear}")
 
     try:
         # create a hook manager

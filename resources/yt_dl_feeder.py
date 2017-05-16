@@ -6,8 +6,8 @@ from urllib2 import quote
 from subprocess import Popen
 from random import randint
 
-from root import screeningDir, musicDir, switchParser, getAllPageLinks, \
-    yt_dls_dir, yt_amv_dir, outputFromCommand, errorAlert, deletedScreenedLog
+from root import screeningDir, musicDir, switch_parser, get_all_page_links, \
+    yt_dls_dir, yt_amv_dir, output_from_command, error_alert, deletedScreenedLog
 
 """
 -m: single music
@@ -26,7 +26,7 @@ def get_dry_title(_vid_link):
                   "--restrict-filenames --output ").split()
     output_format = "%(title)s_%(id)s.%(ext)s"
     title_cmd = [YT_DL_PROG, _vid_link] + yt_dl_opts + [output_format]
-    title = outputFromCommand(title_cmd)
+    title = output_from_command(title_cmd)
     return title
 
 
@@ -38,10 +38,10 @@ def get_vid_list(links_list):
         print "Retrieving video list from: ", link
 
         i = 0
-        page_links = getAllPageLinks(link)
+        page_links = get_all_page_links(link)
 
         while len(page_links) <= 1 and i < MAX_TRIES:
-            page_links = getAllPageLinks(link)
+            page_links = get_all_page_links(link)
             i += 1
             print "Retry #", i
             rand_sleep()
@@ -126,10 +126,10 @@ def apply_convert_command(song_path):
             try:
                 remove(song_path)
             except WindowsError:
-                errorAlert("Can't delete " + song_path)
+                error_alert("Can't delete " + song_path)
 
     else:
-        errorAlert(("Unable to convert file {}\n" +
+        error_alert(("Unable to convert file {}\n" +
                     "  Extension not accepted\n").format(song_path))
 
 
@@ -159,11 +159,11 @@ def dl_single_song(vid_link, target_dir):
                 apply_convert_command(song_full_path)
 
             else:
-                errorAlert(title + " already screened and deleted before")
+                error_alert(title + " already screened and deleted before")
         else:
-            errorAlert(title + " already in main music directory")
+            error_alert(title + " already in main music directory")
     else:
-        errorAlert("Empty title for " + vid_link)
+        error_alert("Empty title for " + vid_link)
 
 
 def dl_multi_song(vid_links=["https://www.reddit.com/r/japanesemusic",
@@ -209,7 +209,7 @@ if __name__ == "__main__":
     YT_DL_PROG = "C:\\Users\\Kevin\\Downloads\\youtube-dl.exe"
     AVAILABLE_SWITCHES = ['s', 'v', 'm']
 
-    switches = switchParser(argv, AVAILABLE_SWITCHES)
+    switches = switch_parser(argv, AVAILABLE_SWITCHES)
     if len(switches) > 1:
         raise Exception("More than one switch found: {}. ".format(switches) +
                         "Only one switch at a time.")

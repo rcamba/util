@@ -1,7 +1,7 @@
 from sys import argv
 from datetime import date
-from root import toDoListTextFile, switchParser, printList, createBackUp, \
-    setClipboardData, chooseFromList, errorAlert
+from root import toDoListTextFile, switch_parser, print_list, create_back_up, \
+    set_clipboard_data, choose_from_list, error_alert
 
 AVAILABLE_SWITCHES = ['a', 'v', 'd', 's']
 
@@ -23,7 +23,7 @@ class ToDoTask:
 
 
 def add_item(new_task):
-    createBackUp(toDoListTextFile)
+    create_back_up(toDoListTextFile)
 
     new_task = ToDoTask(new_task)
     with open(toDoListTextFile, 'a') as writer:
@@ -34,7 +34,7 @@ def add_item(new_task):
 
 def delete_item(number_of_item):
 
-    createBackUp(toDoListTextFile)
+    create_back_up(toDoListTextFile)
     task_list = load_task_list()
 
     print "Removing:\n\t {num} ) {date} \t {task}".format(
@@ -55,7 +55,7 @@ def view_to_do_list():
 
     task_list = load_task_list()
     map(str, task_list)
-    printList(task_list)
+    print_list(task_list)
 
 
 def load_task_list():
@@ -78,21 +78,21 @@ def handle_select():
             if len(switches['s']) > 0:
                 result = task_list[int(switches['s'])].getTask()
             else:
-                result = chooseFromList(task_list).get_task()
+                result = choose_from_list(task_list).get_task()
 
             print result
-            setClipboardData(result)
+            set_clipboard_data(result)
         except IndexError:
             raise
-            errorAlert("Choice is out of bounds.")
+            error_alert("Choice is out of bounds.")
 
         except ValueError:
-            errorAlert("Value of 's' switch must be an integer")
+            error_alert("Value of 's' switch must be an integer")
 
 
 if __name__ == "__main__":
 
-    switches = switchParser(argv)
+    switches = switch_parser(argv)
 
     if 'a' in switches:
         if len(argv) > 1:

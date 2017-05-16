@@ -3,6 +3,9 @@
 *.log
 *.tag
 .idea
+autopep8.bat
+pycharm.bat
+pyflakes.bat
 resources/log
 resources/dependencies
 resources/BETA_getAnimeTorrents.py

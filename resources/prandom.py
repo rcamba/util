@@ -6,7 +6,7 @@ from sys import argv, stdin
 from subprocess import Popen
 from ast import literal_eval
 
-from root import musicDir, switchParser, songLogFile, pipedList, errorAlert, \
+from root import musicDir, switch_parser, songLogFile, piped_list, error_alert, \
     prandomExceptions
 from tag import getFilenameList, getMixedFilenameList
 
@@ -105,7 +105,7 @@ def get_song_list_from_tag(tag_list):
         song_list = getFilenameList(tag_list)
 
     if len(song_list) == 0:
-        errorAlert("No file list available for given tag(s)")
+        error_alert("No file list available for given tag(s)")
 
     return song_list
 
@@ -169,7 +169,7 @@ def get_max_songs(argv, switches, song_list):
 
 def handle_piping():
 
-    song_list = pipedList("".join(map(str, stdin.readlines())))
+    song_list = piped_list("".join(map(str, stdin.readlines())))
 
     i = 0
     for f in song_list[:]:  # prune
@@ -212,5 +212,5 @@ def main():
 
 if __name__ == "__main__":
 
-    switches = switchParser(argv)
+    switches = switch_parser(argv)
     main()

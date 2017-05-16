@@ -8,11 +8,11 @@ from sys import path, argv, exit as sys_exit
 path.insert(0,getenv("UtilResources"))
 
 
-from root import getProcessPID
+from root import get_proc_pid
 
 
 def takeScreenshot():
-	
+
 	windowsHandle = win32gui.GetDesktopWindow()
 
 	rect=win32gui.GetWindowRect(windowsHandle)
@@ -35,31 +35,30 @@ def takeScreenshot():
 
 	srcdc.DeleteDC()
 	memdc.DeleteDC()
-	win32gui.ReleaseDC(windowsHandle, hwindc) 
+	win32gui.ReleaseDC(windowsHandle, hwindc)
 
 if __name__ == "__main__":
-	
-	
-	
+
+
+
 	if len(argv)>1:
 		appName=argv[1]
-		
+
 	else:#default
 		appName="notepad++" #get name from current window in focus?
-	
-	
-	pid=getProcessPID(appName)
-	
+
+
+	pid=get_proc_pid(appName)
+
 	shell=client.Dispatch("Wscript.Shell")
 	if shell.AppActivate(pid)==False:
-		
+
 		print "Error:\t"
 		print appName, "is not a recognized application."
 		sys_exit(1)
-	
-	
+
+
 	else:
-	
+
 		takeScreenshot()
-		
-		
+

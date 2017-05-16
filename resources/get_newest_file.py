@@ -11,8 +11,8 @@ USAGE: nF [target string] [[-p][-#][-s]] [-f][-d]
 
 
 from sys import argv, stdin, stdout
-from root import switchParser, setClipboardData, \
-    printList, chooseFromList, errorAlert, pipedList
+from root import switch_parser, set_clipboard_data, \
+    print_list, choose_from_list, error_alert, piped_list
 from os import listdir, getcwd, stat, path
 from sys import exit as sys_exit
 from string import lower
@@ -101,11 +101,11 @@ def handle_select(f_list):
             if s_val <= len(f_list):
                 choice = f_list[s_val - 1]
             else:
-                errorAlert("Select switch value:" + str(s_val) +
+                error_alert("Select switch value:" + str(s_val) +
                            " greater than list size: " + str(len(f_list)))
                 sys_exit(1)
         else:
-            choice = chooseFromList(f_list)
+            choice = choose_from_list(f_list)
 
         f_list[0] = choice
 
@@ -117,7 +117,7 @@ def present_result(f_list, targ_dir=getcwd()):
     items_to_print, aes = print_settings()
 
     if items_to_print > 1:
-        printList(f_list, items_to_print, aes, pressToContinue=stdout.isatty())
+        print_list(f_list, items_to_print, aes, press_to_continue=stdout.isatty())
 
     f_list[0] = handle_select(f_list)
 
@@ -128,12 +128,12 @@ def present_result(f_list, targ_dir=getcwd()):
 
     print f_list[0]
 
-    setClipboardData(f_list[0])
+    set_clipboard_data(f_list[0])
 
 
 if __name__ == "__main__":
 
-    switches = switchParser(argv,  AVAILABLE_SWITCHES)
+    switches = switch_parser(argv, AVAILABLE_SWITCHES)
 
     if 'h' in switches:
         print __doc__
@@ -142,7 +142,7 @@ if __name__ == "__main__":
 
         print "Piping"
 
-        fList = pipedList("".join(map(str, stdin.readlines())))
+        fList = piped_list("".join(map(str, stdin.readlines())))
         pruned_list = prune_file_list(fList, argv[1:])
         final_list = sort_by_creation_time(pruned_list)
 
@@ -155,4 +155,4 @@ if __name__ == "__main__":
     if len(pruned_list) > 0:
         present_result(final_list)
     else:
-        errorAlert("Either empty directory or search term(s) not found.")
+        error_alert("Either empty directory or search term(s) not found.")

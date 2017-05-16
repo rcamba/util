@@ -1,6 +1,6 @@
 from tag import removeTags, getTagList, getFilenameList
 from sys import argv
-from root import printList, switchParser, keyPressInput
+from root import print_list, switch_parser, key_press_input
 
 AVAILABLE_SWITCHES = ['f', 't']
 
@@ -14,7 +14,7 @@ def _choose_from_list(tag_or_file_list):
         try:
             _input = raw_input()
         except EOFError:  # pipes
-            _input = keyPressInput()
+            _input = key_press_input()
 
         choices = _input.split(',')
         choices = map(int, choices)
@@ -32,7 +32,7 @@ def untag_using_tag(tag):
 
     f_list = getFilenameList(tag)
     if len(f_list) > 0:
-        printList(f_list)
+        print_list(f_list)
         choice_list = _choose_from_list(f_list)
         for choiceFile in choice_list:
             removeTags([tag], choiceFile)
@@ -42,7 +42,7 @@ def untag_using_filename(filename):
 
     tag_list = getTagList(filename)
     if len(tag_list) > 0:
-        printList(tag_list)
+        print_list(tag_list)
         choice_list = _choose_from_list(tag_list)
         for choiceTag in choice_list:
             removeTags([choiceTag], filename)
@@ -50,7 +50,7 @@ def untag_using_filename(filename):
 
 if __name__ == "__main__":
 
-    switches = switchParser(argv, AVAILABLE_SWITCHES)
+    switches = switch_parser(argv, AVAILABLE_SWITCHES)
 
     if len(argv) > 1 and ('t' in switches or 'f' in switches):
 

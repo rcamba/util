@@ -1,6 +1,6 @@
 from sys import stdout, argv
 from time import sleep, time, strftime, localtime
-from root import hibLog, errorAlert
+from root import hibLog, error_alert
 from to_do_list import view_to_do_list
 from os import system
 
@@ -104,11 +104,11 @@ if __name__ == "__main__":
     # windll.kernel32.SetConsoleCtrlHandler(0, 1)  # disables sigint / ctrl + c
 
     if len(argv) < 2:
-        errorAlert("Missing time parameter")
+        error_alert("Missing time parameter")
 
     else:
         try:
             main(int(argv[1]))
 
         except ValueError:
-            errorAlert("Argument must be an integer")
+            error_alert("Argument must be an integer")
