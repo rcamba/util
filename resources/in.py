@@ -1,16 +1,18 @@
 from sys import argv
-from os import system
-from time import sleep
-
-timeLeft=int(argv[1])
-
-argv=argv[2:]
-argv= " ".join(map(str, argv))
+from subprocess import Popen
+from hib import loading_splash
 
 
-while(timeLeft>0):
-	print "Time remaining: ", timeLeft
-	sleep(60)
-	timeLeft=int(timeLeft)-1
+if __name__ == "__main__":
 
-system(argv)
+    time_left = int(argv[1])
+
+    argv = argv[2:]
+    command = " ".join(map(str, argv))
+
+    for i in range(int(time_left), 0, -1):
+        output = "Executing {c} in {tl} minute(s)".format(
+            c=command, tl=time_left)
+        loading_splash(60, output)
+
+    Popen(command, shell=True)

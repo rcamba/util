@@ -1,61 +1,64 @@
 from tag import removeTags, getTagList, getFilenameList
 from sys import argv
-from root import printList, switchParser, keyPressInput
-AVAILABLE_SWITCHES=['f','t']
+from root import print_list, switch_parser, key_press_input
 
-def _chooseFromList(aList):
-	choiceList=[]
-	if len(aList)>1:
-		print "Enter number(s) separated by commas"
+AVAILABLE_SWITCHES = ['f', 't']
 
-		try:
-			input= raw_input()
-		except EOFError:#pipes
-			input=keyPressInput()
 
-		choices=input.split(',')
-		choices=map(int,choices)
+def _choose_from_list(tag_or_file_list):
 
-		for choice in choices:
-			choiceList.append( aList[choice-1] )
+    choice_list = []
+    if len(tag_or_file_list) > 1:
+        print "Enter number(s) separated by commas"
 
-	else:
-		choiceList.append( aList[0] )
+        try:
+            _input = raw_input()
+        except EOFError:  # pipes
+            _input = key_press_input()
 
-	return choiceList
+        choices = _input.split(',')
+        choices = map(int, choices)
 
-def untagUsingTag(tag):
-	fList=getFilenameList( tag )
-	if len(fList)>0:
-		printList(fList)
-		choiceList=_chooseFromList(fList)
-		for choiceFile in choiceList:
-			removeTags([tag], choiceFile)
+        for choice in choices:
+            choice_list.append(tag_or_file_list[choice - 1])
 
-def untagUsingFilename(filename):
-	tagList=getTagList(filename)
-	if len(tagList)>0:
-		printList(tagList)
-		choiceList=_chooseFromList(tagList)
-		for choiceTag in choiceList:
-			removeTags([choiceTag], filename)
+    else:
+        choice_list.append(tag_or_file_list[0])
+
+    return choice_list
+
+
+def untag_using_tag(tag):
+
+    f_list = getFilenameList(tag)
+    if len(f_list) > 0:
+        print_list(f_list)
+        choice_list = _choose_from_list(f_list)
+        for choiceFile in choice_list:
+            removeTags([tag], choiceFile)
+
+
+def untag_using_filename(filename):
+
+    tag_list = getTagList(filename)
+    if len(tag_list) > 0:
+        print_list(tag_list)
+        choice_list = _choose_from_list(tag_list)
+        for choiceTag in choice_list:
+            removeTags([choiceTag], filename)
+
 
 if __name__ == "__main__":
-	switches=switchParser(argv, AVAILABLE_SWITCHES)
 
-	if len(argv)>1 and ('t' in switches or 'f' in switches):
+    switches = switch_parser(argv, AVAILABLE_SWITCHES)
 
-		if 't' in switches :
-			tag=argv[1].strip()
-			untagUsingTag(tag)
+    if len(argv) > 1 and ('t' in switches or 'f' in switches):
 
+        if 't' in switches:
+            untag_using_tag(argv[1].strip())
 
-
-		elif 'f' in switches:
-			filename=argv[1].strip()
-			untagUsingFilename(filename)
-
-	else:
-		print "Invalid parameters"
-		print "Usage untag[-f filename][-t tag]"
-
+        elif 'f' in switches:
+            untag_using_filename(argv[1].strip())
+    else:
+        print "Invalid parameters"
+        print "Usage untag[-f filename][-t tag]"
