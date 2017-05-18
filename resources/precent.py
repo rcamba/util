@@ -1,6 +1,6 @@
 from os import listdir, path, stat
 from sys import argv
-from root import musicDir
+from root import music_dir
 from tag import getFilenameList
 from subprocess import Popen
 
@@ -17,7 +17,7 @@ def get_songs():
     if len(argv) > 1:
         return getFilenameList(argv[1])
     else:
-        return [path.join(musicDir, f) for f in listdir(musicDir)]
+        return [path.join(music_dir, f) for f in listdir(music_dir)]
 
 
 def play_recent_songs(sorted_song_list):

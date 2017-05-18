@@ -3,7 +3,7 @@ from os import listdir, chdir, getcwd, path, rename
 from sys import exit as sys_exit
 from string import ascii_letters, digits, punctuation
 
-from root import screeningDir, error_alert, cleaned_fnames_log
+from root import screening_dir, error_alert, cleaned_fnames_log
 from tag import tagMultipleFiles, getFilenameList
 from kanji_to_romaji import kanji_to_romaji
 
@@ -11,15 +11,15 @@ from kanji_to_romaji import kanji_to_romaji
 def screen_tagging():
     """Tags all files in screening_dir with 'screen' tag"""
 
-    chdir(screeningDir)
-    if getcwd() == screeningDir:
+    chdir(screening_dir)
+    if getcwd() == screening_dir:
         print "Starting screen tagging"
 
-        file_list = listdir(screeningDir)
+        file_list = listdir(screening_dir)
         screening_list = getFilenameList("screen")
         removed_counter = 0
         for i in range(len(file_list) - 1, -1, -1):
-            file_list[i] = path.join(screeningDir, file_list[i]).lower()
+            file_list[i] = path.join(screening_dir, file_list[i]).lower()
 
             if file_list[i] in screening_list:
                 file_list.remove(file_list[i])
@@ -137,7 +137,7 @@ def main(directory):
             rename_files(changes_dict, directory)
             print "renamed " + str(len(changes_dict)) + " files."
 
-            if path.realpath(directory) == path.realpath(screeningDir):
+            if path.realpath(directory) == path.realpath(screening_dir):
                 screen_tagging()
 
     else:

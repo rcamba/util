@@ -7,7 +7,7 @@ from random import shuffle
 from subprocess import Popen
 
 from tag import getFilenameList, addTags, removeTags
-from root import screeningDir, musicDir, deletedScreenedLog, error_alert
+from root import screening_dir, music_dir, deleted_screened_log, error_alert
 
 from psutil import process_iter
 
@@ -68,7 +68,7 @@ def split_dir(fileName):
 
 
 def log_deleted_song(targ):
-    writer = open(deletedScreenedLog, 'a')
+    writer = open(deleted_screened_log, 'a')
     targ = path.splitext(path.split(targ)[1])[0]
     writer.write(targ)
     writer.write('\n')
@@ -78,10 +78,10 @@ def log_deleted_song(targ):
 def handle_tagging(music_filename):
 
     try:
-        move(music_filename, musicDir)
+        move(music_filename, music_dir)
         removeTags(["screen"], music_filename, validate=False)
 
-        filename = path.join(musicDir, split_dir(music_filename))
+        filename = path.join(music_dir, split_dir(music_filename))
         tagList = raw_input("Enter tag(s). Separate with commas\n").split(',')
         addTags(tagList, filename)
         print ""
@@ -113,7 +113,7 @@ def handle_delete(music_filename):
 def handle_keep(music_filename):
 
     try:
-        move(music_filename, musicDir)
+        move(music_filename, music_dir)
         removeTags(["screen"], music_filename, validate=False)
         print "Move successful\n"
 

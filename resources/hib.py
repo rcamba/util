@@ -1,6 +1,6 @@
 from sys import stdout, argv
 from time import sleep, time, strftime, localtime
-from root import hibLog, error_alert
+from root import hib_log, error_alert
 from to_do_list import view_to_do_list
 from os import system
 
@@ -63,7 +63,7 @@ def loading_splash(time_limit, output="", splash=None):
 def create_log():
     """Opens hibLog and appends date and time to the file"""
 
-    f = open(hibLog, 'a')
+    f = open(hib_log, 'a')
     t = localtime()
     s = " ".join([str(strftime("%B/%d/%Y\t %H:%M", t)), '\n'])
     f.write(s)

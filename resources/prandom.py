@@ -6,8 +6,8 @@ from sys import argv, stdin
 from subprocess import Popen
 from ast import literal_eval
 
-from root import musicDir, switch_parser, songLogFile, piped_list, error_alert, \
-    prandomExceptions
+from root import music_dir, switch_parser, song_log_file, piped_list, error_alert, \
+    prandom_exceptions_log
 from tag import getFilenameList, getMixedFilenameList
 from subprocess import Popen
 
@@ -118,7 +118,7 @@ def prune_exceptions(song_list, switches_, default=True):
 
     if default:
         # ... default exceptions
-        exception_tag_list = literal_eval(open(prandomExceptions).read())
+        exception_tag_list = literal_eval(open(prandom_exceptions_log).read())
 
     if 'e' in switches_:  # exception, i.e don't play songs with this tag
         exception_tag_list.extend(switches_['e'].split(','))
@@ -198,14 +198,14 @@ def main():
             pruned_song_list = prune_exceptions(song_list, switches,
                                                 default=False)
         else:
-            song_list = get_song_list(musicDir)
+            song_list = get_song_list(music_dir)
             pruned_song_list = prune_exceptions(song_list, switches)
 
         max_songs = get_max_songs(argv, switches, pruned_song_list)
 
     final_song_list = random_select(pruned_song_list, max_songs)
 
-    slh = SongLogHandler(songLogFile)
+    slh = SongLogHandler(song_log_file)
     slh.log_songs(final_song_list)
 
     play_songs(final_song_list)

@@ -6,8 +6,8 @@ from urllib2 import quote
 from subprocess import Popen
 from random import randint
 
-from root import screeningDir, musicDir, switch_parser, get_all_page_links, \
-    yt_dls_dir, yt_amv_dir, output_from_command, error_alert, deletedScreenedLog
+from root import screening_dir, music_dir, switch_parser, get_all_page_links, \
+    yt_dls_dir, yt_amv_dir, output_from_command, error_alert, deleted_screened_log
 
 """
 -m: single music
@@ -134,7 +134,7 @@ def apply_convert_command(song_path):
 
 
 def dl_single_song(vid_link, target_dir):
-    deleted_music_list = open(deletedScreenedLog).read().split('\n')
+    deleted_music_list = open(deleted_screened_log).read().split('\n')
 
     yt_dl_opts = ("--quiet --restrict-filenames --no-mtime --no-overwrites " +
                   "--extract-audio --output").split()
@@ -148,7 +148,7 @@ def dl_single_song(vid_link, target_dir):
     if len(title) > 0:
 
         title = clean_string(title)
-        if already_downloaded(title, musicDir) is False:
+        if already_downloaded(title, music_dir) is False:
             if path.splitext(title.lower())[0] not in deleted_music_list:
                 print "\nDownloading:", title
                 song_full_path = "{t1}\\{t2}".format(t1=target_dir, t2=title)
@@ -175,7 +175,7 @@ def dl_multi_song(vid_links=["https://www.reddit.com/r/japanesemusic",
 
     for vid_link in vid_list:
         if vid_link is not None:
-            dl_single_song(vid_link, screeningDir)
+            dl_single_song(vid_link, screening_dir)
 
 
 def dl_single_video(vid_link, target_dir):
@@ -220,7 +220,7 @@ if __name__ == "__main__":
         'v': lambda:
         dl_multi_video(vid_link) if len(vid_link) > 0 else dl_multi_video(),
 
-        'm': lambda: dl_single_song(vid_link, musicDir),
+        'm': lambda: dl_single_song(vid_link, music_dir),
 
         '': lambda:
         dl_multi_song([vid_link]) if len(vid_link) > 0 else dl_multi_song()

@@ -1,5 +1,5 @@
 from os import path, getcwd, listdir, remove as removeFile
-from root import error_alert, removedFilesLog, create_back_up,  tagFilesLogDir, backUpDir, piped_list, key_press_input
+from root import error_alert, removed_files_log, create_back_up,  tag_files_log_dir, backup_dir, piped_list, key_press_input
 from string import lower, strip
 from re import findall
 from sys import argv, stdin
@@ -24,7 +24,7 @@ def _splitTagFile():#init -one time
 		writer.close()
 """
 def _rtd(f, rTagDict, changesDict):
-	with open(path.join(tagFilesLogDir,f),'rb') as reader:
+	with open(path.join(tag_files_log_dir, f), 'rb') as reader:
 		line=reader.read()#each file only has one line
 
 	tag, fileStringList=line.split('::')
@@ -38,7 +38,7 @@ def _rtd(f, rTagDict, changesDict):
 
 def reconstructTagDict():
 
-	fList=listdir(tagFilesLogDir)
+	fList=listdir(tag_files_log_dir)
 	rTagDict={}
 	tList=[]
 
@@ -59,7 +59,7 @@ def reconstructTagDict():
 
 
 def logRemovedFile(msg):
-	with open(removedFilesLog,'a') as writer:
+	with open(removed_files_log, 'a') as writer:
 		writer.write(msg)
 		writer.write('\n')
 
@@ -109,11 +109,11 @@ def addTags(tagList, filename):
 
 		validatedFilename=validateFilename(filename, tag)
 		if len(validatedFilename)>0:
-			tagFilesList=listdir(tagFilesLogDir)
+			tagFilesList=listdir(tag_files_log_dir)
 			tagFilesList=[ path.splitext(t)[0] for t in tagFilesList]
 
 			if tag in tagFilesList:
-				with open(path.join(tagFilesLogDir, tag+".tag")) as  r:
+				with open(path.join(tag_files_log_dir, tag+ ".tag")) as  r:
 					tagFileLine=r.read()
 				tag, fileStringList=tagFileLine.split('::')
 				filenameList=convertToFilenameList(fileStringList)
@@ -157,7 +157,7 @@ def removeTags(tagList, filename, validate=True):
 			tag=lower(tag).strip()
 
 			try:
-				with open(path.join(tagFilesLogDir, tag+".tag")) as r:
+				with open(path.join(tag_files_log_dir, tag+ ".tag")) as r:
 					tagFileLine=r.read()
 				tag, fileStringList=tagFileLine.split('::')
 				filenameList=convertToFilenameList(fileStringList)
@@ -191,10 +191,10 @@ def __writeTagFile__(changesDict, mode):
 	origMode=mode
 
 	for key in changesDict.keys():
-		tagFile=path.join(tagFilesLogDir, key+".tag")
+		tagFile=path.join(tag_files_log_dir, key + ".tag")
 
 		if path.exists(tagFile):
-			create_back_up(tagFile, path.join(backUpDir, "tagFile"))
+			create_back_up(tagFile, path.join(backup_dir, "tagFile"))
 			if origMode=='a':
 				mode='a'
 		else:

@@ -3,7 +3,7 @@ Used with ql.bat
 QL reads from the jump file and changes to the directory written in that file
 Required to do it from cmd/bat since python process is separate from cmd
 """
-from root import dirJumpFile, print_list, choose_from_list, prevDirFile, \
+from root import dir_jump_file_log, print_list, choose_from_list, prev_dir_log, \
     switch_parser, create_back_up, error_alert
 from sys import argv
 from string import strip
@@ -15,7 +15,7 @@ AVAILABLE_SWITCHES = ['a', 'd']
 
 def write_to_prev_dir_file(prev_dir):
 
-    with open(prevDirFile, "w+") as f:
+    with open(prev_dir_log, "w+") as f:
         f.write(prev_dir)
 
 
@@ -29,9 +29,9 @@ def sort_dir_jump(targ_pos):
 
 def add_to_dir_jump(targ_dir):
 
-    create_back_up(dirJumpFile)
+    create_back_up(dir_jump_file_log)
     print "Adding: " + targ_dir
-    with open(dirJumpFile, "a") as f:
+    with open(dir_jump_file_log, "a") as f:
         f.write(str(getcwd()))
 
 
@@ -40,13 +40,13 @@ def remove_from_dir_jump(targ_pos):
     jump_list = get_jump_list()
     print "Removing: " + jump_list[targ_pos]
     jump_list.remove(jump_list[targ_pos])
-    create_back_up(dirJumpFile)
+    create_back_up(dir_jump_file_log)
     write_to_dir_jump(jump_list)
 
 
 def write_to_dir_jump(flist):
 
-    with open(dirJumpFile, "w") as out:
+    with open(dir_jump_file_log, "w") as out:
         for f in flist:
             out.write(f)
             out.write("\n")
@@ -55,7 +55,7 @@ def write_to_dir_jump(flist):
 def get_jump_list():
 
     lines = []
-    with open(dirJumpFile, "r") as f:
+    with open(dir_jump_file_log, "r") as f:
         lines = f.readlines()
         lines = map(strip, lines)
 

@@ -9,69 +9,37 @@ username = getenv("username")
 main_drive = "C:"
 alt1_drive = "F:"
 user_path = "Users"
+
 home_dir = path.join(main_drive, sep, user_path, username)
-musicDir = path.join(alt1_drive, sep, user_path, username, "Music", "ytcon")
-screeningDir = r"F:\Users\Kevin\Music\ytcon\screen"  # path.join(userDir ,"Music", "ytcon", "screen")
-backUpDir = path.join(home_dir, "backUp")
-yt_amv_dir = r"F:\Users\Kevin\Videos\ytAMV"  # path.join(userDir, "Videos", "ytAMV")
+backup_dir = path.join(home_dir, "backUp")
+
+music_dir = path.join(alt1_drive, sep, user_path, username, "Music", "ytcon")
+screening_dir = path.join(music_dir, "screen")
+
+yt_amv_dir = music_dir = path.join(alt1_drive, sep, user_path, username,  "Videos", "ytAMV")
 yt_dls_dir = path.join(home_dir, "Videos", "ytVids")
-tagFilesLogDir = path.join(parent_dir, "logs", "tagFilesLog")
+
+tag_files_log_dir = path.join(parent_dir, "logs", "tagFilesLog")
 
 # Files
 # TODO move to APPDATA?
-songLogFile = path.join(parent_dir, "logs", "prandomSongsLog.log")
-removedFilesLog = path.join(parent_dir, "logs", "removedFilesLog.log")
-hibLog = path.join(parent_dir, "logs", "hibLog.log")
-tagFile = path.join(parent_dir, "logs", "tagFile.log")
+song_log_file = path.join(parent_dir, "logs", "prandomSongsLog.log")
+removed_files_log = path.join(parent_dir, "logs", "removedFilesLog.log")
+hib_log = path.join(parent_dir, "logs", "hibLog.log")
+tag_file_log = path.join(parent_dir, "logs", "tagFile.log")
 vlc_hwnd_log = path.join(parent_dir, "logs", "vlc_hwnd.log")
-deletedTagFile = path.join(parent_dir, "logs", "deletedTagFiles.log")
-dirJumpFile = path.join(parent_dir, "logs", "directoryQ.log")
-downloadedTorFiles = path.join(parent_dir, "logs", "downloadedAnimeTorrents.log")
-toDoListTextFile = path.join(parent_dir, "logs", "toDoListFile.log")
-prevDirFile = path.join(parent_dir, "logs", "prevDir.log")
-prandomExceptions = path.join(parent_dir, "logs", "prandomexceptiontags.log")
-deletedScreenedLog = path.join(parent_dir, "logs", "deletedScreenedLog.log")
+deleted_tag_files_log = path.join(parent_dir, "logs", "deletedTagFiles.log")
+dir_jump_file_log = path.join(parent_dir, "logs", "directoryQ.log")
+tdl_log = path.join(parent_dir, "logs", "toDoListFile.log")
+prev_dir_log = path.join(parent_dir, "logs", "prevDir.log")
+prandom_exceptions_log = path.join(parent_dir, "logs", "prandomexceptiontags.log")
+deleted_screened_log = path.join(parent_dir, "logs", "deletedScreenedLog.log")
 cleaned_fnames_log = path.join(parent_dir, "logs", "cleaned_fnames.log")
 
 # Variables
 MAX_WAIT_TIME = 30  # seconds
 
 # Utility methods
-
-
-def reverse_slash(string, target_slash):
-    result = ""
-    if target_slash == "\\":
-        result = string.replace("/", "\\")
-
-    elif target_slash == "/":
-        result = string.replace("\\", "/")
-
-    else:
-        print "Invalid target slash"
-
-    return result
-
-
-def compare_lists(list1, list2, similar=True):
-    """
-    Deletes differences between list1 and list2
-    :param similar:
-    :param list2:
-    :param list1:
-    """
-    list_ = []
-
-    if similar:
-        for i in range(0, len(list1)):
-            if list1[i] in list2:
-                list_.append(list1[i])
-    else:
-        for i in range(len(list1) - 1, -1, -1):
-            if list1[i] not in list2:
-                list_.append(list1[i])
-
-    return list_
 
 
 def switch_board(args, valid_switches=None):
@@ -378,18 +346,6 @@ def get_clipboard_data():
     return data
 
 
-def standardize_file(file_path):
-    """Cast to string, replace forward slash with backslash, lower string"""
-    from string import lower
-    return lower(str(file_path).replace('/', '\\').strip())
-
-
-def standardize_string(target_string):
-    """Cast to string, strip string, lower string """
-    from string import lower
-    return lower(str(target_string).strip())
-
-
 def add_member(original_obj, function=None, man_attrib=""):
 
     # function must contain a function call that can be applied to originalObject
@@ -591,7 +547,7 @@ def create_back_up(file_name, set_back_up_dir=""):  # backup before opening/writ
     from os import mkdir, path, rename, chdir, getcwd
     from datetime import datetime
     from time import time
-    global backUpDir
+    global backup_dir
 
     orig_dir = getcwd()
     # print "Creating backup copy of: ", fileName
@@ -602,9 +558,9 @@ def create_back_up(file_name, set_back_up_dir=""):  # backup before opening/writ
         sliced_fname = path.splitext(path.split(file_name)[1])[0]  # cuts extension and path from filename
 
         if len(set_back_up_dir) > 0:
-            backUpDir = set_back_up_dir
+            backup_dir = set_back_up_dir
 
-        dir_name = path.join(backUpDir, sliced_fname)
+        dir_name = path.join(backup_dir, sliced_fname)
 
         if path.isdir(dir_name) is False:
             print "Creating new directory: ", dir_name
@@ -1058,10 +1014,10 @@ def __backup_py_n_text__():
 
 
 def self_validate_globals():
-    root_dir_list = [musicDir, screeningDir, backUpDir, yt_amv_dir, yt_dls_dir]
+    root_dir_list = [music_dir, screening_dir, backup_dir, yt_amv_dir, yt_dls_dir]
 
-    root_f_list = [songLogFile, removedFilesLog, hibLog, tagFile, vlc_hwnd_log, deletedTagFile, dirJumpFile,
-                   downloadedTorFiles, toDoListTextFile, prevDirFile, prandomExceptions, deletedScreenedLog,
+    root_f_list = [song_log_file, removed_files_log, hib_log, tag_file_log, vlc_hwnd_log, deleted_tag_files_log,
+                   dir_jump_file_log, tdl_log, prev_dir_log, prandom_exceptions_log, deleted_screened_log,
                    cleaned_fnames_log]
 
     for rd in root_dir_list:

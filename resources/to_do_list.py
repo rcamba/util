@@ -1,6 +1,6 @@
 from sys import argv
 from datetime import date
-from root import toDoListTextFile, switch_parser, print_list, create_back_up, \
+from root import tdl_log, switch_parser, print_list, create_back_up, \
     set_clipboard_data, choose_from_list, error_alert
 
 AVAILABLE_SWITCHES = ['a', 'v', 'd', 's']
@@ -23,10 +23,10 @@ class ToDoTask:
 
 
 def add_item(new_task):
-    create_back_up(toDoListTextFile)
+    create_back_up(tdl_log)
 
     new_task = ToDoTask(new_task)
-    with open(toDoListTextFile, 'a') as writer:
+    with open(tdl_log, 'a') as writer:
         writer.write('\n')
         writer.write(
             str("".join([new_task.get_date(), "\t", new_task.get_task()])))
@@ -34,7 +34,7 @@ def add_item(new_task):
 
 def delete_item(number_of_item):
 
-    create_back_up(toDoListTextFile)
+    create_back_up(tdl_log)
     task_list = load_task_list()
 
     print "Removing:\n\t {num} ) {date} \t {task}".format(
@@ -43,7 +43,7 @@ def delete_item(number_of_item):
 
     task_list.remove(task_list[number_of_item - 1])
 
-    with open(toDoListTextFile, 'w') as writer:
+    with open(tdl_log, 'w') as writer:
         for t in task_list:
             if isinstance(t, ToDoTask) is True:
                 writer.write(str("".join([t.get_date(), "\t", t.get_task()])))
@@ -60,7 +60,7 @@ def view_to_do_list():
 
 def load_task_list():
 
-    task_list = open(toDoListTextFile).read().split('\n')
+    task_list = open(tdl_log).read().split('\n')
     for i in range(0, len(task_list)):
         if len(task_list[i]) > 0:
             task_list[i] = ToDoTask(task_list[i].split(
