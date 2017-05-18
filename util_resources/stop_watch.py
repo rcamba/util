@@ -5,7 +5,7 @@ from datetime import datetime
 
 def wait_for_keypress():
 
-    if kbhit() is False:
+    if kbhit() == False:
         getch()
 
     return True
@@ -23,7 +23,7 @@ def print_time(init_time):
 
     prev_time_diff_str = ""
 
-    # while kbhit() is False: # This doesn't work???
+    # is False doesn't work
     while kbhit() == False:
         time_diff_str = create_time_diff_str(init_time)
         if time_diff_str != prev_time_diff_str:

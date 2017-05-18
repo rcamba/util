@@ -244,7 +244,8 @@ def print_numbered_list(list_, end_range=-1, scheme="full", press_to_continue=Tr
 
             if ((i + 1) % cmd_height) == 0 and press_to_continue:
                 stdout.write("Press any key to continue")
-                if kbhit() is False:
+                # noinspection PySimplifyBooleanCheck
+                if kbhit() == False:  # using 'is' prevents it from working
                     input_char = ord(getch())
                     if input_char == 224 or input_char == 0:
                         getch()
