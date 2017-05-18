@@ -1,2 +1,2 @@
 @ECHO OFF
-%Util%/resources/clean_filenames.py %1 %2 %3
+%Util%/util_resources/clean_filenames.py %1 %2 %3

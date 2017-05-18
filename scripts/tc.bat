@@ -1,2 +1,2 @@
 @ECHO OFF
-%Util%/resources/tc.py %1 %2 %3 %4 %5 %6
+%Util%/util_resources/tc.py %1 %2 %3 %4 %5 %6
