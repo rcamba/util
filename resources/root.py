@@ -31,6 +31,7 @@ toDoListTextFile = path.join(parent_dir, "logs", "toDoListFile.log")
 prevDirFile = path.join(parent_dir, "logs", "prevDir.log")
 prandomExceptions = path.join(parent_dir, "logs", "prandomexceptiontags.log")
 deletedScreenedLog = path.join(parent_dir, "logs", "deletedScreenedLog.log")
+cleaned_fnames_log = path.join(parent_dir, "logs", "cleaned_fnames.log")
 
 # Variables
 MAX_WAIT_TIME = 30  # seconds
@@ -907,15 +908,18 @@ def error_alert(msg="", raise_exception=False, err_class=None):
     orig_cmd_fg_color = get_console_color()
     set_console_color("red")
     msg = "ERROR: " + msg
+    try:
+        print msg
+        set_console_color(orig_cmd_fg_color)
 
-    print msg
-    set_console_color(orig_cmd_fg_color)
-
-    if raise_exception:
-        if err_class is not None:
-            raise err_class(msg)
-        else:
-            raise Exception(msg)
+        if raise_exception:
+            if err_class is not None:
+                raise err_class(msg)
+            else:
+                raise Exception(msg)
+    except:
+        set_console_color(orig_cmd_fg_color)
+        raise
 
     return msg
 
@@ -1056,8 +1060,9 @@ def __backup_py_n_text__():
 def self_validate_globals():
     root_dir_list = [musicDir, screeningDir, backUpDir, yt_amv_dir, yt_dls_dir]
 
-    root_f_list = [songLogFile, removedFilesLog, hibLog,  tagFile, vlc_hwnd_log, deletedTagFile, dirJumpFile,
-                   downloadedTorFiles, toDoListTextFile, prevDirFile, prandomExceptions, deletedScreenedLog]
+    root_f_list = [songLogFile, removedFilesLog, hibLog, tagFile, vlc_hwnd_log, deletedTagFile, dirJumpFile,
+                   downloadedTorFiles, toDoListTextFile, prevDirFile, prandomExceptions, deletedScreenedLog,
+                   cleaned_fnames_log]
 
     for rd in root_dir_list:
         try:
