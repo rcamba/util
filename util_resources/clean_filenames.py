@@ -8,6 +8,12 @@ from tag import tagMultipleFiles, getFilenameList
 from kanji_to_romaji import kanji_to_romaji
 
 
+def write_line_to_log(line):
+    with open(cleaned_fnames_log, 'a') as writer:
+        writer.write(line)
+        writer.write("\n")
+
+
 def screen_tagging():
     """Tags all files in screening_dir with 'screen' tag"""
 
@@ -89,7 +95,10 @@ def clean_chars(partial_clean_str):
 def clean_string(dirty_str):
     kanji_cleaned_str = kanji_to_romaji(dirty_str)
     if "\u" in kanji_cleaned_str:
-        print "Untranslated unicode character found in", kanji_cleaned_str
+        untranslated_warn_msg = "Untranslated unicode character found in " + kanji_cleaned_str
+        error_alert(untranslated_warn_msg)
+        if not args.dry_run:
+            write_line_to_log(untranslated_warn_msg)
 
     cleaned = clean_chars(kanji_cleaned_str)
 
@@ -98,8 +107,11 @@ def clean_string(dirty_str):
     result = cleaned
 
     if len(cleaned) == 0 or len(fn_only) == 0:
-        out = dirty_str.encode("unicode_escape") + " only consists of invalid characters. Cannot be cleaned."
-        error_alert(out)
+        all_inval_warn_msg = dirty_str.encode("unicode_escape") + \
+                             " only consists of invalid characters. Cannot be cleaned."
+        error_alert(all_inval_warn_msg)
+        if not args.dry_run:
+            write_line_to_log(all_inval_warn_msg)
         result = dirty_str
 
     return result
