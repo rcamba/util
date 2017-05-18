@@ -16,7 +16,7 @@ backup_dir = path.join(home_dir, "backUp")
 music_dir = path.join(alt1_drive, sep, user_path, username, "Music", "ytcon")
 screening_dir = path.join(music_dir, "screen")
 
-yt_amv_dir = music_dir = path.join(alt1_drive, sep, user_path, username,  "Videos", "ytAMV")
+yt_amv_dir = path.join(alt1_drive, sep, user_path, username,  "Videos", "ytAMV")
 yt_dls_dir = path.join(home_dir, "Videos", "ytVids")
 
 tag_files_log_dir = path.join(parent_dir, "logs", "tagFilesLog")
