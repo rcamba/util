@@ -1,16 +1,14 @@
 """
-Used with ql.bat
-QL reads from the jump file and changes to the directory written in that file
+Used with scripts/ql.bat, qla.bat, and qlb.bat
+ql reads from the jump file and changes to the directory written at the top of that file
+qla adds curr dir to list
+qlb just back to previous dir; similar to pushd . and popd
 Required to do it from cmd/bat since python process is separate from cmd
 """
-from root import dir_jump_file_log, print_list, choose_from_list, prev_dir_log, \
-    switch_parser, create_back_up, error_alert
-from sys import argv
+from argparse import ArgumentParser
 from string import strip
 from os import getcwd
-
-
-AVAILABLE_SWITCHES = ['a', 'd']
+from root import dir_jump_file_log, print_list, choose_from_list, prev_dir_log, create_back_up
 
 
 def write_to_prev_dir_file(prev_dir):
@@ -38,8 +36,10 @@ def add_to_dir_jump(targ_dir):
 def remove_from_dir_jump(targ_pos):
 
     jump_list = get_jump_list()
+
     print "Removing: " + jump_list[targ_pos]
-    jump_list.remove(jump_list[targ_pos])
+    del jump_list[targ_pos]  # del apparently more efficient than pop; avoids issue where directory is also prevDir
+
     create_back_up(dir_jump_file_log)
     write_to_dir_jump(jump_list)
 
@@ -53,38 +53,33 @@ def write_to_dir_jump(flist):
 
 
 def get_jump_list():
-
-    lines = []
     with open(dir_jump_file_log, "r") as f:
         lines = f.readlines()
         lines = map(strip, lines)
 
     return lines
 
-if __name__ == "__main__":
 
-    switches = switch_parser(argv)
-    if 'a' in switches:
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("jump_index", type=int, nargs='?', help="number index of directory to change directory in to")
+    group.add_argument("-a", "--add-dir", action="store_true", help="add a directory to list")
+    group.add_argument("-d", "--delete-dir", type=int, help="delete a directory from list")
+
+    args = parser.parse_args()
+
+    if args.add_dir:
         add_to_dir_jump(getcwd())
 
-    elif 'd' in switches:
-        try:
-            targ_pos = int(switches['d'])
-        except ValueError:
-            error_alert(
-                "-d must contain int for dir to be deleted from jump list")
-        remove_from_dir_jump(targ_pos)
+    elif args.delete_dir:
+        remove_from_dir_jump(args.delete_dir)
 
-    elif len(argv) > 1:
-        try:
-            targ_pos = int(argv[1])
-        except ValueError:
-            error_alert("# out of directory listing", True)
-        sort_dir_jump(targ_pos)
+    elif args.jump_index is not None:
+        sort_dir_jump(args.jump_index)
 
     else:
         jumpList = get_jump_list()
         print_list(jumpList[1:])
-        choice = choose_from_list(jumpList[1:])
-        # +1 for skipping first line of jumped route
+        choice = choose_from_list(jumpList[1:])  # +1 for skipping first line of jumped route
         sort_dir_jump(jumpList.index(choice))
