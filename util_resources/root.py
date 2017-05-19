@@ -153,12 +153,6 @@ def list_from_piped():
     pass  # get list from piped print_numbered_list/ print_list
 
 
-def print_list(list_, end_range=-1, scheme="full", press_to_continue=True):
-    # pretty is for colors+numbering  and "++,--,etc." , noPrint is just
-    # returning the str to print and no actual "print" command inside
-    return print_numbered_list(list_, end_range, scheme, press_to_continue)
-
-
 def output_from_command(cmd_and_args):
     import subprocess
     c_ = None
@@ -177,10 +171,21 @@ def output_from_command(cmd_and_args):
     return output.strip()
 
 
-def print_numbered_list(list_, end_range=-1, scheme="full", press_to_continue=True):
+def print_list(list_, end_range=-1, scheme="full", press_to_continue=True):
+    """
+
+    :param list_: list of items
+    :param end_range: number of items to print
+    :param scheme: printing scheme determining console color, border, row item symbols
+    :param press_to_continue:
+        if False then print all items in list,
+        if True and length of list if greater than cmd height limit then only print cmd height limit amount of items
+        and require to press a key to continue printing remaining items
+    :return:
+    """
 
     from msvcrt import kbhit, getch
-    from sys import stdout, exit as sys_exit
+    from sys import stdout
 
     orig_console_color = get_console_color()
 
@@ -192,48 +197,45 @@ def print_numbered_list(list_, end_range=-1, scheme="full", press_to_continue=Tr
 
     final_print_str = ""
 
-    if end_range == -1:
+    if end_range == -1 or end_range > len(list_):
         end_range = len(list_)
-    elif end_range > len(list_):
-        error_alert("Size of list is greater than given endRange of " + str(end_range))
-        sys_exit(1)
 
     # noinspection PyDictCreation
-    schemesDict = {}
+    schemes_dict = {}
 
-    schemesDict["full"] = {
-        "printBorder": "-" * (cmd_width - 1),
-        "consoleColors": [3, 6],
-        "charSymbols": ['+', '-', '!']
+    schemes_dict["full"] = {
+        "print_border": "-" * (cmd_width - 1),
+        "console_colors": [3, 6],
+        "char_symbols": ['+', '-', '!']
     }
 
-    schemesDict["borderOnly"] = {
-        "printBorder": "-" * (cmd_width - 1),
-        "consoleColors": [orig_console_color, orig_console_color],
-        "charSymbols": ['', '', '']
+    schemes_dict["border_only"] = {
+        "print_border": "-" * (cmd_width - 1),
+        "console_colors": [orig_console_color, orig_console_color],
+        "char_symbols": ['', '', '']
     }
 
-    schemesDict["none"] = {
-        "printBorder": "",
-        "consoleColors": [orig_console_color, orig_console_color],
-        "charSymbols": ['', '', '']
+    schemes_dict["none"] = {
+        "print_border": "",
+        "console_colors": [orig_console_color, orig_console_color],
+        "char_symbols": ['', '', '']
     }
 
-    if len(schemesDict[scheme]["printBorder"]) > 0:
-        print schemesDict[scheme]["printBorder"]
+    if len(schemes_dict[scheme]["print_border"]) > 0:
+        print schemes_dict[scheme]["print_border"]
 
     try:
         for i in range(0, end_range):
 
             if i % 2 == 0:
-                set_console_color(schemesDict[scheme]["consoleColors"][0])
+                set_console_color(schemes_dict[scheme]["console_colors"][0])
             else:
-                set_console_color(schemesDict[scheme]["consoleColors"][1])
+                set_console_color(schemes_dict[scheme]["console_colors"][1])
 
-            char_symbols = schemesDict[scheme]["charSymbols"]
+            char_symbols = schemes_dict[scheme]["char_symbols"]
 
             c_symbol = char_symbols[i % len(char_symbols)]
-            if scheme == "none" or scheme == "borderOnly":
+            if scheme == "none" or scheme == "border_only":
                 line = str(list_[i])
 
             else:
@@ -244,8 +246,7 @@ def print_numbered_list(list_, end_range=-1, scheme="full", press_to_continue=Tr
 
             if ((i + 1) % cmd_height) == 0 and press_to_continue:
                 stdout.write("Press any key to continue")
-                # noinspection PySimplifyBooleanCheck
-                if kbhit() == False:  # using 'is' prevents it from working
+                if kbhit() == 0:
                     input_char = ord(getch())
                     if input_char == 224 or input_char == 0:
                         getch()
@@ -258,27 +259,15 @@ def print_numbered_list(list_, end_range=-1, scheme="full", press_to_continue=Tr
     finally:
         set_console_color(orig_console_color)
 
-    if len(schemesDict[scheme]["printBorder"]) > 0:
-        print schemesDict[scheme]["printBorder"]
+    if len(schemes_dict[scheme]["print_border"]) > 0:
+        print schemes_dict[scheme]["print_border"]
 
     final_print_str = final_print_str.strip()
     return final_print_str
 
 
-# add prompt as argument similar to raw_input(prompt), overwrite default prompt
-# support for mulitple choices?
-
-
-def choose_from_list(list_, centering=True, no_invalid_result=False):
-    return choose_from_numbered_list(list_, centering, no_invalid_result)
-
-
-def choose_from_numbered_list(list_, centering=True, no_invalid_result=False):
+def choose_from_list(list_):
     from sys import exit as sys_exit
-
-    if centering:
-        pass  # not really needed anymore due to "tc"
-        # cen()
 
     result = -1
     if len(list_) > 1:
@@ -288,10 +277,8 @@ def choose_from_numbered_list(list_, centering=True, no_invalid_result=False):
         except EOFError:  # pipes
             choice = key_press_input()
 
-        if choice.isdigit() and int(choice) <= len(list_) and int(choice) > 0:
+        if choice.isdigit() and len(list_) >= int(choice) > 0:
             result = int(choice) - 1
-        elif no_invalid_result:
-            result = choice
 
         else:
             error_alert("Error: Invalid choice. Choice was not a valid number.")
