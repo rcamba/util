@@ -65,7 +65,7 @@ def create_log():
 
     f = open(hib_log, 'a')
     t = localtime()
-    s = " ".join([str(strftime("%B/%d/%Y\t %H:%M", t)), '\n'])
+    s = " ".join([str(strftime("%B/%d/%Y, %H:%M", t)), '\n'])
     f.write(s)
     f.close()
 
