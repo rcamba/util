@@ -3,7 +3,7 @@ Recipe by Andre Burgaud
 https://www.burgaud.com/bring-colors-to-the-windows-console-with-python/
 """
 from ctypes import windll, Structure, c_short, c_ushort, byref
-from win32console import STD_OUTPUT_HANDLE, STD_INPUT_HANDLE, STD_ERROR_HANDLE
+from win32console import STD_OUTPUT_HANDLE
 
 
 SHORT = c_short
@@ -17,6 +17,7 @@ class COORD(Structure):
         ("Y", SHORT)]
 
 
+# noinspection PyPep8Naming
 class SMALL_RECT(Structure):
     """struct in wincon.h."""
     _fields_ = [
@@ -26,6 +27,7 @@ class SMALL_RECT(Structure):
         ("Bottom", SHORT)]
 
 
+# noinspection PyPep8Naming
 class CONSOLE_SCREEN_BUFFER_INFO(Structure):
     """struct in wincon.h."""
     _fields_ = [
@@ -79,6 +81,7 @@ def set_console_color(color):
     Sets the character attributes (colors) of the console screen
     buffer. Color is a combination of foreground and background color,
     foreground and background intensity.
+    :param color: item in COLOR_CHOICES
     """
 
     SetConsoleTextAttribute(stdout_handle, color)
