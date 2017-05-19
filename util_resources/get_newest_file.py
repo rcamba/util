@@ -56,7 +56,7 @@ def present_result(f_list_):
     if args.list_files is not None or args.select_file is not None:
         if args.list_files is None:
             args.list_files = 10
-        print_list(f_list_, args.list_files, scheme="full", press_to_continue=stdout.isatty())
+        print_list([path.split(f)[1] for f in f_list_], args.list_files, scheme="full", press_to_continue=stdout.isatty())
 
     chosen_item = f_list_[0]
 
