@@ -1,19 +1,19 @@
 from win32gui import GetWindowText, IsWindowEnabled, EnumWindows
 from win32process import GetWindowThreadProcessId
 from psutil import process_iter
-from root import vlc_hwnd_log, set_clipboard_data, print_list
+from root import vlc_hwnd_log, set_clipboard_data
 from os import path
 from tag import getTagList
 
 
 def get_hwnds_for_pid(pid):
-    def callback(hwnd, hwnds):
+    def callback(hwnd, hwnds_):
 
         if IsWindowEnabled(hwnd):
             _, found_pid = GetWindowThreadProcessId(hwnd)
 
             if found_pid == pid:
-                hwnds.append(hwnd)
+                hwnds_.append(hwnd)
 
         return True
 
@@ -63,7 +63,7 @@ def get_vlc_hwnd():
     return vlc_hwnd
 
 
-def get_vlc_title(vlc_hwnd):
+def _get_vlc_title(vlc_hwnd):
 
     vlc_title = title_from_hwnd(vlc_hwnd)
     return vlc_title
@@ -102,21 +102,21 @@ def title_from_hwnd(vlc_hwnd):
     return title
 
 
-def main():
+def get_vlc_title():
 
     vlc_hwnd = get_vlc_hwnd()
-    vlc_title = get_vlc_title(vlc_hwnd)
+    vlc_title = _get_vlc_title(vlc_hwnd)
     fp = path_from_hwnd(vlc_hwnd)
     quoted_fp = "\"" + fp + "\""
 
     print "+ Currently playing:"
-    print_list([vlc_title], scheme="none")
+    print vlc_title
     set_clipboard_data(quoted_fp)
-    print_list([quoted_fp], scheme="none")
+    print quoted_fp
     print getTagList(fp)
 
     return fp
 
 
 if __name__ == "__main__":
-    main()
+    get_vlc_title()
