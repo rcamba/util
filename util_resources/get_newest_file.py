@@ -1,158 +1,103 @@
-"""
-stores full path of newest file in the current working directory into clipboard
-
-USAGE: nF [target string] [[-p][-#][-s]] [-f][-d]
--p: print list containing the given strings
--#: [num] number of items to print
--s: select from given list
--f: list FILES only
--d: list DIRECTORIES
-"""
-
-
-from sys import argv, stdin, stdout
-from root import switch_parser, set_clipboard_data, \
-    print_list, choose_from_list, error_alert, piped_list
+from argparse import ArgumentParser
+from sys import stdin, stdout
 from os import listdir, getcwd, stat, path
-from sys import exit as sys_exit
-from string import lower
-AVAILABLE_SWITCHES = ['p', 's', 'd', 'h', 'f', '#']
+from root import set_clipboard_data, \
+    print_list, choose_from_list, error_alert, piped_list
 
 
 class AttribContainer:
+    def __init__(self):
         pass
 
 
-def sort_by_creation_time(f_list):
-
-    for i in range(len(f_list) - 1, -1, -1):
+def sort_by_creation_time(f_list_):
+    for i in range(len(f_list_) - 1, -1, -1):
         ac = AttribContainer()
-        ac.stat = stat(f_list[i])
-        ac.file = f_list[i]
-        f_list[i] = ac
+        ac.stat = stat(f_list_[i])
+        ac.file = f_list_[i]
+        f_list_[i] = ac
 
-    f_list = sorted(f_list,
-                    key=lambda AttribContainer: AttribContainer.stat.st_ctime,
-                    reverse=True)
+    f_list_ = sorted(f_list_,
+                     key=lambda ac_: ac_.stat.st_ctime,
+                     reverse=True)
 
-    f_list = map(lambda x: "\"" + str(x.file) + "\"", f_list)
-
-    return f_list
+    return f_list_
 
 
 def get_file_list(targ_dir=getcwd()):
+    f_list_ = [path.join(targ_dir, f) for f in listdir(unicode(targ_dir))]
 
-    f_list = listdir(targ_dir)
-    f_list = map(lower, f_list)
-    return f_list
+    if args.files_only:
+        f_list_ = [f for f in f_list_ if path.isfile(f)]
 
+    elif args.dir_only:
+        f_list_ = [f for f in f_list_ if path.isdir(f)]
 
-def prune_file_list(f_list, targ_words):
-
-    for f in f_list[:]:
-        removed = False
-
-        for word in targ_words:
-            if word not in f:
-                f_list.remove(f)
-                removed = True
-                break
-
-        if removed is False:
-            if 'f' in switches:
-                if path.isfile(f) is False:
-                    f_list.remove(f)
-                    break
-
-            elif 'd' in switches:
-                if path.isdir(f) is False:
-                    f_list.remove(f)
-                    break
-
-    return f_list
+    return f_list_
 
 
-def print_settings():
-
-    # default values when empty switches
-    items_to_print = 1
-    aes = "none"
-
-    if 'p' in switches:
-        items_to_print = 10
-
-        if '#' in switches:
-            items_to_print = int(switches['#'])
-
-        if len(fList) < items_to_print:
-            items_to_print = len(fList)
-
-        aes = "full"
-
-    return items_to_print, aes
+def prune_targ_words_from_file_list(f_list_, targ_words):
+    for word in targ_words:
+        for f in f_list_[:]:
+            if word.lower() not in f.lower():
+                f_list_.remove(f)
+    return f_list_
 
 
-def handle_select(f_list):
+def select_item_from_files(f_list_, numbered_index):
+    chosen_item = f_list_[numbered_index - 1]
+    if numbered_index == -1:  # prompt to select
+        chosen_item = choose_from_list(f_list_)
 
-    if 's' in switches:
-
-        if len(switches['s']) > 0:
-            s_val = int(switches['s'])
-            if s_val <= len(f_list):
-                choice = f_list[s_val - 1]
-            else:
-                error_alert("Select switch value:" + str(s_val) +
-                           " greater than list size: " + str(len(f_list)))
-                sys_exit(1)
-        else:
-            choice = choose_from_list(f_list)
-
-        f_list[0] = choice
-
-    return f_list[0]
+    return chosen_item
 
 
-def present_result(f_list, targ_dir=getcwd()):
+def present_result(f_list_):
+    if args.list_files is not None or args.select_file is not None:
+        if args.list_files is None:
+            args.list_files = 10
+        print_list(f_list_, args.list_files, scheme="full", press_to_continue=stdout.isatty())
 
-    items_to_print, aes = print_settings()
+    chosen_item = f_list_[0]
 
-    if items_to_print > 1:
-        print_list(f_list, items_to_print, aes, press_to_continue=stdout.isatty())
+    if args.select_file is not None:
+        chosen_item = select_item_from_files(f_list_, args.select_file)
 
-    f_list[0] = handle_select(f_list)
+    print chosen_item
+    set_clipboard_data(chosen_item)
 
-    if path.isabs(f_list[0].replace("\"", '')) is False:
-        f_list[0] = "\"" + targ_dir + "\\" + \
-            str(f_list[0]).replace("\"", '') + "\""
-        # fList[0]=path.abspath(fList[0])
 
-    print f_list[0]
+def add_arg_options():
+    p = ArgumentParser()
+    p.add_argument('targ_words', nargs='*')
+    p.add_argument("-l", "--list-files", help="list the x newest files. default x is 10",
+                   type=int, nargs="?", const=10, required=False)
+    p.add_argument("-f", "--files-only", help="only show files",
+                   action="store_true")
+    p.add_argument("-d", "--dir-only", help="only show directories",
+                   action="store_true")
+    p.add_argument("-s", "--select-file", help="select file among list",
+                   type=int, nargs="?", const=-1, required=False)
 
-    set_clipboard_data(f_list[0])
+    return p
 
 
 if __name__ == "__main__":
+    parser = add_arg_options()
+    args = parser.parse_args()
 
-    switches = switch_parser(argv, AVAILABLE_SWITCHES)
-
-    if 'h' in switches:
-        print __doc__
-
-    elif stdin.isatty() is False:
-
+    if stdin.isatty() is False:
         print "Piping"
-
-        fList = piped_list("".join(map(str, stdin.readlines())))
-        pruned_list = prune_file_list(fList, argv[1:])
-        final_list = sort_by_creation_time(pruned_list)
+        f_list = piped_list("".join(map(str, stdin.readlines())))
 
     else:
+        f_list = get_file_list()
 
-        fList = get_file_list()
-        pruned_list = prune_file_list(fList, argv[1:])
-        final_list = sort_by_creation_time(pruned_list)
+    pruned_list = prune_targ_words_from_file_list(f_list, args.targ_words)
+    sorted_list = sort_by_creation_time(pruned_list)
+    final_quoted_list = map(lambda x: "\"" + str(x.file.encode("unicode_escape")) + "\"", sorted_list)
 
-    if len(pruned_list) > 0:
-        present_result(final_list)
+    if len(final_quoted_list) > 0:
+        present_result(final_quoted_list)
     else:
         error_alert("Either empty directory or search term(s) not found.")
