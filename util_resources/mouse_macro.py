@@ -20,11 +20,10 @@ slide(x,y) -- slides mouse to x/y coodinates (in pixels)
               also supports optional speed='slow', speed='fast'
 """
 
-from ctypes import*
+from ctypes import *
 from ctypes.wintypes import *
 from time import sleep
-from sys import argv
-from root import keyboard_type
+from argparse import ArgumentParser
 
 
 __all__ = ['click', 'hold', 'release',
@@ -101,13 +100,10 @@ release = Input_I()
 release.mi = MouseInput(0, 0, 0, 4, 0, pointer(extra))
 
 x = FInputs((0, click), (0, release))
-# user32.SendInput(2, pointer(x), sizeof(x[0])) CLICK & RELEASE
 
 x2 = FInputs((0, click))
-# user32.SendInput(2, pointer(x2), sizeof(x2[0])) CLICK & HOLD
 
 x3 = FInputs((0, release))
-# user32.SendInput(2, pointer(x3), sizeof(x3[0])) RELEASE HOLD
 
 
 def move(x, y):
@@ -189,19 +185,20 @@ def middlerelease():
 
 
 if __name__ == '__main__':
+    parser = ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-c", "--click", action="store_true", help="click at current cursor pos")
+    group.add_argument("-dc", "--double-click", action="store_true", help="double click at current cursor pos")
+    group.add_argument("-g", "--get-pos", action="store_true", help="print current x,y coordinates of cursor")
+    group.add_argument("-rc", "--right-click", action="store_true", help="right click at current cursor pos")
 
-    if len(argv) > 1:
-        argv = argv[1:]
-        if "c" in argv:
-            click()
-        elif "dc" in argv:
-            click()
-            click()
-        elif "g" in argv:
-            print getpos()
-        elif "rc" in argv:
-            argv.remove("rc")
-            for arg in argv:
-                keyboard_type(arg)
-                keyboard_type(" ")
-            rightclick()  # paste in cmd - requires QuickEdit Mode enabled
+    args = parser.parse_args()
+    if args.click:
+        click()
+    elif args.double_click:
+        click()
+        click()
+    elif args.get_pos:
+        print getpos()
+    elif args.right_click:
+        rightclick()
