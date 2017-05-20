@@ -298,41 +298,6 @@ def get_clipboard_data():
     return data
 
 
-def add_member(original_obj, function=None, man_attrib=""):
-
-    # function must contain a function call that can be applied to originalObject
-
-    class Metamorph:
-
-        def __init__(self, original_obj_, func_):
-            self.object = original_obj_
-
-            if len(man_attrib) > 0:
-                self.attribute = man_attrib
-            elif len(func_.__name__) > 0:
-                try:
-                    self.attribute = func_(original_obj_)
-                except:
-                    self.attribute = None
-                    print "Failed to set", func_, "for: ", original_obj_
-                    raise WindowsError  # TODO: CREATE OWN ERROR EXCEPTION
-            else:
-                print "Missing function or manual attribute parameter."
-
-        def get_object(self):
-            return self.object
-
-        def get_attribute(self):
-            return self.attribute
-
-        def __str__(self):
-            return original_obj.__str__()
-
-    result = Metamorph(original_obj, function)
-
-    return result
-
-
 def get_all_page_links(url):
     import requests
     # user-agent?
@@ -436,62 +401,6 @@ def key_press_input(prompt_str=""):
             cursor_pos += 1
 
     return "".join(result)
-
-
-def file_search(target_file, top_lvl="C:\\Users\\Kevin\\", strict=True):
-    from string import lower
-
-    from os import path, listdir
-
-    EXCLUDED_FOLDERS = [
-        path.join(home_dir, "application data"),
-        path.join(home_dir, "cookies"),
-        path.join(home_dir, "local settings"),
-        path.join(home_dir, "nethood"),
-        path.join(home_dir, "printhood"),
-        path.join(home_dir, "recent"),
-        path.join(home_dir, "sendto"),
-        path.join(home_dir, "start menu"),
-        path.join(home_dir, "templates"),
-        path.join(home_dir, "appdata", "local", "temporary internet files"),
-        path.join(home_dir, "appdata", "local", "application data"),
-        path.join(home_dir, "appdata", "local", "history"),
-        path.join(home_dir, "documents"),
-    ]
-
-    def list_dir_full_path(top_lvl_):
-        from string import lower
-        f_list_ = []
-        if top_lvl_ not in EXCLUDED_FOLDERS:
-            try:
-                f_list_ = listdir(top_lvl_)
-                for i in range(0, len(f_list_)):
-                    f_list_[i] = lower(path.join(top_lvl_, f_list_[i]))
-            except WindowsError:
-                # pass
-                error_alert("Cannot access " + top_lvl_)
-
-        return f_list_
-
-    res_list = []
-    target_file = lower(target_file)
-    f_list = list_dir_full_path(top_lvl)
-
-    for f in f_list:
-        filename = path.split(f)[1]
-        if path.isfile(filename):
-            if strict:
-                if target_file == filename:
-                    res_list.append(f)
-            else:
-                if target_file in filename:
-                    res_list.append(f)
-
-        elif path.isdir(f):
-            f_list.extend(list_dir_full_path(f))
-
-    print_list(res_list)
-    return res_list
 
 
 def create_back_up(file_name, set_back_up_dir=""):  # backup before opening/writing to txt files
@@ -790,7 +699,7 @@ def get_console_color():
     return gcc()
 
 
-def set_console_color(color):  # include string argument? color print, change color to original
+def set_console_color(color):
     from cmd_coloring import set_console_color as scc, COLOR_CHOICES
 
     if type(color) == int:
@@ -920,32 +829,6 @@ def stdout_write(w_str):
     sys.stdout.write("\b" * len(w_str))
     sys.stdout.write(w_str)
     sys.stdout.flush()
-
-
-def u_listdir(curr_dir, targ=""):
-    from os import listdir, path
-
-    f_list = listdir(unicode(curr_dir))
-    for i in range(len(f_list) - 1, -1, -1):
-
-        unicode_fname = unicode(f_list[i])
-        f_list[i] = curr_dir + "\\" + unicode_fname
-
-        if targ == "file":
-            if path.isfile(f_list[i]) is False:
-                f_list.remove(f_list[i])
-
-        elif targ == "dir":
-            if path.isdir(f_list[i]) is False:
-                f_list.remove(f_list[i])
-
-    if targ == "dir":
-        f_list.insert(0, u"..")
-        f_list.insert(0, u".")
-
-    f_list.sort()
-
-    return f_list
 
 
 def __backup_py_n_text__():
