@@ -171,12 +171,11 @@ def output_from_command(cmd_and_args):
     return output.strip()
 
 
-def print_list(list_, end_range=-1, scheme="full", press_to_continue=True):
+def print_list(list_, end_range=-1, press_to_continue=True):
     """
 
     :param list_: list of items
     :param end_range: number of items to print
-    :param scheme: printing scheme determining console color, border, row item symbols
     :param press_to_continue:
         if False then print all items in list,
         if True and length of list if greater than cmd height limit then only print cmd height limit amount of items
@@ -200,47 +199,16 @@ def print_list(list_, end_range=-1, scheme="full", press_to_continue=True):
     if end_range == -1 or end_range > len(list_):
         end_range = len(list_)
 
-    # noinspection PyDictCreation
-    schemes_dict = {}
-
-    schemes_dict["full"] = {
-        "print_border": "-" * (cmd_width - 1),
-        "console_colors": [3, 6],
-        "char_symbols": ['+', '-', '!']
-    }
-
-    schemes_dict["border_only"] = {
-        "print_border": "-" * (cmd_width - 1),
-        "console_colors": [orig_console_color, orig_console_color],
-        "char_symbols": ['', '', '']
-    }
-
-    schemes_dict["none"] = {
-        "print_border": "",
-        "console_colors": [orig_console_color, orig_console_color],
-        "char_symbols": ['', '', '']
-    }
-
-    if len(schemes_dict[scheme]["print_border"]) > 0:
-        print schemes_dict[scheme]["print_border"]
-
+    print "-" * (cmd_width - 1)
     try:
         for i in range(0, end_range):
 
             if i % 2 == 0:
-                set_console_color(schemes_dict[scheme]["console_colors"][0])
+                set_console_color("cyan")
             else:
-                set_console_color(schemes_dict[scheme]["console_colors"][1])
+                set_console_color("yellow")
 
-            char_symbols = schemes_dict[scheme]["char_symbols"]
-
-            c_symbol = char_symbols[i % len(char_symbols)]
-            if scheme == "none" or scheme == "border_only":
-                line = str(list_[i])
-
-            else:
-                line = "[" + c_symbol + " " + str(i + 1) + " " + c_symbol + "] " + \
-                    str(list_[i]) + " [" + (c_symbol + c_symbol) + "]"
+            line = "[" + " " + str(i + 1) + " " + "] " + str(list_[i])
             print line
             final_print_str += line + "\n"
 
@@ -252,6 +220,8 @@ def print_list(list_, end_range=-1, scheme="full", press_to_continue=True):
                         getch()
 
                     stdout.write(len("Press any key to continue") * "\b")
+                    stdout.write(len("Press any key to continue") * " ")
+                    stdout.write(len("Press any key to continue") * "\b")
 
     except KeyboardInterrupt:
         set_console_color(orig_console_color)
@@ -259,8 +229,7 @@ def print_list(list_, end_range=-1, scheme="full", press_to_continue=True):
     finally:
         set_console_color(orig_console_color)
 
-    if len(schemes_dict[scheme]["print_border"]) > 0:
-        print schemes_dict[scheme]["print_border"]
+    print "-" * (cmd_width - 1)
 
     final_print_str = final_print_str.strip()
     return final_print_str
@@ -292,7 +261,8 @@ def choose_from_list(list_):
 
     return list_[result]
 
-
+# make print_list based on some kind of constant
+# use that constant as a refenrece here for pattern matching so if it ever changes piped_list auto matches/changes
 def piped_list(stdin_output):
     from re import findall
     try:
@@ -848,14 +818,16 @@ def error_alert(msg="", raise_exception=False, err_class=None):
     set_console_color("red")
     msg = "ERROR: " + msg
     try:
-        print msg
-        set_console_color(orig_cmd_fg_color)
-
         if raise_exception:
             if err_class is not None:
                 raise err_class(msg)
             else:
                 raise Exception(msg)
+        else:
+            print msg
+
+        set_console_color(orig_cmd_fg_color)
+
     except:
         set_console_color(orig_cmd_fg_color)
         raise
