@@ -2,39 +2,40 @@
 Contains all constants and some utility methods
 """
 
-from os import getenv, path, sep
-parent_dir = path.join(path.dirname(__file__), path.pardir)
-username = getenv("username")
+import os
+parent_dir = os.path.join(os.path.dirname(__file__), os.path.pardir)
+username = os.getenv("username")
 
 main_drive = "C:"
 alt1_drive = "F:"
 user_path = "Users"
 
-home_dir = path.join(main_drive, sep, user_path, username)
-backup_dir = path.join(home_dir, "backUp")
+home_dir = os.path.join(main_drive, os.sep, user_path, username)
+backup_dir = os.path.join(home_dir, "backUp")
 
-music_dir = path.join(alt1_drive, sep, user_path, username, "Music", "ytcon")
-screening_dir = path.join(music_dir, "screen")
+music_dir = os.path.join(alt1_drive, os.sep, user_path, username, "Music", "ytcon")
+screening_dir = os.path.join(music_dir, "screen")
 
-yt_amv_dir = path.join(alt1_drive, sep, user_path, username,  "Videos", "ytAMV")
-yt_dls_dir = path.join(home_dir, "Videos", "ytVids")
+yt_amv_dir = os.path.join(alt1_drive, os.sep, user_path, username, "Videos", "ytAMV")
+yt_dls_dir = os.path.join(home_dir, "Videos", "ytVids")
 
-tag_files_log_dir = path.join(parent_dir, "logs", "tagFilesLog")
+tag_files_log_dir = os.path.join(parent_dir, "logs", "tagFilesLog")
 
 # Files
 # TODO move to APPDATA?
-song_log_file = path.join(parent_dir, "logs", "prandomSongsLog.log")
-removed_files_log = path.join(parent_dir, "logs", "removedFilesLog.log")
-hib_log = path.join(parent_dir, "logs", "hibLog.log")
-tag_file_log = path.join(parent_dir, "logs", "tagFile.log")
-vlc_hwnd_log = path.join(parent_dir, "logs", "vlc_hwnd.log")
-deleted_tag_files_log = path.join(parent_dir, "logs", "deletedTagFiles.log")
-dir_jump_file_log = path.join(parent_dir, "logs", "directoryQ.log")
-tdl_log = path.join(parent_dir, "logs", "toDoListFile.log")
-prev_dir_log = path.join(parent_dir, "logs", "prevDir.log")
-prandom_exceptions_log = path.join(parent_dir, "logs", "prandomexceptiontags.log")
-deleted_screened_log = path.join(parent_dir, "logs", "deletedScreenedLog.log")
-cleaned_fnames_log = path.join(parent_dir, "logs", "cleaned_fnames.log")
+logs_dir = os.path.join(parent_dir, "logs")
+song_log_file = os.path.join(logs_dir, "prandomSongsLog.log")
+removed_files_log = os.path.join(logs_dir, "removedFilesLog.log")
+hib_log = os.path.join(logs_dir, "hibLog.log")
+tag_file_log = os.path.join(logs_dir, "tagFile.log")
+vlc_hwnd_log = os.path.join(logs_dir, "vlc_hwnd.log")
+deleted_tag_files_log = os.path.join(logs_dir, "deletedTagFiles.log")
+dir_jump_file_log = os.path.join(logs_dir, "directoryQ.log")
+tdl_log = os.path.join(logs_dir, "toDoListFile.log")
+prev_dir_log = os.path.join(logs_dir, "prevDir.log")
+prandom_exceptions_log = os.path.join(logs_dir, "prandomexceptiontags.log")
+deleted_screened_log = os.path.join(logs_dir, "deletedScreenedLog.log")
+cleaned_fnames_log = os.path.join(logs_dir, "cleaned_fnames.log")
 
 # Variables
 MAX_WAIT_TIME = 30  # seconds
@@ -173,7 +174,6 @@ def output_from_command(cmd_and_args):
 
 def print_list(list_, end_range=-1, press_to_continue=True):
     """
-
     :param list_: list of items
     :param end_range: number of items to print
     :param press_to_continue:
@@ -261,6 +261,7 @@ def choose_from_list(list_):
 
     return list_[result]
 
+
 # make print_list based on some kind of constant
 # use that constant as a refenrece here for pattern matching so if it ever changes piped_list auto matches/changes
 def piped_list(stdin_output):
@@ -279,7 +280,6 @@ def piped_list(stdin_output):
 
 
 def set_clipboard_data(data):
-
     from win32clipboard import OpenClipboard, EmptyClipboard, SetClipboardData, CloseClipboard
     from win32con import CF_TEXT
     OpenClipboard()
@@ -289,7 +289,6 @@ def set_clipboard_data(data):
 
 
 def get_clipboard_data():
-
     from win32clipboard import OpenClipboard, CloseClipboard, GetClipboardData
     from win32con import CF_TEXT
     OpenClipboard()
@@ -977,14 +976,14 @@ def self_validate_globals():
 
     for rd in root_dir_list:
         try:
-            assert path.isdir(rd)
+            assert os.path.isdir(rd)
         except AssertionError:
             # error_alert
             raise AssertionError(rd + " is not a directory")
 
     for rf in root_f_list:
         try:
-            assert path.isfile(rf)
+            assert os.path.isfile(rf)
         except AssertionError:
             # error_alert
             raise AssertionError(rf + " is not a file")
