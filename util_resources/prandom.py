@@ -1,217 +1,165 @@
-from os import listdir, path, getcwd
-from string import rstrip, strip, lower
-from random import randint
-from operator import attrgetter
-from sys import argv, stdin
-from subprocess import Popen
-from ast import literal_eval
+import argparse
+import json
+# from collections import OrderedDict
+import collections
+import os
+import random
+import sys
+import subprocess
+import ast
 
-from root import music_dir, switch_parser, song_log_file, piped_list, error_alert, \
-    prandom_exceptions_log
-from tag import getFilenameList, getMixedFilenameList
-from subprocess import Popen
-
-VALID_EXTENSIONS=["mp3", "m4a", "flac", "ogg", "mka", "opus"]
-AVAILABLE_SWITCHES = ['#', 'e', 'm']
+import root
+import tag
 
 
-class SongLogHandler:
-
-    def __init__(self, songs_log_file):
-        self.songs_log_file = songs_log_file
-        self.song_log_list = []
-        self.load_log(songs_log_file)
-
-    def log_songs(self, song_list):
-        song_list = map(lower, song_list)
-        for song in song_list:
-            for songLog in self.song_log_list[:]:
-                if song == songLog.filename:
-                    songLog.playCount = int(songLog.playCount) + 1
-                    break
-            else:  # song not found in songLogList i.e first time played
-                new_song_log = SongLog(song, 1)
-                self.song_log_list.append(new_song_log)
-
-        self.song_log_list.sort(key=attrgetter("playCount"), reverse=True)
-
-        writer = open(self.songs_log_file, 'w')
-        for songLog in self.song_log_list:
-            writer.write(songLog + "\n")
-        writer.close()
-
-    def load_log(self, songs_log_file):
-        reader = open(songs_log_file)
-        self.song_log_list = map(rstrip, reader.readlines())
-        for i in range(0, len(self.song_log_list)):
-            token = self.song_log_list[i].split('=')
-            self.song_log_list[i] = SongLog(token[0], token[1])
-
-    def reload(self):
-        self.load_log(self.songs_log_file)
+valid_extensions = [
+    ".aac", ".aiff", ".flac", ".m4a", ".m4b", ".mka", ".mp3", ".mpc", ".ogg", ".oga", ".mogg",
+    ".opus", ".wav", ".wma", ".wv", ".webm"]
 
 
-class SongLog:
-
-    def __init__(self, new_filename, new_play_count):
-        self.filename = new_filename
-        self.playCount = int(new_play_count)
-
-    def __add__(self, other):
-        if type(other) == int:
-            self.playCount = self.playCount + other
-            return self.__str__()
-        else:
-            return self.__str__() + str(other)
-
-    def __str__(self):
-        return self.filename + "=" + str(self.playCount)
+def remove_invalid_ext(file_list):
+    for song in file_list:
+        if os.path.isfile(song) and os.path.splitext(song)[1] not in valid_extensions:
+            root.error_alert(song + " has an invalid extension")
+            file_list.remove(song)
+    return file_list
 
 
-def prune_song_list(song_list):
-    # Iterate through a copy to avoid skipping items or doing reverse iteration
-    for song in song_list[:]:
-        song_extension = path.splitext(song)[1][1:]
-        if song_extension not in VALID_EXTENSIONS:
-            song_list.remove(song)
-
+def get_song_list(targ_dir=root.music_dir):
+    file_list = [os.path.join(targ_dir, song).lower() for song in os.listdir(targ_dir) if "desktop.ini" not in song]
+    song_list = remove_invalid_ext(file_list)
     return song_list
 
 
-def get_song_list(music_dir):
-    """
-    Return list of songs with full path
-    :param music_dir: directory to list music from
-    """
-
-    def create_full_path(filename):  # helper function for map function
-        return lower(music_dir + "\\" + filename)
-
-    song_list = listdir(music_dir)
-
-    song_list = prune_song_list(song_list)
-    song_list = map(create_full_path, song_list)
-
-    return song_list
-
-
-def get_song_list_from_tag(tag_list):
-
-    tag_list = map(strip, tag_list)
-
-    if 'm' in switches:
-        print "Getting mixed tags: ", tag_list
-        song_list = getMixedFilenameList(tag_list)
+def get_song_list_from_tag(tag_list, mix_tags=False):
+    if mix_tags:
+        print "Mixed tags enabled"
+        song_list = tag.getMixedFilenameList(tag_list)  # TODO even out distrib?
     else:
-        song_list = getFilenameList(tag_list)
+        song_list = tag.getFilenameList(tag_list)
 
     if len(song_list) == 0:
-        error_alert("No file list available for given tag(s)")
+        root.error_alert("No file list available for given tag(s)", raise_exception=True)
 
     return song_list
 
 
-def prune_exceptions(song_list, switches_, default=True):
+def prune_exceptions(song_list, use_default_exceptions=True):
 
     exception_tag_list = []
     exception_song_list = []
 
-    if default:
-        # ... default exceptions
-        exception_tag_list = literal_eval(open(prandom_exceptions_log).read())
+    if use_default_exceptions:
+        exception_tag_list.extend(ast.literal_eval(open(root.prandom_exceptions_log).read()))
 
-    if 'e' in switches_:  # exception, i.e don't play songs with this tag
-        exception_tag_list.extend(switches_['e'].split(','))
+    if len(args.exception_tags) > 0:
+        exception_tag_list.extend(args.exception_tags)
 
     for exception in exception_tag_list:
-        exception_song_list.extend(getFilenameList(exception))
+        exception_song_list.extend(tag.getFilenameList(exception))
 
-    for exceptionSong in exception_song_list:
-        # if tag is given, songList may not have exceptionSong
+    for exception_song in exception_song_list:
+        # if tag is given, song_list_ may not have exception_song
         # when no tag is given, all songs are in songList so
         # exceptionSong will always be in it
-        if exceptionSong in song_list:
-            song_list.remove(exceptionSong)
+        if exception_song in song_list:
+            song_list.remove(exception_song)
 
     return song_list
+
+
+def load_song_log_dict():
+    with open(root.song_log_file) as reader:
+        song_log_dict = json.load(reader)
+    return song_log_dict
+
+
+def update_song_log(song_list):
+    song_log_dict = load_song_log_dict()
+    for song in song_list:
+        if song in song_log_dict:  # should by default have play_count key
+            song_log_dict[song]["play_count"] += 1
+        else:
+            song_log_dict[song] = {
+                "play_count": 1
+            }
+
+    # noinspection PyArgumentList
+    ordered_song_dict = collections.OrderedDict(sorted(song_log_dict.items(), key=lambda item: item[1], reverse=True))
+
+    with open(root.song_log_file, 'w') as writer:
+        json.dump(ordered_song_dict, writer, indent=2)
 
 
 def play_songs(song_list):
-
     for song in song_list:
-        Popen(song, shell=True)
+        subprocess.Popen(song, shell=True)
 
 
-def random_select(song_list, max_songs):
+def random_distrib_select(song_list, songs_limit):
+    song_log_dict = load_song_log_dict()
+    song_list.sort(key=lambda k: song_log_dict[k]["play_count"] if k in song_log_dict else -1, reverse=True)
 
-    final_song_list = []
+    final_song_list_ = []
+    select_low_play_count_chance = 0.80
+    for i in range(0, min(len(song_list), songs_limit)):
+        chance = random.random()
+        if chance <= select_low_play_count_chance:
+            selected_index = random.randint(int(len(song_list) * select_low_play_count_chance), len(song_list) - 1)
+        else:
+            selected_index = random.randint(0, len(song_list) - 1)
 
-    for i in range(0, max_songs):
-        sel = randint(0, len(song_list) - 1)
-        final_song_list.append(song_list[sel])
-        song_list.remove(song_list[sel])
+        song = song_list[selected_index]
+        final_song_list_.append(song)
+        song_list.pop(selected_index)
 
-    return final_song_list
+        if args.verbose:
+            pc = 0
+            if song in song_log_dict:
+                pc = song_log_dict[song]["play_count"]
 
+            print os.path.split(song)[1], "=", pc
+            print args
+            print "# of songs", len(final_song_list_)
 
-def get_max_songs(argv, switches, song_list):
-
-    if '#' in switches:
-        max_songs = int(switches['#'])
-
-    elif len(argv) > 1 and len(song_list) < 60:
-        max_songs = len(song_list)
-
-    else:
-        max_songs = 60
-
-    return max_songs
+    return final_song_list_
 
 
 def handle_piping():
-
-    song_list = piped_list("".join(map(str, stdin.readlines())))
-
-    i = 0
-    for f in song_list[:]:  # prune
-        if path.isabs(f) is False:
-            song_list[i] = getcwd() + "\\" + song_list[i]
-        ext = path.splitext(f)[1][1:]
-        if ext not in VALID_EXTENSIONS:
-            print "{} not a valid extension. Removing {} from list".format(
-                ext, song_list[i])
-            song_list.remove(f)
-        i += 1
+    item_list = root.piped_list("".join(map(str, sys.stdin.readlines())))
+    song_list = remove_invalid_ext(item_list)
     return song_list
 
 
-def main():
-
-    if stdin.isatty() is False:  # for using with nf/search
-        print "Playing piped songs"
-        pruned_song_list = handle_piping()
-        max_songs = len(pruned_song_list)
-    else:
-        if len(argv) > 1:
-            song_list = get_song_list_from_tag(
-                " ".join(map(str, argv[1:])).split(','))
-            pruned_song_list = prune_exceptions(song_list, switches,
-                                                default=False)
-        else:
-            song_list = get_song_list(music_dir)
-            pruned_song_list = prune_exceptions(song_list, switches)
-
-        max_songs = get_max_songs(argv, switches, pruned_song_list)
-
-    final_song_list = random_select(pruned_song_list, max_songs)
-
-    slh = SongLogHandler(song_log_file)
-    slh.log_songs(final_song_list)
-
-    play_songs(final_song_list)
-
-
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("tags", type=str, nargs='*', help="tags split by comma")
 
-    switches = switch_parser(argv)
-    main()
+    parser.add_argument("-n", "--num", type=int, default=30, help="number of songs to play", dest="num_of_songs")
+    parser.add_argument("-m", "--mix", action="store_true", help="mix tags", dest="mix_tags")
+    parser.add_argument("-e", "--except", nargs='+', default=[], help="mix tags", dest="exception_tags")
+    parser.add_argument("-v", "--verbose", action="store_true", help="display play count info")
+
+    args = parser.parse_args()
+    args.tags = [t.strip() for t in " ".join(args.tags).split(",") if len(t) > 0]
+    args.exception_tags = [et for et in " ".join(args.exception_tags).split(",") if len(et) > 0]
+
+    num_of_songs = args.num_of_songs
+
+    if sys.stdin.isatty() is False:
+        print "Processing pipes"
+        pruned_song_list = handle_piping()
+        print "Playing " + str(len(pruned_song_list)) + " piped songs"
+
+    else:
+        if len(args.tags) > 0:
+            song_list_ = get_song_list_from_tag(args.tags, args.mix_tags)
+            pruned_song_list = prune_exceptions(song_list_, use_default_exceptions=False)
+
+        else:
+            song_list_ = get_song_list(root.music_dir)
+            pruned_song_list = prune_exceptions(song_list_)
+
+    final_song_list = random_distrib_select(pruned_song_list, num_of_songs)
+    update_song_log(final_song_list)
+    play_songs(final_song_list)
