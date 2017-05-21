@@ -27,7 +27,7 @@ logs_dir = os.path.join(parent_dir, "logs")
 song_log_file = os.path.join(logs_dir, "prandomSongsLog.log")
 removed_files_log = os.path.join(logs_dir, "removedFilesLog.log")
 hib_log = os.path.join(logs_dir, "hibLog.log")
-tag_file_log = os.path.join(logs_dir, "tagFile.log")
+tag_file_log = os.path.join(logs_dir, "tag_file.log")
 vlc_hwnd_log = os.path.join(logs_dir, "vlc_hwnd.log")
 deleted_tag_files_log = os.path.join(logs_dir, "deletedTagFiles.log")
 dir_jump_file_log = os.path.join(logs_dir, "directoryQ.log")
@@ -724,7 +724,7 @@ def error_alert(msg="", raise_exception=False, err_class=None):
     # if colouring fails resort ignore it and just print msg
     orig_cmd_fg_color = get_console_color()
     set_console_color("red")
-    msg = "ERROR: " + msg
+
     try:
         if raise_exception:
             if err_class is not None:

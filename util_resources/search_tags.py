@@ -4,7 +4,7 @@
 from sys import argv, stdin, stdout
 from root import switch_parser, print_list, set_clipboard_data, choose_from_list, \
     piped_list
-from tag import getFilenameList, getTagList, handleTagSwitch
+from tag import get_files_from_tags, get_tags_for_file, get_tag_by_partial_match
 
 
 AVAILABLE_SWITCHES = ['s', 'f', 'r']
@@ -15,13 +15,13 @@ def main(arg_list):
 
     if 'f' in switches:
         _file = arg_list[0]
-        tag_list = getTagList(_file)
+        tag_list = get_tags_for_file(_file)
         print tag_list
 
     elif 'r' in switches:
-        res = handleTagSwitch("r", argList=arg_list)
+        res = get_tag_by_partial_match(arg_list)
         if len(res) == 1:
-            f_list = map(lambda x: "\"" + x + "\"", getFilenameList(res))
+            f_list = map(lambda x: "\"" + x + "\"", get_files_from_tags(res))
             print_list(f_list)
             print res
 
@@ -31,7 +31,7 @@ def main(arg_list):
     else:
         tags = map(lambda x_str: x_str.replace(',', ''), arg_list)
 
-        file_list = map(lambda x: "\"" + x + "\"", getFilenameList(tags))
+        file_list = map(lambda x: "\"" + x + "\"", get_files_from_tags(tags))
 
         if 's' in switches:
             if len(switches['s']) > 0:
@@ -60,7 +60,7 @@ def choose_from_tags(t_list):
 
     print_list(t_list)
     choice = choose_from_list(t_list)
-    cf_list = getFilenameList(choice)
+    cf_list = get_files_from_tags(choice)
     print_list(cf_list)
     choice = choose_from_list(cf_list)
     set_clipboard_data(choice)
@@ -78,6 +78,6 @@ if __name__ == "__main__":
 
     else:
 
-        tList = getTagList()
+        tList = get_tags_for_file()
         tList.sort()
         choose_from_tags(tList)

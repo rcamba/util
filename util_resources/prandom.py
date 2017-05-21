@@ -34,9 +34,9 @@ def get_song_list(targ_dir=root.music_dir):
 def get_song_list_from_tag(tag_list, mix_tags=False):
     if mix_tags:
         print "Mixed tags enabled"
-        song_list = tag.getMixedFilenameList(tag_list)  # TODO even out distrib?
+        song_list = tag.get_mixed_files_from_tags(tag_list)  # TODO even out distrib?
     else:
-        song_list = tag.getFilenameList(tag_list)
+        song_list = tag.get_files_from_tags(tag_list)
 
     if len(song_list) == 0:
         root.error_alert("No file list available for given tag(s)", raise_exception=True)
@@ -56,7 +56,7 @@ def prune_exceptions(song_list, use_default_exceptions=True):
         exception_tag_list.extend(args.exception_tags)
 
     for exception in exception_tag_list:
-        exception_song_list.extend(tag.getFilenameList(exception))
+        exception_song_list.extend(tag.get_files_from_tags(exception))
 
     for exception_song in exception_song_list:
         # if tag is given, song_list_ may not have exception_song

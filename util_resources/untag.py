@@ -1,4 +1,4 @@
-from tag import removeTags, getTagList, getFilenameList
+from tag import remove_file_from_tags, get_tags_for_file, get_files_from_tags
 from sys import argv
 from root import print_list, switch_parser, key_press_input
 
@@ -30,22 +30,22 @@ def _choose_from_list(tag_or_file_list):
 
 def untag_using_tag(tag):
 
-    f_list = getFilenameList(tag)
+    f_list = get_files_from_tags(tag)
     if len(f_list) > 0:
         print_list(f_list)
         choice_list = _choose_from_list(f_list)
         for choiceFile in choice_list:
-            removeTags([tag], choiceFile)
+            remove_file_from_tags([tag], choiceFile)
 
 
 def untag_using_filename(filename):
 
-    tag_list = getTagList(filename)
+    tag_list = get_tags_for_file(filename)
     if len(tag_list) > 0:
         print_list(tag_list)
         choice_list = _choose_from_list(tag_list)
         for choiceTag in choice_list:
-            removeTags([choiceTag], filename)
+            remove_file_from_tags([choiceTag], filename)
 
 
 if __name__ == "__main__":

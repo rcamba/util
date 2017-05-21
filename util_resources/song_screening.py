@@ -6,7 +6,7 @@ from sys import argv
 from random import shuffle
 from subprocess import Popen
 
-from tag import getFilenameList, addTags, removeTags
+from tag import get_files_from_tags, add_tags, remove_file_from_tags
 from root import screening_dir, music_dir, deleted_screened_log, error_alert
 
 from psutil import process_iter
@@ -79,11 +79,11 @@ def handle_tagging(music_filename):
 
     try:
         move(music_filename, music_dir)
-        removeTags(["screen"], music_filename, validate=False)
+        remove_file_from_tags(["screen"], music_filename)
 
         filename = path.join(music_dir, split_dir(music_filename))
         tagList = raw_input("Enter tag(s). Separate with commas\n").split(',')
-        addTags(tagList, filename)
+        add_tags(tagList, filename)
         print ""
 
     except shutil_error, e:
@@ -98,7 +98,7 @@ def handle_delete(music_filename):
     try:
 
         os_remove(music_filename)
-        removeTags(["screen"], music_filename, validate=False)
+        remove_file_from_tags(["screen"], music_filename)
         print "Delete successful\n"
         log_deleted_song(music_filename)
 
@@ -114,7 +114,7 @@ def handle_keep(music_filename):
 
     try:
         move(music_filename, music_dir)
-        removeTags(["screen"], music_filename, validate=False)
+        remove_file_from_tags(["screen"], music_filename)
         print "Move successful\n"
 
     except shutil_error, e:
@@ -181,7 +181,7 @@ def start_screening(song_list):
 
 def get_songs():
 
-    song_list = getFilenameList(["screen"])
+    song_list = get_files_from_tags(["screen"])
     shuffle(song_list)
     return song_list
 

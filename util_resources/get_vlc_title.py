@@ -3,7 +3,7 @@ from win32process import GetWindowThreadProcessId
 from psutil import process_iter
 from root import vlc_hwnd_log, set_clipboard_data
 from os import path
-from tag import getTagList
+from tag import get_tags_for_file
 
 
 def get_hwnds_for_pid(pid):
@@ -92,7 +92,7 @@ def path_from_hwnd(vlc_hwnd):
         window_title = window_title.replace(key, translation_dict[key])
     file_path = path.normpath(window_title)
 
-    return file_path
+    return file_path.lower()
 
 
 def title_from_hwnd(vlc_hwnd):
@@ -113,7 +113,7 @@ def get_vlc_title():
     print vlc_title
     set_clipboard_data(quoted_fp)
     print quoted_fp
-    print getTagList(fp)
+    print get_tags_for_file(fp)
 
     return fp
 

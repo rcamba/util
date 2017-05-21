@@ -4,7 +4,7 @@ from sys import exit as sys_exit
 from string import ascii_letters, digits, punctuation
 
 from root import screening_dir, error_alert, cleaned_fnames_log
-from tag import tagMultipleFiles, getFilenameList
+from tag import tag_multiple_files, get_files_from_tags
 from kanji_to_romaji import kanji_to_romaji
 
 
@@ -22,7 +22,7 @@ def screen_tagging():
         print "Starting screen tagging"
 
         file_list = listdir(screening_dir)
-        screening_list = getFilenameList("screen")
+        screening_list = get_files_from_tags("screen")
         removed_counter = 0
         for i in range(len(file_list) - 1, -1, -1):
             file_list[i] = path.join(screening_dir, file_list[i]).lower()
@@ -31,7 +31,7 @@ def screen_tagging():
                 file_list.remove(file_list[i])
                 removed_counter += 1
 
-        tagMultipleFiles("screen", file_list)
+        tag_multiple_files("screen", file_list)
         print removed_counter, " songs already had screen tag"
         print "Tagged ", len(file_list), " files"
 

@@ -1,332 +1,194 @@
-from os import path, getcwd, listdir, remove as removeFile
-from root import error_alert, removed_files_log, create_back_up,  tag_files_log_dir, backup_dir, piped_list, key_press_input
-from string import lower, strip
-from re import findall
-from sys import argv, stdin
-from threading import Thread
-from fnmatch import translate
-import re
-import inspect
-
-"""
-def _splitTagFile():#init -one time
-	chdir(tagFilesLogDir)
-	tagDict=reconstructTagDict()
-
-	for key in tagDict.keys():
-		fileList=tagDict[key]
-		writer=open(key+".tag",'wb')
-		writer.write(key)
-		writer.write("::")
-		for file in fileList:
-			writer.write("\""+file+"\"")
-			writer.write(" ")
-		writer.close()
-"""
-def _rtd(f, rTagDict, changesDict):
-	with open(path.join(tag_files_log_dir, f), 'rb') as reader:
-		line=reader.read()#each file only has one line
-
-	tag, fileStringList=line.split('::')
-	filenameList=convertToFilenameList(fileStringList)
-
-	validFileList=validateFilenameList(filenameList, tag)
-	rTagDict[tag]=validFileList
-
-	if len(filenameList)!=len(validFileList): #changes to filelist: a file was removed
-		changesDict[tag]=validFileList
-
-def reconstructTagDict():
-
-	fList=listdir(tag_files_log_dir)
-	rTagDict={}
-	tList=[]
-
-	changesDict={}
-	for f in fList:
-		tList.append(Thread(target=_rtd, args=(f,rTagDict,changesDict)))
-		tList[len(tList)-1].start()
-
-	for t in tList:
-		t.join()
-
-	if len(changesDict)>0:
-		print "Updating changes when loading dictionary"
-		print "Tags to be updated: " + str(changesDict.keys())
-		__writeTagFile__(changesDict, 'w')
-
-	return rTagDict
-
-
-def logRemovedFile(msg):
-	with open(removed_files_log, 'a') as writer:
-		writer.write(msg)
-		writer.write('\n')
-
-def validateFilename(filename, assocTag=""):
-	validFileList=validateFilenameList( filename, assocTag )
-	res=""
-	if len(validFileList)==1:
-		res=validFileList[0]
-
-	return res
-
-def validateFilenameList(filenameList, assocTag=""):
-
-	origFlist=filenameList
-	if type(origFlist)==str:
-		file=filenameList
-
-		filenameList=[]
-		filenameList.append(file)
+import os
+import sys
+import collections
+import simplejson as json
 
-	validFileList=[]
+from root import error_alert, removed_files_log, create_back_up, tag_file_log, piped_list, \
+    key_press_input, choose_from_list, print_list
 
-	for file in filenameList:
-
-		if path.isabs(file)==False:
-			file=getcwd()+'\\'+file
-
-		if path.isfile(file)==False:
-			if inspect.stack()[1][3]=="addTags":# caller methodName
-				msg=error_alert("Unable to add to tag " + assocTag + ". " + file + " is an invalid file. ")
-			elif inspect.stack()[1][3]=="_rtd":
-				msg=error_alert(file + " is an invalid file. Removed from " + assocTag + " tag.")
-
-			else:
-				msg=error_alert("Removed invalid file " + file)
-			logRemovedFile(msg)
-
-		else:
-			validFileList.append(lower(file))
-
-	return validFileList
-
-def addTags(tagList, filename):
-	changesDict={}
-	for tag in set(tagList):
-		tag=lower(tag).strip()
 
-		validatedFilename=validateFilename(filename, tag)
-		if len(validatedFilename)>0:
-			tagFilesList=listdir(tag_files_log_dir)
-			tagFilesList=[ path.splitext(t)[0] for t in tagFilesList]
+class Cache:  # caching
+    tag_dict = None
 
-			if tag in tagFilesList:
-				with open(path.join(tag_files_log_dir, tag+ ".tag")) as  r:
-					tagFileLine=r.read()
-				tag, fileStringList=tagFileLine.split('::')
-				filenameList=convertToFilenameList(fileStringList)
+    def __init__(self):
+        pass
 
-				if validatedFilename in filenameList:#check if tag already has file in its filelist
-					error_alert(validatedFilename + " already has tag: " + tag)
-				else:
-					if changesDict.has_key(tag):
-						changesDict[tag].extend([validatedFilename])
-					else:
-						changesDict[tag]=[validatedFilename]
-			else:
-				print "Creating new tag: ", tag
 
-				changesDict[tag]=[validatedFilename]
+def validate_tag_dict_files(tag_dict):
+    file_list = []
+    [file_list.extend(v) for v in tag_dict.values()]
+    file_list = set(file_list)
 
-		else:
-			error_alert("Unable to tag invalid file: " + filename)
+    changes_made = False
+    for f in file_list:
+        if not os.path.isfile(f):
+            removed_from_tags = []
+            for tag in tag_dict.keys():
+                if f in tag_dict[tag]:
+                    tag_dict[tag].remove(f)
+                    removed_from_tags.append(tag)
+                    changes_made = True
+                if len(tag_dict[tag]) == 0:
+                    print "Empty files list for: " + tag + "; Removing from tags"
+                    del tag_dict[tag]
 
-	__writeTagFile__(changesDict,'a')
+            log_removed_file("Removed invalid file " + f)
+            error_alert("Invalid file " + f + "\n\tRemoved from: " + ", ".join(removed_from_tags))
 
-def tagMultipleFiles(tag, filenameList):
+    if changes_made:
+        write_tag_file(tag_dict)
 
-	validFileList=validateFilenameList(filenameList, tag)
-	if len(validFileList)>0:
-		for file in validFileList:
-			addTags([tag], file)
+    return tag_dict
 
-	else:
-		error_alert("No valid file to add. No changes have been made")
 
-def removeTags(tagList, filename, validate=True):
+def load_tag_dict():
+    if Cache.tag_dict is None:
+        with open(tag_file_log) as reader:
+            tag_dict = json.load(reader, object_pairs_hook=collections.OrderedDict)
 
-	changesDict={}
-	validatedFilename = filename
-	if validate:
-		validatedFilename = validateFilename(filename)
-	if len(validatedFilename)>0:
+        Cache.tag_dict = validate_tag_dict_files(tag_dict)
 
-		for tag in set(tagList):
-			tag=lower(tag).strip()
+    return Cache.tag_dict
 
-			try:
-				with open(path.join(tag_files_log_dir, tag+ ".tag")) as r:
-					tagFileLine=r.read()
-				tag, fileStringList=tagFileLine.split('::')
-				filenameList=convertToFilenameList(fileStringList)
 
-				if validatedFilename in filenameList:
-					filenameList.remove(validatedFilename)
-					changesDict[tag]=filenameList
-					print "Successfully removed " + validatedFilename + " from tag: " + tag
+def log_removed_file(log_str):
+    with open(removed_files_log, 'a') as writer:
+        writer.write(log_str)
+        writer.write('\n')
 
-				else:
-					error_alert("Tag:" + tag + " doesn't have filename : " + validatedFilename + "\nNo changes have been made.")
 
-			except IOError:
-				error_alert("Tag file: " + tag + ".tag doesn't exist.")
+def write_tag_file(tag_dict):
+    # noinspection PyArgumentList
+    tag_dict = collections.OrderedDict(sorted(tag_dict.items(), key=lambda k: k[0]))
+    create_back_up(tag_file_log)
+    with open(tag_file_log, 'w') as writer:
+        json.dump(tag_dict, writer, indent=2, separators=(',', ': '))
 
-		__writeTagFile__(changesDict,'w')
 
-	else:
-		error_alert("Invalid file. No changes have been made.")
+def add_tags(tag_list, filename):
+    if not os.path.isabs(filename):
+        error_alert("filename argument must be absolute full file path", raise_exception=True)
 
+    if not os.path.isfile(filename):
+        error_alert(filename + " is not a valid file", raise_exception=True, err_class=IOError)
 
-def __writeTagFile__(changesDict, mode):
-	"""
-	mode:
-		w -- re-write entire tag file-> used for removing tags
-		a -- append to tag file -> used for adding tags
-	"""
-	if (mode=='a' or mode=='w')==False:
-		raise ValueError("mode must be either 'a' or 'w'")
+    tag_dict = load_tag_dict()
+    for tag in tag_list:
+        if tag not in tag_dict:
+            tag_dict[tag] = [filename]
+        elif filename not in tag_dict[tag]:
+            tag_dict[tag].append(filename)
+        else:
+            error_alert(filename + " is already in tag: " + tag)
 
-	origMode=mode
+    write_tag_file(tag_dict)
 
-	for key in changesDict.keys():
-		tagFile=path.join(tag_files_log_dir, key + ".tag")
 
-		if path.exists(tagFile):
-			create_back_up(tagFile, path.join(backup_dir, "tagFile"))
-			if origMode=='a':
-				mode='a'
-		else:
-			mode='w'
-			print "Mode set to 'w' for: "  + key
-			print "Number of files: " + str(len(changesDict[key])) + "\n"
+def remove_invalid_files(file_list):
+    for f in file_list[:]:
+        if not os.path.isfile(f):
+            error_alert(f + " is not a valid file. Removing from file list.")
+            file_list.remove(f)
 
-		with open(tagFile,mode) as writer:
 
-			fileList= changesDict[key]
+def tag_multiple_files(tag, file_list):
+    remove_invalid_files(file_list)
 
-			if len(fileList)>0:
-				if mode=='w':
-					writer.write(key+"::")
+    if len(file_list) > 0:
+        for f in file_list:
+            add_tags([tag], f)
 
-				for file in fileList:
-					writer.write("\"" + lower(file) + "\" ")
-
-		with open(tagFile) as reader:
-			content=reader.read()
-
-		if len(content)==0:
-			msgLog="Empty file list. Removing tag :" + key
-			error_alert(msgLog)
-			logRemovedFile(msgLog)
-			removeFile(tagFile)
-
-
-def convertToFilenameList(fileStringList):
-	res=[]
-
-	fileStringList=findall('".+?"', fileStringList)
-
-	for fileStr in fileStringList:
-		res.append( fileStr.replace('\"','') )
-
-	return res
-
-
-def getFilenameList(tagList):#str or list
-	if type(tagList)==str:
-		tagList=[tagList]
-
-	tagDict=reconstructTagDict()
-
-	result=[]
-
-	counter=0
-	tagList=map(lower,tagList)
-	for tag in tagList:
-		if tagDict.has_key(tag):
-			if counter>0:
-				result=list(set(tagDict[tag]).intersection(set(result)))
-			else:
-				result.extend(tagDict[tag])
-		else:
-			error_alert("Tag doesn't exist: " + tag)
-		counter=counter+1
-
-	return result
-
-
-def getTagList(filename=""):
-	tagDict=reconstructTagDict()
-	#USE THREADING IN reconstructTagDict implement here
-	#check efficiency saved
-	#also do the thing with POPEN on VLC when pranding...
-	if len(filename)==0:
-		tagList= tagDict.keys()
-	else:
-		tagList=[]
-		filename=validateFilename(filename)
-		tagList=[key for key in tagDict.keys() if filename in tagDict[key]]
-
-	return tagList
-
-def getMixedFilenameList(tagList):#for prand + search
-	result=[]
-	tagDict=reconstructTagDict()
-
-	tagList=map(lower,tagList)
-	for tag in tagList:
-		if tagDict.has_key(tag):
-			result.extend(tagDict[tag])
-		else:
-			error_alert("Tag doesn't exist: " + tag)
-
-	result=list(set(result))
-
-	return result
-
-def regexGetTag(argList):
-	res=[]
-	tList=getTagList()
-
-	#res.extend([tag for tag in tList if arg in tag])
-
-	#pattern=translate(" ".join(argList))
-	pattern=(" ".join(argList))
-	print pattern
-	reObj=re.compile(pattern)
-	for tag in tList:
-		match=reObj.findall(tag)
-		if len(match)>0:
-			res.append(tag)
-
-
-	return res
-
-def handleTagSwitch(switch, **kwargs):
-	if switch=="e": #exception
-		pass
-	elif switch=="r": #regex
-		print kwargs
-		return regexGetTag(kwargs["argList"])
-	elif switch=="m": #mixed
-		pass
-	elif switch=="": #
-		pass
-
-if __name__=="__main__":
-
-	if len(argv)>1:
-		tagList=raw_input("Enter tag(s). Separate with commas\n").split(',')
-
-		addTags(tagList,argv[1])
-
-	elif stdin.isatty()==False:#for using with nf/search
-		print "Tagging pipes"
-		fileList=piped_list("".join(map(str, stdin.readlines())))
-		tagList=key_press_input("Enter tag(s). Separate with commas").split(',')
-		for tag in tagList:
-			tagMultipleFiles(tag, fileList)
-	else:
-		print "Missing args"
+    else:
+        error_alert("No valid file to add. No changes have been made.")
+
+
+def remove_file_from_tags(tag_list, filename):
+    tag_dict = load_tag_dict()
+    for tag in tag_list:
+        if filename in tag_dict[tag]:
+            tag_dict[tag].remove(filename)
+            if len(tag_dict[tag]) == 0:
+                print "Empty files list for: " + tag + "; Removing from tags."
+                del tag_dict[tag]
+        else:
+            error_alert("Tag:" + tag + " doesn't have filename : " + filename)
+
+    write_tag_file(tag_dict)
+
+
+def get_files_from_tags(tag_list):  # str or list
+    if type(tag_list) == str:
+        tag_list = [tag_list]
+
+    tag_dict = load_tag_dict()
+    file_list = []
+    for tag in tag_list:
+        if tag in tag_dict:
+            file_list.extend(tag_dict[tag])
+
+    return file_list
+
+
+def get_tags_for_file(filename=None):
+    tag_dict = load_tag_dict()
+
+    if filename is None:
+        tags = tag_dict.keys()
+    else:
+        tags = []
+        if not os.path.isfile(filename):
+            error_alert(filename + " is not a valid file", raise_exception=True, err_class=IOError)
+
+        for tag in tag_dict.keys():
+            if filename in tag_dict[tag]:
+                tags.append(tag)
+    return tags
+
+
+def get_mixed_files_from_tags(tag_list):  # for prand + search
+    tag_dict = load_tag_dict()
+    mixed_files = []
+    for tag in tag_list:
+        if tag in tag_dict:
+            mixed_files.extend(tag_dict[tag])
+        else:
+            error_alert("Tag doesn't exist: " + tag, raise_exception=True)
+
+    mixed_files = set(mixed_files)
+    return mixed_files
+
+
+def get_tag_by_partial_match(partial_tag_match):
+    tag_dict = load_tag_dict()
+    possible_matches = []
+    for tag in tag_dict.keys():
+        if partial_tag_match in tag:
+            possible_matches.append(tag)
+
+    choice = None
+    if len(possible_matches) > 0:
+        choice = possible_matches[0]
+    elif len(possible_matches) > 1:
+        print_list(possible_matches)
+        choice = choose_from_list(possible_matches)
+
+    return choice
+
+
+if __name__ == "__main__":
+
+    if len(sys.argv) > 1:
+        input_tag_list = raw_input("Enter tag(s). Separate with commas\n").split(',')
+        if not os.path.isabs(sys.argv[1]):
+            add_tags(input_tag_list, os.path.join(os.getcwd(), sys.argv[1]))
+        else:
+            add_tags(input_tag_list, sys.argv[1])
+
+    elif sys.stdin.isatty() is False:
+        print "Tagging piped items"
+        fileList = piped_list("".join(map(str, sys.stdin.readlines())))
+        input_tag_list = key_press_input("Enter tag(s). Separate with commas").split(',')
+        for t in input_tag_list:
+            tag_multiple_files(t, fileList)
+    else:
+        print "Missing full path file argument"

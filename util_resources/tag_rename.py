@@ -1,9 +1,9 @@
 # tag_rename
 
 from sys import argv
-from tag import getTagList
+from tag import get_tags_for_file
 from os import rename, path, getcwd
-from tag import addTags, removeTags
+from tag import add_tags, remove_file_from_tags
 
 
 def tag_rename(orig_name, new_name):
@@ -12,7 +12,7 @@ def tag_rename(orig_name, new_name):
         if path.isabs(orig_name) is False:
             orig_name = path.join(getcwd(), orig_name)
 
-        tag_list = getTagList(orig_name)
+        tag_list = get_tags_for_file(orig_name)
         if len(tag_list) == 0:
             raise ValueError("No tags found for {}".format(orig_name))
 
@@ -20,7 +20,7 @@ def tag_rename(orig_name, new_name):
             new_name = path.join(path.split(orig_name)[0], new_name)
 
         print "Removing {tl} from {f}\n".format(tl=tag_list, f=orig_name)
-        removeTags(tag_list, orig_name)
+        remove_file_from_tags(tag_list, orig_name)
 
         print "Renaming {src} to {dest}\n".format(src=orig_name, dest=new_name)
         rename(orig_name, new_name)
@@ -28,7 +28,7 @@ def tag_rename(orig_name, new_name):
         tag_str = ", ".join(map(str, tag_list))
         print "Tagging {dest} with {tags}\n".format(
             dest=new_name, tags=tag_str)
-        addTags(tag_list, new_name)
+        add_tags(tag_list, new_name)
 
     else:
         print "Error: Invalid file for first argument"
