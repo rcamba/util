@@ -1,83 +1,123 @@
 """
-*Not using .bat because it reads commas as a separator/delimiter
+Not using .bat because it reads commas as a separator/delimiter
 """
-from sys import argv, stdin, stdout
-from root import switch_parser, print_list, set_clipboard_data, choose_from_list, \
-    piped_list
-from tag import get_files_from_tags, get_tags_for_file, get_tag_by_partial_match
+from argparse import ArgumentParser
+from sys import stdin, stdout
+from root import print_list, set_clipboard_data, choose_from_list, piped_list, error_alert
+from tag import get_files_from_tags, get_tags_for_file, get_tag_by_partial_match, get_mixed_files_from_tags
 
 
-AVAILABLE_SWITCHES = ['s', 'f', 'r']
+def set_args(new_args):
+    global args
+    args = new_args
 
 
-def main(arg_list):
-    switches = switch_parser(arg_list)
+def present_result(file_list):
+    file_list = map(lambda f_: "\"" + f_ + "\"", file_list)
+    if args.num_of_results is not None:
+        file_list = file_list[:args.num_of_results]
 
-    if 'f' in switches:
-        _file = arg_list[0]
-        tag_list = get_tags_for_file(_file)
-        print tag_list
+    print_list(file_list, press_to_continue=stdout.isatty())
 
-    elif 'r' in switches:
-        res = get_tag_by_partial_match(arg_list)
-        if len(res) == 1:
-            f_list = map(lambda x: "\"" + x + "\"", get_files_from_tags(res))
-            print_list(f_list)
-            print res
+    if args.select:
 
-        elif len(res) > 0:
-            choose_from_tags(res)
-
-    else:
-        tags = map(lambda x_str: x_str.replace(',', ''), arg_list)
-
-        file_list = map(lambda x: "\"" + x + "\"", get_files_from_tags(tags))
-
-        if 's' in switches:
-            if len(switches['s']) > 0:
-                choice = file_list[int(switches['s']) - 1]
-
-            else:
-                print_list(file_list, press_to_continue=stdout.isatty())
-
-                if len(file_list) == 1:
-                    choice = file_list[0]
-
-                else:
-                    choice = choose_from_list(file_list)
-
-            print choice
-            set_clipboard_data(choice)
+        if len(file_list) == 1:
+            choice = file_list[0]
 
         else:
-            if len(file_list) > 0:
-                choice = file_list[len(file_list) - 1]
-                set_clipboard_data(choice)
-            print_list(file_list, press_to_continue=stdout.isatty())
+            choice = choose_from_list(file_list)
+
+        print choice
+        set_clipboard_data(choice)
 
 
-def choose_from_tags(t_list):
+def prune_exceptions_from_file_list(file_list, exception_list):
+    if exception_list is not None and len(exception_list) > 0:
+        exception_file_list = get_files_from_tags(exception_list)
+        for f in file_list:
+            if f not in exception_file_list:
+                file_list.remove(f)
 
-    print_list(t_list)
-    choice = choose_from_list(t_list)
+
+def search(tag_list, exception_list=None):
+    if len(args.search_filename) > 0:
+        tag_list = get_tags_for_file(args.search_filename)
+        print tag_list
+
+    elif args.partial_match:
+        tag = get_tag_by_partial_match(tag_list[0])
+
+        if tag is None:
+            error_alert("No tag found matching: " + tag_list[0], raise_exception=True)
+
+        file_list = get_files_from_tags(tag)
+
+        prune_exceptions_from_file_list(file_list, exception_list)
+        present_result(file_list)
+        print tag
+
+    else:
+        if args.mix_tags:
+            file_list = get_mixed_files_from_tags(tag_list)
+        else:
+            file_list = get_files_from_tags(tag_list)
+
+        if len(file_list) == 0:
+            error_alert("No files found for given tag(s): " + ", ".join(tag_list), raise_exception=True)
+
+        prune_exceptions_from_file_list(file_list, exception_list)
+        present_result(file_list)
+
+
+def choose_from_tags(t_list_):
+    print_list(t_list_)
+    choice = choose_from_list(t_list_)
     cf_list = get_files_from_tags(choice)
     print_list(cf_list)
     choice = choose_from_list(cf_list)
     set_clipboard_data(choice)
 
 
+def create_args():
+    p = ArgumentParser()
+    group = p.add_mutually_exclusive_group()
+
+    p.add_argument("tags", type=str, nargs='*', help="tags split by comma")
+
+    p.add_argument("-n", "--num", type=int, help="number of songs to play", dest="num_of_results")
+    p.add_argument("-m", "--mix", action="store_true", help="mix tags", dest="mix_tags")
+    p.add_argument("-e", "--except", nargs='+', default=[], help="mix tags", dest="exception_tags")
+
+    p.add_argument("-s", "--select", action="store_true", dest="select")
+
+    group.add_argument("-f", "--file-search", type=str, default="", dest="search_filename")
+    group.add_argument("-r", "--partial", action="store_true", dest="partial_match")
+
+    return p
+
+
+def parse_args(p):
+    args_ = p.parse_args()
+    args_.tags = [t.strip() for t in " ".join(args_.tags).split(",") if len(t) > 0]
+    args_.exception_tags = [et for et in " ".join(args_.exception_tags).split(",") if len(et) > 0]
+    return args_
+
+
 if __name__ == "__main__":
+
+    parser = create_args()
+    args = parse_args(parser)
+    # [s, f, r]
 
     if stdin.isatty() is False:  # for using with nf/search
         print "Piped search"
         argList = piped_list("".join(map(str, stdin.readlines())))
-        main(argList)
+        search(argList)
 
-    elif len(argv) > 1:
-        main(argv[1:])
+    elif len(args.tags) > 0:
+        search(args.tags, args.exception_tags)
 
     else:
-
-        tList = get_tags_for_file()
-        tList.sort()
-        choose_from_tags(tList)
+        t_list = get_tags_for_file()
+        t_list.sort()
+        choose_from_tags(t_list)

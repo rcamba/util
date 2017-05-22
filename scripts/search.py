@@ -1,6 +1,8 @@
 if __name__ == "__main__":
-    from sys import argv
-    from search_tags import main
+    from search_tags import search, set_args, create_args, parse_args
 
-    main(argv[1:])
+    parser = create_args()
+    args = parse_args(parser)
 
+    set_args(args)
+    search(args.tags, args.exception_tags)
