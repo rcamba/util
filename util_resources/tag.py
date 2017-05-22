@@ -32,7 +32,7 @@ def validate_tag_dict_files(tag_dict):
                     print "Empty files list for: " + tag + "; Removing from tags"
                     del tag_dict[tag]
 
-            log_removed_file("Removed invalid file " + f)
+            log_removed_file("Removed invalid file " + f + "from tags:" + ", ".join(removed_from_tags))
             error_alert("Invalid file " + f + "\n\tRemoved from: " + ", ".join(removed_from_tags))
 
     if changes_made:
@@ -60,6 +60,8 @@ def log_removed_file(log_str):
 def write_tag_file(tag_dict):
     # noinspection PyArgumentList
     tag_dict = collections.OrderedDict(sorted(tag_dict.items(), key=lambda k: k[0]))
+    for tag in tag_dict.keys():
+        tag_dict[tag].sort()
     create_back_up(tag_file_log)
     with open(tag_file_log, 'w') as writer:
         json.dump(tag_dict, writer, indent=2, separators=(',', ': '))
@@ -122,10 +124,17 @@ def get_files_from_tags(tag_list):  # str or list
 
     tag_dict = load_tag_dict()
     file_list = []
+
     for tag in tag_list:
         if tag in tag_dict:
-            file_list.extend(tag_dict[tag])
+            if len(file_list) == 0:
+                file_list = tag_dict[tag]
+            else:
+                file_list = list(set(file_list).intersection(tag_dict[tag]))
+        else:
+            error_alert("Tag: {t} not found ".format(t=tag), raise_exception=True)
 
+    file_list.sort()
     return file_list
 
 
@@ -142,7 +151,7 @@ def get_tags_for_file(filename=None):
         for tag in tag_dict.keys():
             if filename in tag_dict[tag]:
                 tags.append(tag)
-    return tags
+    return tags # sorted by default since using OrderedDict
 
 
 def get_mixed_files_from_tags(tag_list):  # for prand + search
@@ -166,12 +175,12 @@ def get_tag_by_partial_match(partial_tag_match):
             possible_matches.append(tag)
 
     choice = None
-    if len(possible_matches) > 0:
-        choice = possible_matches[0]
-    elif len(possible_matches) > 1:
+
+    if len(possible_matches) > 1:
         print_list(possible_matches)
         choice = choose_from_list(possible_matches)
-
+    elif len(possible_matches) > 0:
+        choice = possible_matches[0]
     return choice
 
 
