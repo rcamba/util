@@ -34,7 +34,7 @@ dir_jump_file_log = os.path.join(logs_dir, "directoryQ.log")
 tdl_log = os.path.join(logs_dir, "toDoListFile.log")
 prev_dir_log = os.path.join(logs_dir, "prevDir.log")
 prandom_exceptions_log = os.path.join(logs_dir, "prandomexceptiontags.log")
-deleted_screened_log = os.path.join(logs_dir, "deletedScreenedLog.log")
+deleted_screened_log = os.path.join(logs_dir, "deleted_screened.log")
 cleaned_fnames_log = os.path.join(logs_dir, "cleaned_fnames.log")
 
 # Variables

@@ -1,23 +1,19 @@
 from os import path, remove as os_remove
-from string import lower
 from msvcrt import kbhit, getch
-from shutil import move, Error as shutil_error
-from sys import argv
+from shutil import move, copy, Error as Shutil_error
 from random import shuffle
 from subprocess import Popen
 
 from tag import get_files_from_tags, add_tags, remove_file_from_tags
-from root import screening_dir, music_dir, deleted_screened_log, error_alert
+from root import music_dir, deleted_screened_log, error_alert
 
 from psutil import process_iter
 
 
-def kill_VLC():
-
+def kill_vlc():
     vlc_killed = False
     for proc in process_iter():
-
-        if proc.pid == glob_vlc_proc.pid:
+        if proc.pid == glob_vlc_proc_pid:
             proc.kill()
             proc.wait()
 
@@ -27,11 +23,10 @@ def kill_VLC():
     if not vlc_killed:
         raise Exception(
             "Failed to kill VLC process. PID: {} not found".format(
-                glob_vlc_proc.pid))
+                glob_vlc_proc_pid))
 
 
 def get_key_press():
-
     prompt = ("Type [{keep}] to keep, [{tag}] to keep and tag, " +
               "[{lete}] to delete or " + "[{quit}] for quit").format(
               keep=KEEP_KEY, tag=TAG_KEY, lete=DELETE_KEY,
@@ -40,19 +35,17 @@ def get_key_press():
 
     result = ""
     while result == "":
-
         if kbhit():
             result = (getch())
-            inputChar = ord(result)
-            if(inputChar == 224 or inputChar == 0):
+            input_char = ord(result)
+            if input_char == 224 or input_char == 0:
                 getch()
 
-    result = lower(result)
+    result = result.lower()
     return result
 
 
 def confirmation_resume():
-
     print "Type 'continue' and press enter to resume"
     user_input = raw_input().lower()
     if user_input == "continue":
@@ -63,43 +56,44 @@ def confirmation_resume():
         return False
 
 
-def split_dir(fileName):
-    return path.split(fileName)[1]
+def slice_off_dir(fname):
+    return path.split(fname)[1]
 
 
 def log_deleted_song(targ):
     writer = open(deleted_screened_log, 'a')
-    targ = path.splitext(path.split(targ)[1])[0]
-    writer.write(targ)
+    filename_only = slice_off_dir(targ)
+    filename_only_no_ext = path.splitext(filename_only)[0]
+    writer.write(filename_only_no_ext)
     writer.write('\n')
     writer.close()
 
 
-def handle_tagging(music_filename):
+def handle_tagging(screen_fname):
 
     try:
-        move(music_filename, music_dir)
-        remove_file_from_tags(["screen"], music_filename)
+        copy(screen_fname, music_dir)
 
-        filename = path.join(music_dir, split_dir(music_filename))
-        tagList = raw_input("Enter tag(s). Separate with commas\n").split(',')
-        add_tags(tagList, filename)
-        print ""
+        music_fname = path.join(music_dir, slice_off_dir(screen_fname))
+        tag_list = raw_input("Enter tag(s). Separate with commas\n").split(',')
+        tag_list = map(str.strip, tag_list)
+        add_tags(tag_list, music_fname)
+        print "Tagging complete"
+        kill_vlc()
+        handle_delete(screen_fname)
 
-    except shutil_error, e:
-
+    except Shutil_error:
         error_alert(("{m} already exists in music directory." +
-                    "\nDeleting {m}").format(m=music_filename))
-        handle_delete(music_filename)
+                    "\nDeleting {m}").format(m=screen_fname))
+        handle_delete(screen_fname)
 
 
 def handle_delete(music_filename):
 
     try:
-
-        os_remove(music_filename)
         remove_file_from_tags(["screen"], music_filename)
-        print "Delete successful\n"
+        os_remove(music_filename)
+        print "Deleted {mf}\n".format(mf=music_filename)
         log_deleted_song(music_filename)
 
     except OSError, e:
@@ -113,97 +107,83 @@ def handle_delete(music_filename):
 def handle_keep(music_filename):
 
     try:
-        move(music_filename, music_dir)
         remove_file_from_tags(["screen"], music_filename)
-        print "Move successful\n"
+        move(music_filename, music_dir)
+        print "Moving complete\n"
 
-    except shutil_error, e:
-
+    except Shutil_error:
         error_alert(
             "{m} already exists in music directory.\nDeleting {m}".format(
                 m=music_filename))
         handle_delete(music_filename)
 
 
-def start_screening(song_list):
+def screen_songs(song_list):
 
-    global glob_vlc_proc
+    global glob_vlc_proc_pid
 
-    class Quit:
-        def __init__(self):
-            self.quit = False
-
-        def set_to_true(self):
-            self.quit = True
-
-    q = Quit()
-
+    stop_screening = False
     for song in song_list:
 
         invalid_key_press = 0
+        if stop_screening is False:
 
-        if q.quit is False:
+            play_music_command = ([MEDIA_PLAYER_PROGRAM] +
+                                  MEDIA_PLAYER_OPTIONS + [song])
 
-            playMusicCommand = ([MEDIA_PLAYER_PROGRAM] +
-                                MEDIA_PLAYER_OPTIONS + [song])
-
-            glob_vlc_proc = Popen(playMusicCommand)
+            glob_vlc_proc_pid = Popen(play_music_command).pid
 
             print "Playing: ", song
 
             key_press = get_key_press()
-
             while key_press not in [KEEP_KEY, TAG_KEY, DELETE_KEY, QUIT_KEY]:
                 print "Invalid selection"
                 invalid_key_press += 1
                 if invalid_key_press > 2:
                     confirm_resume = False
-                    error_alert("Too many invalid keypresses->Pausing")
+                    error_alert("Too many invalid keypresses; Pausing")
 
-                    while(confirm_resume is False):
+                    while confirm_resume is False:
                         confirm_resume = confirmation_resume()
 
                 key_press = get_key_press()
 
             else:
-                kill_VLC()
-
                 char_func_mapping = {
                     KEEP_KEY: lambda: handle_keep(song),
                     DELETE_KEY: lambda: handle_delete(song),
                     TAG_KEY: lambda: handle_tagging(song),
-                    QUIT_KEY: q.set_to_true
                 }
 
-                char_func_mapping[key_press]()
-                song_list.remove(song)
+                if key_press != TAG_KEY:  # handle_tagging calls kill_vlc since vlc will be playing while tagging
+                    kill_vlc()
 
-
-def get_songs():
-
-    song_list = get_files_from_tags(["screen"])
-    shuffle(song_list)
-    return song_list
+                if key_press == QUIT_KEY:
+                    stop_screening = True
+                else:
+                    char_func_mapping[key_press]()
+                    song_list.remove(song)
 
 
 if __name__ == "__main__":
 
     MEDIA_PLAYER_PROGRAM = "C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe"
 
-    MEDIA_PLAYER_OPTIONS = "--qt-start-minimized --one-instance \
-    --playlist-enqueue --playlist-autostart --no-crashdump -L".split()
+    MEDIA_PLAYER_OPTIONS = "--qt-start-minimized " \
+                           "--playlist-enqueue --playlist-autostart --no-crashdump -L".split()
 
     KEEP_KEY = 'k'
     TAG_KEY = 't'
     DELETE_KEY = 'd'
     QUIT_KEY = 'q'
 
-    glob_vlc_proc = None
+    glob_vlc_proc_pid = None
 
-    song_list = get_songs()
+    song_list_ = get_files_from_tags(["screen"])
+    shuffle(song_list_)
 
-    if len(song_list) > 0:
-        start_screening(song_list)
+    if len(song_list_) > 0:
+        screen_songs(song_list_)
 
     else:
         error_alert("No music to be screened available")
