@@ -29,7 +29,7 @@ removed_files_log = os.path.join(logs_dir, "removedFilesLog.log")
 hib_log = os.path.join(logs_dir, "hibLog.log")
 tag_file_log = os.path.join(logs_dir, "tag_file.log")
 vlc_hwnd_log = os.path.join(logs_dir, "vlc_hwnd.log")
-deleted_tag_files_log = os.path.join(logs_dir, "deletedTagFiles.log")
+invalidated_tag_files_log = os.path.join(logs_dir, "invalidated_tag_files.log")
 dir_jump_file_log = os.path.join(logs_dir, "directoryQ.log")
 tdl_log = os.path.join(logs_dir, "toDoListFile.log")
 prev_dir_log = os.path.join(logs_dir, "prevDir.log")
@@ -580,7 +580,8 @@ def get_proc_pid(target):
             sys_exit(1)
 
     else:
-        error_alert("Passed argument: ", target, " is invalid. Must be string type argument and not an excluded process")
+        error_alert("Passed argument: {t} is invalid. Must be string type argument and not an excluded process".
+                    format(t=target))
 
     return result_pid
 
@@ -853,7 +854,7 @@ def __backup_py_n_text__():
 def self_validate_globals():
     root_dir_list = [music_dir, screening_dir, backup_dir, yt_amv_dir, yt_dls_dir]
 
-    root_f_list = [song_log_file, removed_files_log, hib_log, tag_file_log, vlc_hwnd_log, deleted_tag_files_log,
+    root_f_list = [song_log_file, removed_files_log, hib_log, tag_file_log, vlc_hwnd_log, invalidated_tag_files_log,
                    dir_jump_file_log, tdl_log, prev_dir_log, prandom_exceptions_log, deleted_screened_log,
                    cleaned_fnames_log]
 

@@ -1,10 +1,11 @@
 import os
 import sys
+import copy
 import collections
 import simplejson as json
 
 from root import error_alert, removed_files_log, create_back_up, tag_file_log, piped_list, \
-    key_press_input, choose_from_list, print_list
+    key_press_input, choose_from_list, print_list, invalidated_tag_files_log
 
 
 class Cache:  # caching
@@ -12,6 +13,10 @@ class Cache:  # caching
 
     def __init__(self):
         pass
+
+
+class TagException(Exception):
+    pass
 
 
 def validate_tag_dict_files(tag_dict):
@@ -26,6 +31,7 @@ def validate_tag_dict_files(tag_dict):
             for tag in tag_dict.keys():
                 if f in tag_dict[tag]:
                     tag_dict[tag].remove(f)
+                    log_invalid_removed_tag_and_file(f, tag)
                     removed_from_tags.append(tag)
                     changes_made = True
                 if len(tag_dict[tag]) == 0:
@@ -45,10 +51,18 @@ def load_tag_dict():
     if Cache.tag_dict is None:
         with open(tag_file_log) as reader:
             tag_dict = json.load(reader, object_pairs_hook=collections.OrderedDict)
+    else:
+        tag_dict = Cache.tag_dict
 
-        Cache.tag_dict = validate_tag_dict_files(tag_dict)
+    Cache.tag_dict = validate_tag_dict_files(tag_dict)
 
     return Cache.tag_dict
+
+
+def log_invalid_removed_tag_and_file(tag, filename):
+    with open(invalidated_tag_files_log, 'a') as writer:
+        writer.write("{t}: {f}".format(t=tag, f=filename))
+        writer.write('\n')
 
 
 def log_removed_file(log_str):
@@ -69,14 +83,18 @@ def write_tag_file(tag_dict):
 
 def add_tags(tag_list, filename):
     if not os.path.isabs(filename):
-        error_alert("filename argument must be absolute full file path", raise_exception=True)
+        error_alert("{f} must be in absolute full file path".format(f=filename),
+                    raise_exception=True, err_class=TagException)
 
     if not os.path.isfile(filename):
         error_alert(filename + " is not a valid file", raise_exception=True, err_class=IOError)
 
     tag_dict = load_tag_dict()
+    filename = filename.lower()
     for tag in tag_list:
+        tag = tag.strip().lower()
         if tag not in tag_dict:
+            print "Creating new tag:", tag
             tag_dict[tag] = [filename]
         elif filename not in tag_dict[tag]:
             tag_dict[tag].append(filename)
@@ -104,16 +122,19 @@ def tag_multiple_files(tag, file_list):
         error_alert("No valid file to add. No changes have been made.")
 
 
-def remove_file_from_tags(tag_list, filename):
+def remove_file_from_tags(tag_list, fname):
     tag_dict = load_tag_dict()
+    fname = fname.lower()
     for tag in tag_list:
-        if filename in tag_dict[tag]:
-            tag_dict[tag].remove(filename)
+        tag = tag.strip().lower()
+        if fname in tag_dict[tag]:
+            print "Removed {f} from {t}".format(f=fname, t=tag)
+            tag_dict[tag].remove(fname)
             if len(tag_dict[tag]) == 0:
                 print "Empty files list for: " + tag + "; Removing from tags."
                 del tag_dict[tag]
         else:
-            error_alert("Tag:" + tag + " doesn't have filename : " + filename)
+            error_alert("Tag: " + tag + " doesn't have filename : " + fname)
 
     write_tag_file(tag_dict)
 
@@ -126,13 +147,15 @@ def get_files_from_tags(tag_list):  # str or list
     file_list = []
 
     for tag in tag_list:
+        tag = tag.strip().lower()
         if tag in tag_dict:
             if len(file_list) == 0:
-                file_list = tag_dict[tag]
+                file_list = copy.deepcopy(tag_dict[tag])
             else:
-                file_list = list(set(file_list).intersection(tag_dict[tag]))
+                file_list = list(set(file_list).intersection(
+                    copy.deepcopy(tag_dict[tag])))
         else:
-            error_alert("Tag: {t} not found ".format(t=tag), raise_exception=True)
+            error_alert("Tag: {t} not found ".format(t=tag), raise_exception=True, err_class=TagException)
 
     file_list.sort()
     return file_list
@@ -145,23 +168,25 @@ def get_tags_for_file(filename=None):
         tags = tag_dict.keys()
     else:
         tags = []
+        filename = filename.lower()
         if not os.path.isfile(filename):
             error_alert(filename + " is not a valid file", raise_exception=True, err_class=IOError)
 
         for tag in tag_dict.keys():
             if filename in tag_dict[tag]:
                 tags.append(tag)
-    return tags # sorted by default since using OrderedDict
+    return tags  # sorted by default since using OrderedDict
 
 
 def get_mixed_files_from_tags(tag_list):  # for prand + search
     tag_dict = load_tag_dict()
     mixed_files = []
     for tag in tag_list:
+        tag = tag.strip().lower()
         if tag in tag_dict:
-            mixed_files.extend(tag_dict[tag])
+            mixed_files.extend(copy.deepcopy(tag_dict[tag]))
         else:
-            error_alert("Tag doesn't exist: " + tag, raise_exception=True)
+            error_alert("Tag doesn't exist: " + tag, raise_exception=True, err_class=TagException)
 
     mixed_files = set(mixed_files)
     return mixed_files
@@ -171,7 +196,8 @@ def get_tag_by_partial_match(partial_tag_match):
     tag_dict = load_tag_dict()
     possible_matches = []
     for tag in tag_dict.keys():
-        if partial_tag_match in tag:
+        tag = tag.strip().lower()
+        if partial_tag_match.lower() in tag:
             possible_matches.append(tag)
 
     choice = None
