@@ -21,14 +21,15 @@ class TagException(Exception):
 
 def validate_tag_dict_files(tag_dict):
     file_list = []
-    [file_list.extend(v) for v in tag_dict.values()]
+    for v in tag_dict.itervalues():
+        file_list.extend(v)
     file_list = set(file_list)
 
     changes_made = False
     for f in file_list:
         if not os.path.isfile(f):
             removed_from_tags = []
-            for tag in tag_dict.keys():
+            for tag in tag_dict.iterkeys():
                 if f in tag_dict[tag]:
                     tag_dict[tag].remove(f)
                     log_invalid_removed_tag_and_file(f, tag)
@@ -47,15 +48,18 @@ def validate_tag_dict_files(tag_dict):
     return tag_dict
 
 
+modified_time_of_reading = None
+
+
 def load_tag_dict():
-    if Cache.tag_dict is None:
+    global modified_time_of_reading
+
+    if Cache.tag_dict is None or modified_time_of_reading != os.path.getmtime(tag_file_log):
         with open(tag_file_log) as reader:
-            tag_dict = json.load(reader, object_pairs_hook=collections.OrderedDict)
-    else:
-        tag_dict = Cache.tag_dict
+            Cache.tag_dict = json.load(reader, object_pairs_hook=collections.OrderedDict)
+        Cache.tag_dict = validate_tag_dict_files(Cache.tag_dict)
 
-    Cache.tag_dict = validate_tag_dict_files(tag_dict)
-
+        modified_time_of_reading = os.path.getmtime(tag_file_log)
     return Cache.tag_dict
 
 
@@ -77,8 +81,9 @@ def write_tag_file(tag_dict):
     for tag in tag_dict.keys():
         tag_dict[tag].sort()
     create_back_up(tag_file_log)
+    tag_dict_str = json.dumps(tag_dict, indent=2, ensure_ascii=False, encoding="utf-8", separators=(',', ': '))
     with open(tag_file_log, 'w') as writer:
-        json.dump(tag_dict, writer, indent=2, separators=(',', ': '))
+        writer.write(tag_dict_str.encode("utf-8"))
 
 
 def add_tags(tag_list, filename):
@@ -128,7 +133,7 @@ def remove_file_from_tags(tag_list, fname):
     for tag in tag_list:
         tag = tag.strip().lower()
         if fname in tag_dict[tag]:
-            print "Removed {f} from {t}".format(f=fname, t=tag)
+            print "Removed {f} from {t}".format(f=fname.encode("unicode_escape"), t=tag)
             tag_dict[tag].remove(fname)
             if len(tag_dict[tag]) == 0:
                 print "Empty files list for: " + tag + "; Removing from tags."
