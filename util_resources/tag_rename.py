@@ -4,7 +4,7 @@ from os import rename, path, getcwd
 from tag import add_tags, remove_file_from_tags, TagException
 
 
-def tag_rename(orig_name, new_name, verbose=False):
+def tag_rename(orig_name, new_name, verbose=False, allow_empty_tags=True):
     if not path.isabs(orig_name):
         orig_name = path.realpath(path.join(getcwd(), orig_name))
 
@@ -19,7 +19,7 @@ def tag_rename(orig_name, new_name, verbose=False):
         raise ValueError("The source and destination are the same.")
 
     tag_list = get_tags_for_file(orig_name)
-    if len(tag_list) == 0:
+    if not allow_empty_tags and len(tag_list) == 0:
         raise ValueError("No tags found for {}".format(orig_name))
 
     if verbose:
@@ -49,7 +49,7 @@ def tag_rename(orig_name, new_name, verbose=False):
 if __name__ == "__main__":
 
     if len(argv) == 3:
-        tag_rename(orig_name=argv[1], new_name=argv[2], verbose=True)
+        tag_rename(orig_name=argv[1], new_name=argv[2], verbose=True, allow_empty_tags=False)
 
     else:
         print "Missing arguments."

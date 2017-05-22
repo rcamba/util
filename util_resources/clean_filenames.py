@@ -5,6 +5,7 @@ from string import ascii_letters, digits, punctuation
 
 from root import screening_dir, error_alert, cleaned_fnames_log
 from tag import tag_multiple_files, get_files_from_tags
+from tag_rename import tag_rename
 from kanji_to_romaji import kanji_to_romaji
 
 
@@ -121,8 +122,9 @@ def rename_files(changes_dict, directory):
     with open(cleaned_fnames_log, 'a') as writer:
         for key in changes_dict.keys():
             try:
-                rename(path.join(directory, key),
-                       path.join(directory, changes_dict[key]))
+                orig_name = path.join(directory, key)
+                new_name = path.join(directory, changes_dict[key])
+                tag_rename(orig_name, new_name)
                 writer.write(key.encode('utf8') + ": " + changes_dict[key])
                 writer.write("\n")
 
