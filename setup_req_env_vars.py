@@ -40,11 +40,11 @@ if __name__ == "__main__":
     path_to_module = os.path.dirname(__file__)
 
     pypath_env_name = "PYTHONPATH"
-    pypath_env_path = os.path.realpath(os.path.join(path_to_module, os.pardir, "util_resources"))
+    pypath_env_path = os.path.realpath(os.path.join(path_to_module, "util_resources"))
     start_setting_env_var(pypath_env_name, pypath_env_path)
 
     util_env_name = "Util"
-    util_env_path = os.path.abspath(os.path.join(path_to_module, os.pardir))
+    util_env_path = os.path.realpath(os.path.join(path_to_module))
     start_setting_env_var(util_env_name, util_env_path, fail_if_already_exists=True)
 
 
