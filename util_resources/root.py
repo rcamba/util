@@ -3,39 +3,49 @@ Contains all constants and some utility methods
 """
 
 import os
-parent_dir = os.path.join(os.path.dirname(__file__), os.path.pardir)
-username = os.getenv("username")
+
+
+def join_then_realpath(*paths):
+    jp = ""
+    for p in paths:
+        jp = os.path.join(jp, p)
+    rp = os.path.realpath(jp)
+    return rp
+
 
 main_drive = "C:"
 alt1_drive = "F:"
 user_path = "Users"
 
-home_dir = os.path.join(main_drive, os.sep, user_path, username)
-backup_dir = os.path.join(home_dir, "backUp")
+username = os.getenv("username")
+parent_dir = join_then_realpath(os.path.dirname(__file__), os.path.pardir)
 
-music_dir = os.path.join(alt1_drive, os.sep, user_path, username, "Music", "ytcon")
-screening_dir = os.path.join(music_dir, "screen")
+home_dir = join_then_realpath(main_drive, os.sep, user_path, username)
+backup_dir = join_then_realpath(home_dir, "backUp")
 
-yt_amv_dir = os.path.join(alt1_drive, os.sep, user_path, username, "Videos", "ytAMV")
-yt_dls_dir = os.path.join(home_dir, "Videos", "ytVids")
+music_dir = join_then_realpath(alt1_drive, os.sep, user_path, username, "Music", "ytcon")
+screening_dir = join_then_realpath(music_dir, "screen")
 
-tag_files_log_dir = os.path.join(parent_dir, "logs", "tagFilesLog")
+yt_amv_dir = join_then_realpath(alt1_drive, os.sep, user_path, username, "Videos", "ytAMV")
+yt_dls_dir = join_then_realpath(home_dir, "Videos", "ytVids")
+
+tag_files_log_dir = join_then_realpath(parent_dir, "logs", "tagFilesLog")
 
 # Files
 # TODO move to APPDATA?
-logs_dir = os.path.join(parent_dir, "logs")
-song_log_file = os.path.join(logs_dir, "prandomSongsLog.log")
-removed_files_log = os.path.join(logs_dir, "removedFilesLog.log")
-hib_log = os.path.join(logs_dir, "hibLog.log")
-tag_file_log = os.path.join(logs_dir, "tag_file.log")
-vlc_hwnd_log = os.path.join(logs_dir, "vlc_hwnd.log")
-invalidated_tag_files_log = os.path.join(logs_dir, "invalidated_tag_files.log")
-dir_jump_file_log = os.path.join(logs_dir, "directoryQ.log")
-tdl_log = os.path.join(logs_dir, "toDoListFile.log")
-prev_dir_log = os.path.join(logs_dir, "prevDir.log")
-prandom_exceptions_log = os.path.join(logs_dir, "prandomexceptiontags.log")
-deleted_screened_log = os.path.join(logs_dir, "deleted_screened.log")
-cleaned_fnames_log = os.path.join(logs_dir, "cleaned_fnames.log")
+logs_dir = join_then_realpath(parent_dir, "logs")
+song_log_file = join_then_realpath(logs_dir, "prandomSongsLog.log")
+removed_files_log = join_then_realpath(logs_dir, "removed_tagged_files.log")
+hib_log = join_then_realpath(logs_dir, "hibLog.log")
+tag_file_log = join_then_realpath(logs_dir, "tag_file.log")
+vlc_hwnd_log = join_then_realpath(logs_dir, "vlc_hwnd.log")
+invalidated_tag_files_log = join_then_realpath(logs_dir, "invalidated_tag_files.log")
+dir_jump_file_log = join_then_realpath(logs_dir, "directoryQ.log")
+tdl_log = join_then_realpath(logs_dir, "toDoListFile.log")
+prev_dir_log = join_then_realpath(logs_dir, "prevDir.log")
+prandom_exceptions_log = join_then_realpath(logs_dir, "prandomexceptiontags.log")
+deleted_screened_log = join_then_realpath(logs_dir, "deleted_screened.log")
+cleaned_fnames_log = join_then_realpath(logs_dir, "cleaned_fnames.log")
 
 # Variables
 MAX_WAIT_TIME = 30  # seconds
@@ -208,8 +218,13 @@ def print_list(list_, end_range=-1, press_to_continue=True):
             else:
                 set_console_color("yellow")
 
-            line = "[" + " " + str(i + 1) + " " + "] " + str(list_[i])
-            print line
+            try:
+                line = "[" + " " + str(i + 1) + " " + "] " + str(list_[i])
+                print line
+            except UnicodeEncodeError:
+                line = "[" + " " + str(i + 1) + " " + "] " + list_[i].encode("unicode_escape")
+                print line
+
             final_print_str += line + "\n"
 
             if ((i + 1) % cmd_height) == 0 and press_to_continue:
