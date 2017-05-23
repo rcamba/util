@@ -32,14 +32,15 @@ def validate_tag_dict_files(tag_dict):
             for tag in tag_dict.iterkeys():
                 if f in tag_dict[tag]:
                     tag_dict[tag].remove(f)
-                    log_invalid_removed_tag_and_file(f, tag)
                     removed_from_tags.append(tag)
                     changes_made = True
                 if len(tag_dict[tag]) == 0:
                     print "Empty files list for: " + tag + "; Removing from tags"
                     del tag_dict[tag]
 
-            log_removed_file("Removed invalid file " + f + "from tags:" + ", ".join(removed_from_tags))
+            m = "Removed invalid file {f_} from tags: {t_}".format(f_=f, t_=", ".join(removed_from_tags))
+            print m
+            log_invalid_removed_tag_and_file(m)
             error_alert("Invalid file " + f + "\n\tRemoved from: " + ", ".join(removed_from_tags))
 
     if changes_made:
@@ -63,15 +64,15 @@ def load_tag_dict():
     return Cache.tag_dict
 
 
-def log_invalid_removed_tag_and_file(tag, filename):
+def log_invalid_removed_tag_and_file(log_str):
     with open(invalidated_tag_files_log, 'a') as writer:
-        writer.write("{t}: {f}".format(t=tag, f=filename))
+        writer.write(log_str)
         writer.write('\n')
 
 
-def log_removed_file(log_str):
+def log_removed_file(tag, filename):
     with open(removed_files_log, 'a') as writer:
-        writer.write(log_str)
+        writer.write("{t}: {f}".format(t=tag, f=filename))
         writer.write('\n')
 
 
@@ -134,6 +135,8 @@ def remove_file_from_tags(tag_list, fname):
         tag = tag.strip().lower()
         if fname in tag_dict[tag]:
             print "Removed {f} from {t}".format(f=fname.encode("unicode_escape"), t=tag)
+            log_removed_file(fname, tag)
+
             tag_dict[tag].remove(fname)
             if len(tag_dict[tag]) == 0:
                 print "Empty files list for: " + tag + "; Removing from tags."
