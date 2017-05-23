@@ -189,7 +189,7 @@ def print_list(list_, end_range=-1, press_to_continue=True):
     :param press_to_continue:
         if False then print all items in list,
         if True and length of list if greater than cmd height limit then only print cmd height limit amount of items
-        and require to press a key to continue printing remaining items
+        and require to press a key to continue printing remaining items; pressing 'q' will print remaining items
     :return:
     """
 
@@ -231,6 +231,8 @@ def print_list(list_, end_range=-1, press_to_continue=True):
                 stdout.write("Press any key to continue")
                 if kbhit() == 0:
                     input_char = ord(getch())
+                    if input_char == ord('q') or input_char == ord('Q'):
+                        press_to_continue = False
                     if input_char == 224 or input_char == 0:
                         getch()
 
