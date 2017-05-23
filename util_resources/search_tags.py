@@ -1,6 +1,7 @@
 """
 Not using .bat because it reads commas as a separator/delimiter
 """
+from os import path, getcwd
 from argparse import ArgumentParser
 from sys import stdin, stdout
 from root import print_list, set_clipboard_data, choose_from_list, piped_list, error_alert
@@ -20,14 +21,13 @@ def present_result(file_list):
     print_list(file_list, press_to_continue=stdout.isatty())
 
     if args.select:
-
         if len(file_list) == 1:
             choice = file_list[0]
 
         else:
             choice = choose_from_list(file_list)
+            print choice
 
-        print choice
         set_clipboard_data(choice)
 
 
@@ -41,6 +41,12 @@ def prune_exceptions_from_file_list(file_list, exception_list):
 
 def search(tag_list, exception_list=None):
     if len(args.search_filename) > 0:
+        if not path.isabs(args.search_filename):
+            args.search_filename = path.join(getcwd(), args.search_filename)
+        args.search_filename = path.realpath(args.search_filename)
+        if not path.isfile(args.search_filename):
+            raise IOError("{f} is not a valid file".format(f=args.search_filename))
+
         tag_list = get_tags_for_file(args.search_filename)
         print tag_list
 
@@ -48,13 +54,13 @@ def search(tag_list, exception_list=None):
         tag = get_tag_by_partial_match(tag_list[0])
 
         if tag is None:
-            error_alert("No tag found matching: " + tag_list[0], raise_exception=True)
+            raise Exception("No tag found matching: " + tag_list[0])
 
         file_list = get_files_from_tags(tag)
 
         prune_exceptions_from_file_list(file_list, exception_list)
-        present_result(file_list)
         print tag
+        present_result(file_list)
 
     else:
         if args.mix_tags:
@@ -63,7 +69,7 @@ def search(tag_list, exception_list=None):
             file_list = get_files_from_tags(tag_list)
 
         if len(file_list) == 0:
-            error_alert("No files found for given tag(s): " + ", ".join(tag_list), raise_exception=True)
+            raise Exception("No files found for given tag(s): " + ", ".join(tag_list))
 
         prune_exceptions_from_file_list(file_list, exception_list)
         present_result(file_list)
@@ -73,9 +79,7 @@ def choose_from_tags(t_list_):
     print_list(t_list_)
     choice = choose_from_list(t_list_)
     cf_list = get_files_from_tags(choice)
-    print_list(cf_list)
-    choice = choose_from_list(cf_list)
-    set_clipboard_data(choice)
+    present_result(cf_list)
 
 
 def create_args():
@@ -103,16 +107,13 @@ def parse_args(p):
     return args_
 
 
-if __name__ == "__main__":
-
-    parser = create_args()
-    args = parse_args(parser)
-    # [s, f, r]
-
+def do_search(args_):
+    global args
+    args = args_
     if stdin.isatty() is False:  # for using with nf/search
         print "Piped search"
-        argList = piped_list("".join(map(str, stdin.readlines())))
-        search(argList)
+        arg_list = piped_list("".join(map(str, stdin.readlines())))
+        search(arg_list)
 
     elif len(args.tags) > 0:
         search(args.tags, args.exception_tags)
@@ -121,3 +122,10 @@ if __name__ == "__main__":
         t_list = get_tags_for_file()
         t_list.sort()
         choose_from_tags(t_list)
+
+
+if __name__ == "__main__":
+    parser = create_args()
+    args = parse_args(parser)
+    do_search(args)
+
