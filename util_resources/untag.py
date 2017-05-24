@@ -1,22 +1,21 @@
-from tag import remove_file_from_tags, get_tags_for_file, get_files_from_tags
-from sys import argv
-from root import print_list, switch_parser, key_press_input
-
-AVAILABLE_SWITCHES = ['f', 't']
+import argparse
+from tag import remove_file_from_tags, get_tags_for_file, get_files_from_tags, TagException
+from root import print_list, key_press_input, error_alert
 
 
-def _choose_from_list(tag_or_file_list):
+def get_user_choices(tag_or_file_list):
 
     choice_list = []
+    print_list(tag_or_file_list)
     if len(tag_or_file_list) > 1:
         print "Enter number(s) separated by commas"
 
         try:
-            _input = raw_input()
+            input_ = raw_input()
         except EOFError:  # pipes
-            _input = key_press_input()
+            input_ = key_press_input()
 
-        choices = _input.split(',')
+        choices = input_.split(',')
         choices = map(int, choices)
 
         for choice in choices:
@@ -28,37 +27,41 @@ def _choose_from_list(tag_or_file_list):
     return choice_list
 
 
-def untag_using_tag(tag):
+def remove_files_from_tag(tag):
 
-    f_list = get_files_from_tags(tag)
-    if len(f_list) > 0:
-        print_list(f_list)
-        choice_list = _choose_from_list(f_list)
-        for choiceFile in choice_list:
-            remove_file_from_tags([tag], choiceFile)
+    try:
+        f_list = get_files_from_tags(tag)
+        choice_list = get_user_choices(f_list)
+        for chosen_file in choice_list:
+            remove_file_from_tags([tag], chosen_file)
+    except TagException as e:
+        error_alert(str(e))
 
 
-def untag_using_filename(filename):
+def remove_tags_from_filename(filename):
 
     tag_list = get_tags_for_file(filename)
     if len(tag_list) > 0:
-        print_list(tag_list)
-        choice_list = _choose_from_list(tag_list)
-        for choiceTag in choice_list:
-            remove_file_from_tags([choiceTag], filename)
+        choice_list = get_user_choices(tag_list)
+        for chosen_tag in choice_list:
+            remove_file_from_tags([chosen_tag], filename)
+    else:
+        error_alert("No tags found for given file: {f}".format(f=filename))
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-f", "--filename", help="filename to remove tag(s) from")
+    group.add_argument("-t", "--tag", help="tag to remove filename(s) from")
 
-    switches = switch_parser(argv, AVAILABLE_SWITCHES)
+    args = parser.parse_args()
+    if (args.filename or args.tag) is None:
+        parser.error("Must specify either --filename or --tag")
 
-    if len(argv) > 1 and ('t' in switches or 'f' in switches):
+    if args.tag is not None:
+        remove_files_from_tag(args.tag.strip())
 
-        if 't' in switches:
-            untag_using_tag(argv[1].strip())
+    elif args.filename is not None:
+        remove_tags_from_filename(args.filename.strip())
 
-        elif 'f' in switches:
-            untag_using_filename(argv[1].strip())
-    else:
-        print "Invalid parameters"
-        print "Usage untag[-f filename][-t tag]"
