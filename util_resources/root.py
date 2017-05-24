@@ -876,18 +876,15 @@ def self_validate_globals():
                    cleaned_fnames_log]
 
     for rd in root_dir_list:
-        try:
-            assert os.path.isdir(rd)
-        except AssertionError:
-            # error_alert
-            raise AssertionError(rd + " is not a directory")
+        if not os.path.isdir(rd):
+            print "Creating: ", rd
+            os.mkdir(rd)
 
     for rf in root_f_list:
-        try:
-            assert os.path.isfile(rf)
-        except AssertionError:
-            # error_alert
-            raise AssertionError(rf + " is not a file")
+        if not os.path.isfile(rf):
+            print "Creating: ", rf
+            with open(rf, 'w') as writer:
+                writer.write('')
 
 
 self_validate_globals()
