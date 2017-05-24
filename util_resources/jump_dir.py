@@ -31,6 +31,7 @@ def add_to_dir_jump(targ_dir):
     print "Adding: " + targ_dir
     with open(dir_jump_file_log, "a") as f:
         f.write(str(getcwd()))
+        f.write("\n")
 
 
 def remove_from_dir_jump(targ_pos):
