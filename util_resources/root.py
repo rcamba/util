@@ -13,8 +13,12 @@ def join_then_realpath(*paths):
     return rp
 
 
-main_drive = "C:"
+main_drive = os.getenv("SystemDrive")
 alt1_drive = "F:"
+
+if os.path.exists(alt1_drive):
+    alt1_drive = main_drive
+
 user_path = "Users"
 
 username = os.getenv("username")
@@ -869,25 +873,22 @@ def __backup_py_n_text__():
 
 
 def self_validate_globals():
-    root_dir_list = [music_dir, screening_dir, backup_dir, yt_amv_dir, yt_dls_dir]
+    root_dir_list = [logs_dir, music_dir, screening_dir, backup_dir, yt_amv_dir, yt_dls_dir]
 
     root_f_list = [song_log_file, removed_files_log, hib_log, tag_file_log, vlc_hwnd_log, invalidated_tag_files_log,
                    dir_jump_file_log, tdl_log, prev_dir_log, prandom_exceptions_log, deleted_screened_log,
                    cleaned_fnames_log]
 
     for rd in root_dir_list:
-        try:
-            assert os.path.isdir(rd)
-        except AssertionError:
-            # error_alert
-            raise AssertionError(rd + " is not a directory")
+        if not os.path.isdir(rd):
+            print "Creating: ", rd
+            os.mkdir(rd)
 
     for rf in root_f_list:
-        try:
-            assert os.path.isfile(rf)
-        except AssertionError:
-            # error_alert
-            raise AssertionError(rf + " is not a file")
+        if not os.path.isfile(rf):
+            print "Creating: ", rf
+            with open(rf, 'w') as writer:
+                writer.write('')
 
 
 self_validate_globals()
