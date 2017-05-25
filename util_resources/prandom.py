@@ -19,14 +19,13 @@ valid_extensions = [
 
 def remove_invalid_ext(file_list):
     for song in file_list:
-        if os.path.isfile(song) and os.path.splitext(song)[1] not in valid_extensions:
-            root.error_alert(song + " has an invalid extension")
+        if not os.path.isfile(song) or os.path.splitext(song)[1] not in valid_extensions:
             file_list.remove(song)
     return file_list
 
 
 def get_song_list(targ_dir=root.music_dir):
-    file_list = [os.path.join(targ_dir, song).lower() for song in os.listdir(targ_dir) if "desktop.ini" not in song]
+    file_list = [os.path.join(targ_dir, song).lower() for song in os.listdir(targ_dir)]
     song_list = remove_invalid_ext(file_list)
     return song_list
 
