@@ -160,10 +160,6 @@ def switch_parser(args, valid_switches=None):  # returns dict, will replace swit
     return switch_dict
 
 
-def list_from_piped():
-    pass  # get list from piped print_numbered_list/ print_list
-
-
 def output_from_command(cmd_and_args):
     import subprocess
     c_ = None
@@ -279,20 +275,20 @@ def choose_from_list(list_):
     return list_[result]
 
 
-# make print_list based on some kind of constant
-# use that constant as a refenrece here for pattern matching so if it ever changes piped_list auto matches/changes
-def piped_list(stdin_output):
-    from re import findall
-    try:
+def list_from_piped(stdin_output):
+    import re
 
-        piped_list_ = findall("\".+\"", stdin_output)
-        final_list = [x.replace('\"', '') for x in piped_list_]
+    if isinstance(stdin_output, list):
+        stdin_output = "".join(stdin_output)
 
-    except Exception, e:
-        error_alert(str(e))
-        error_alert("Cannot convert: " + stdin_output + "from pipes in to list")
-        final_list = []
+    list_item_pattern = "\[ \d+ \].+"
+    number_brace_removal_pattern = "\[ \d+ \] "
+    list_of_items = re.findall(list_item_pattern, stdin_output)
+    piped_list_ = [re.sub(number_brace_removal_pattern, "", item) for item in list_of_items]
+    if len(piped_list_) == 0:
+        error_alert("Cannot convert piped output in to list", raise_exception=True)
 
+    final_list = [x.replace('\"', '') for x in piped_list_]
     return final_list
 
 

@@ -125,7 +125,7 @@ def random_distrib_select(song_list, songs_limit):
 
 
 def handle_piping():
-    item_list = root.piped_list("".join(map(str, sys.stdin.readlines())))
+    item_list = root.list_from_piped(sys.stdin.readlines())
     song_list = remove_invalid_ext(item_list)
     return song_list
 

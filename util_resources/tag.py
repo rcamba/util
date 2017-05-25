@@ -4,7 +4,7 @@ import copy
 import collections
 import simplejson as json
 
-from root import error_alert, removed_files_log, create_back_up, tag_file_log, piped_list, \
+from root import error_alert, removed_files_log, create_back_up, tag_file_log, list_from_piped, \
     key_press_input, choose_from_list, print_list, invalidated_tag_files_log
 
 
@@ -229,7 +229,7 @@ if __name__ == "__main__":
 
     elif sys.stdin.isatty() is False:
         print "Tagging piped items"
-        fileList = piped_list("".join(map(str, sys.stdin.readlines())))
+        fileList = list_from_piped("".join(map(str, sys.stdin.readlines())))
         input_tag_list = key_press_input("Enter tag(s). Separate with commas").split(',')
         for t in input_tag_list:
             tag_multiple_files(t, fileList)

@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from sys import stdin, stdout
 from os import listdir, getcwd, stat, path
 from root import set_clipboard_data, \
-    print_list, choose_from_list, error_alert, piped_list
+    print_list, choose_from_list, error_alert, list_from_piped
 
 
 class AttribContainer:
@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
     if stdin.isatty() is False:
         print "Piping"
-        f_list = piped_list("".join(map(str, stdin.readlines())))
+        f_list = list_from_piped("".join(map(str, stdin.readlines())))
 
     else:
         f_list = get_file_list()
