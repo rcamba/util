@@ -1,8 +1,12 @@
 from sys import argv
+try:
+    from simplejson import load
+except ImportError:
+    from json import load
 from os import path, getcwd
 from argparse import ArgumentParser, FileType
 from sys import stdin, stdout
-from root import print_list, set_clipboard_data, choose_from_list
+from root import print_list, set_clipboard_data, choose_from_list, song_log_file
 from tag import get_files_from_tags, get_tags_for_file, get_tag_by_partial_match, get_mixed_files_from_tags
 
 
@@ -69,10 +73,8 @@ def create_args():
 
     p.add_argument("-s", "--select", action="store_true", dest="select")
 
-    p.add_argument('infile', nargs='?', type=FileType('r'), default=stdin)
-    p.add_argument('outfile', nargs='?', type=FileType('w'), default=stdout)
-
     group.add_argument("-f", "--file-search", type=str, default="", nargs="?", dest="search_filename")
+    group.add_argument("-pc", "--play-count", type=str, default="", dest="play_count_filename")
     group.add_argument("-r", "--partial", action="store_true", dest="partial_match")
 
     return p
@@ -109,6 +111,18 @@ def search_tags_for_file(filename):
     return tag_list
 
 
+def search_for_song_playcount(song_filename):
+    with open(song_log_file) as reader:
+        song_log_dict = load(reader)
+    song_filename = song_filename.replace("\"", "").strip()
+    if song_filename in song_log_dict:
+        play_count = song_log_dict[song_filename]["play_count"]
+    else:
+        play_count = 0
+
+    return play_count
+
+
 def do_search(parser):
     global args
 
@@ -117,13 +131,21 @@ def do_search(parser):
 
         piped_fname = stdin.readlines()[2].strip().replace("\"", "")
         argv.append(piped_fname)
-        loc_args = parser.parse_args(argv)
+        loc_args = parser.parse_args(argv[1:])
+
     else:
         loc_args = parse_args(parser)
 
     args = loc_args
+    if len(loc_args.play_count_filename) > 0:
+        pc = search_for_song_playcount(loc_args.play_count_filename)
+        if pc > 0:
+            print loc_args.play_count_filename
+            print pc, "play(s)"
+        else:
+            print loc_args.play_count_filename, "not found in songs log."
 
-    if len(loc_args.search_filename) > 0:
+    elif len(loc_args.search_filename) > 0:
         tag_list = search_tags_for_file(loc_args.search_filename)
         print loc_args.search_filename
         if len(tag_list) == 0:

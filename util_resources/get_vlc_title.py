@@ -1,14 +1,9 @@
 from win32gui import GetWindowText, IsWindowEnabled, EnumWindows
 from win32process import GetWindowThreadProcessId
 from psutil import process_iter
-try:
-    from simplejson import load
-except ImportError:
-    from json import load
-
-from root import vlc_hwnd_log, set_clipboard_data, song_log_file
+from root import vlc_hwnd_log, set_clipboard_data
 from os import path
-from search_tags import search_tags_for_file
+from search_tags import search_tags_for_file, search_for_song_playcount
 
 
 def get_hwnds_for_pid(pid):
@@ -110,18 +105,6 @@ def title_from_hwnd(vlc_hwnd):
     return title
 
 
-def get_song_play_count(song_filename):
-    with open(song_log_file) as reader:
-        song_log_dict = load(reader)
-    song_filename = song_filename.replace("\"", "").strip()
-    if song_filename in song_log_dict:
-        play_count = song_log_dict[song_filename]["play_count"]
-    else:
-        play_count = 0
-
-    return play_count
-
-
 def get_vlc_title():
 
     vlc_hwnd = get_vlc_hwnd()
@@ -138,7 +121,7 @@ def get_vlc_title():
         print "No tags"
     else:
         print "Tags:", ", ".join(tags)
-    print get_song_play_count(fp), "play(s)"
+    print search_for_song_playcount(fp), "play(s)"
 
     return fp
 
