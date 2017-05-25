@@ -267,7 +267,7 @@ def choose_from_list(list_):
             result = int(choice) - 1
 
         else:
-            error_alert("Error: Invalid choice. Choice was not a valid number.")
+            error_alert("Error: Invalid choice. Not a valid number. Valid range 1-{er}".format(er=len(list_)))
             sys_exit(1)
 
     elif len(list_) == 1:
