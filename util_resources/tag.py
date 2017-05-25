@@ -96,7 +96,8 @@ def add_tags(tag_list, filename):
         error_alert(filename + " is not a valid file", raise_exception=True, err_class=IOError)
 
     tag_dict = load_tag_dict()
-    filename = filename.lower()
+    filename = os.path.normpath(filename.lower())
+    appended_list = []
     for tag in tag_list:
         tag = tag.strip().lower()
         if tag not in tag_dict:
@@ -104,9 +105,12 @@ def add_tags(tag_list, filename):
             tag_dict[tag] = [filename]
         elif filename not in tag_dict[tag]:
             tag_dict[tag].append(filename)
+            appended_list.append(tag)
         else:
             error_alert(filename + " is already in tag: " + tag)
 
+    if len(appended_list) > 0:
+        print "Appended to tags:", ", ".join(appended_list)
     write_tag_file(tag_dict)
 
 
@@ -128,13 +132,14 @@ def tag_multiple_files(tag, file_list):
         error_alert("No valid file to add. No changes have been made.")
 
 
-def remove_file_from_tags(tag_list, fname):
+def remove_file_from_tags(tag_list, fname, verbose=True):
     tag_dict = load_tag_dict()
-    fname = fname.lower()
+    fname = os.path.normpath(fname.lower())
     for tag in tag_list:
         tag = tag.strip().lower()
         if fname in tag_dict[tag]:
-            print "Removed {f} from {t}".format(f=fname.encode("unicode_escape"), t=tag)
+            if verbose:
+                print "Removed {f} from {t}".format(f=fname.encode("unicode_escape"), t=tag)
             log_removed_file(fname, tag)
 
             tag_dict[tag].remove(fname)
@@ -142,7 +147,7 @@ def remove_file_from_tags(tag_list, fname):
                 print "Empty files list for: " + tag + "; Removing from tags."
                 del tag_dict[tag]
         else:
-            error_alert("Tag: " + tag + " doesn't have filename : " + fname)
+            error_alert("Tag: " + tag + " doesn't have filename: " + fname)
 
     write_tag_file(tag_dict)
 
@@ -176,13 +181,14 @@ def get_tags_for_file(filename=None):
         tags = tag_dict.keys()
     else:
         tags = []
-        filename = filename.lower()
+        filename = os.path.normpath(filename.lower())
         if not os.path.isfile(filename):
             error_alert(filename + " is not a valid file", raise_exception=True, err_class=IOError)
 
         for tag in tag_dict.keys():
             if filename in tag_dict[tag]:
                 tags.append(tag)
+
     return tags  # sorted by default since using OrderedDict
 
 
@@ -222,6 +228,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1:
         input_tag_list = raw_input("Enter tag(s). Separate with commas\n").split(',')
+        input_tag_list = map(str.strip, input_tag_list)
         if not os.path.isabs(sys.argv[1]):
             add_tags(input_tag_list, os.path.join(os.getcwd(), sys.argv[1]))
         else:

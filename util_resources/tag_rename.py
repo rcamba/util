@@ -18,13 +18,16 @@ def tag_rename(orig_name, new_name, verbose=False, allow_empty_tags=True):
     if orig_name == new_name:
         raise ValueError("The source and destination are the same.")
 
+    orig_name = orig_name.lower()
+    new_name = new_name.lower()
+
     tag_list = get_tags_for_file(orig_name)
-    if not allow_empty_tags and len(tag_list) == 0:
+    if not allow_empty_tags and len(tag_list) == 0:  # for cleanfnames
         raise ValueError("No tags found for {}".format(orig_name))
 
     if verbose:
         print "Removing {tl} from {f}\n".format(tl=tag_list, f=orig_name)
-    remove_file_from_tags(tag_list, orig_name)
+    remove_file_from_tags(tag_list, orig_name, False)
 
     try:
         if verbose:
