@@ -1,9 +1,14 @@
 from win32gui import GetWindowText, IsWindowEnabled, EnumWindows
 from win32process import GetWindowThreadProcessId
 from psutil import process_iter
-from root import vlc_hwnd_log, set_clipboard_data
+try:
+    from simplejson import load
+except ImportError:
+    from json import load
+
+from root import vlc_hwnd_log, set_clipboard_data, song_log_file
 from os import path
-from tag import get_tags_for_file
+from search_tags import search_tags_for_file
 
 
 def get_hwnds_for_pid(pid):
@@ -85,7 +90,10 @@ def path_from_hwnd(vlc_hwnd):
         "%29": ")",
         "%5B": "[",
         "%5D": "]",
-        "%27": "'"
+        "%27": "'",
+        "%40": "@",
+        "%2B": "+",
+        "%2C": ",",
     }
 
     for key in translation_dict.keys():
@@ -102,6 +110,18 @@ def title_from_hwnd(vlc_hwnd):
     return title
 
 
+def get_song_play_count(song_filename):
+    with open(song_log_file) as reader:
+        song_log_dict = load(reader)
+    song_filename = song_filename.replace("\"", "").strip()
+    if song_filename in song_log_dict:
+        play_count = song_log_dict[song_filename]["play_count"]
+    else:
+        play_count = 0
+
+    return play_count
+
+
 def get_vlc_title():
 
     vlc_hwnd = get_vlc_hwnd()
@@ -111,9 +131,14 @@ def get_vlc_title():
 
     print "+ Currently playing:"
     print vlc_title
-    set_clipboard_data(quoted_fp)
     print quoted_fp
-    print get_tags_for_file(fp)
+    set_clipboard_data(quoted_fp)
+    tags = search_tags_for_file(fp)
+    if len(tags) == 0:
+        print "No tags"
+    else:
+        print "Tags:", ", ".join(tags)
+    print get_song_play_count(fp), "play(s)"
 
     return fp
 
