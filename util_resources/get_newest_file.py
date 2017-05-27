@@ -54,8 +54,12 @@ def select_item_from_files(f_list_, numbered_index):
 
 def present_result(f_list_):
     if args.list_files is not None or args.select_file is not None:
-        if args.list_files is None:
-            args.list_files = 10
+        if args.list_files == -1:
+            if len(args.targ_words) > 0:
+                args.list_files = len(f_list_)
+            else:
+                args.list_files = 10
+
         print_list([path.split(f)[1] for f in f_list_], args.list_files, press_to_continue=stdout.isatty())
 
     chosen_item = f_list_[0]
@@ -71,7 +75,7 @@ def add_arg_options():
     p = ArgumentParser()
     p.add_argument('targ_words', nargs='*')
     p.add_argument("-l", "--list-files", help="list the x newest files. default x is 10",
-                   type=int, nargs="?", const=10, required=False)
+                   type=int, nargs="?", const=-1, required=False)
     p.add_argument("-f", "--files-only", help="only show files",
                    action="store_true")
     p.add_argument("-d", "--dir-only", help="only show directories",
