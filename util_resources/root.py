@@ -18,7 +18,7 @@ alt1_drive = "F:"
 user_path = "Users"
 
 username = os.getenv("username")
-parent_dir = join_then_realpath(os.path.dirname(__file__), os.path.pardir)
+file_parent_dir = join_then_realpath(os.path.dirname(__file__), os.path.pardir)
 
 home_dir = join_then_realpath(main_drive, os.sep, user_path, username)
 backup_dir = join_then_realpath(home_dir, "backUp")
@@ -29,11 +29,11 @@ screening_dir = join_then_realpath(music_dir, "screen")
 yt_amv_dir = join_then_realpath(alt1_drive, os.sep, user_path, username, "Videos", "ytAMV")
 yt_dls_dir = join_then_realpath(home_dir, "Videos", "ytVids")
 
-tag_files_log_dir = join_then_realpath(parent_dir, "logs", "tagFilesLog")
+tag_files_log_dir = join_then_realpath(file_parent_dir, "logs", "tagFilesLog")
 
 # Files
 # TODO move to APPDATA?
-logs_dir = join_then_realpath(parent_dir, "logs")
+logs_dir = join_then_realpath(file_parent_dir, "logs")
 song_log_file = join_then_realpath(logs_dir, "prandomSongsLog.log")
 removed_files_log = join_then_realpath(logs_dir, "removed_tagged_files.log")
 hib_log = join_then_realpath(logs_dir, "hibLog.log")
@@ -46,6 +46,8 @@ prev_dir_log = join_then_realpath(logs_dir, "prevDir.log")
 prandom_exceptions_log = join_then_realpath(logs_dir, "prandomexceptiontags.log")
 deleted_screened_log = join_then_realpath(logs_dir, "deleted_screened.log")
 cleaned_fnames_log = join_then_realpath(logs_dir, "cleaned_fnames.log")
+yt_dl_defaults_log = join_then_realpath(logs_dir, "yt_dl_defaults.log")
+yt_dled_log = join_then_realpath(logs_dir, "yt_dled_log.log")
 
 # Variables
 MAX_WAIT_TIME = 30  # seconds
@@ -869,7 +871,7 @@ def self_validate_globals():
 
     root_f_list = [song_log_file, removed_files_log, hib_log, tag_file_log, vlc_hwnd_log, invalidated_tag_files_log,
                    dir_jump_file_log, tdl_log, prev_dir_log, prandom_exceptions_log, deleted_screened_log,
-                   cleaned_fnames_log]
+                   cleaned_fnames_log, yt_dl_defaults_log]
 
     for rd in root_dir_list:
         try:
