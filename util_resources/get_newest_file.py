@@ -39,7 +39,7 @@ def get_file_list(targ_dir=getcwd()):
 def prune_targ_words_from_file_list(f_list_, targ_words):
     for word in targ_words:
         for f in f_list_[:]:
-            if word.lower() not in f.lower():
+            if word.lower() not in path.split(f)[1].lower():
                 f_list_.remove(f)
     return f_list_
 
