@@ -86,9 +86,9 @@ def add_arg_options():
     return p
 
 
-if __name__ == "__main__":
-    parser = add_arg_options()
-    args = parser.parse_args()
+def get_newest_file(args_):
+    global args
+    args = args_
 
     if stdin.isatty() is False:
         print "Piping"
@@ -97,10 +97,16 @@ if __name__ == "__main__":
     else:
         f_list = get_file_list()
 
-    pruned_list = prune_targ_words_from_file_list(f_list, args.targ_words)
+    pruned_list = prune_targ_words_from_file_list(f_list, args_.targ_words)
     sorted_list = sort_by_creation_time(pruned_list)
     final_quoted_list = map(lambda x: "\"" + str(x.file.encode("unicode_escape")) + "\"", sorted_list)
     if len(final_quoted_list) > 0:
         present_result(final_quoted_list)
     else:
         error_alert("Either empty directory or search term(s) not found.")
+
+
+if __name__ == "__main__":
+    parser = add_arg_options()
+    args = parser.parse_args()
+    get_newest_file(args)
