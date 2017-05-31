@@ -55,113 +55,6 @@ MAX_WAIT_TIME = 30  # seconds
 # Utility methods
 
 
-def switch_board(args, valid_switches=None):
-    from string import lower
-    from inspect import stack, getmodule, getmodulename
-    from sys import exit as sys_exit
-    if valid_switches is None:
-
-        frame = stack()[1]
-        try:
-            module = getmodule(frame[0]).__file__
-            import_file = getmodulename(module)
-            valid_switches = __import__(import_file).__dict__.get("AVAILABLE_SWITCHES")
-            # AVAILABLE SWITCHES CAN'T BE INSIDE "If __name__==__main__" BLOCK
-
-            if valid_switches is None:
-                print "No valid switches found. Terminating script."
-                sys_exit(1)
-
-        except TypeError:
-            print "Module of ", frame[0], " not found"
-            sys_exit(1)
-
-        except AttributeError:
-            valid_switches = [arg.replace("-", "") for arg in args]
-
-    switch_list = []
-    if type(args) == list:
-
-        for i in range(len(args) - 1, -1, -1):
-
-            if "-" in args[i][0]:
-                switch = args[i].replace("-", "")
-                if len(switch) > 0:
-
-                    if ":" in switch:
-                        token = switch.split(":")
-                        if token[0] in valid_switches:
-                            switch_list.append((token[0], token[1]))
-                        else:
-                            print token[0], ": not a valid switch"
-                            sys_exit(1)
-
-                    elif lower(switch) in valid_switches:
-                        switch_list.append(lower(switch))
-                    else:
-                        print "Invalid switch: ", switch
-                        print "Terminating script."
-                        sys_exit(1)
-                args.remove(args[i])
-
-        # standard/ normalize slashes for file accesses
-            elif "/" in args[i]:
-                args[i] = args[i].replace("/", "\\")
-
-    else:
-        print "Not a list"
-
-    return switch_list
-
-
-def switch_parser(args, valid_switches=None):  # returns dict, will replace switch_board
-    from inspect import stack, getmodule, getmodulename
-    from sys import exit as sys_exit
-
-    if valid_switches is None:
-        frame = stack()[1]
-        try:
-            module = getmodule(frame[0]).__file__
-            import_file = getmodulename(module)
-            valid_switches = __import__(import_file).__dict__.get("AVAILABLE_SWITCHES")
-            # AVAILABLE SWITCHES CAN'T BE INSIDE "If __name__==__main__" BLOCK
-            if valid_switches is None:
-                print "No valid switches found. Terminating script."
-                sys_exit(1)
-
-        except TypeError:
-            print "Module of ", frame[0], " not found"
-            sys_exit(1)
-
-        except AttributeError:
-            valid_switches = [arg.replace("-", "") for arg in args]
-
-    switch_dict = {}
-    for arg in args[:]:
-        if arg[0] == '-':
-
-            token = arg.split(':')
-
-            if token[0][1:] in valid_switches:
-                if len(token) == 1:
-                    switch_dict[token[0][1:]] = ''
-
-                elif len(token) == 2:
-                    switch_dict[token[0][1:]] = token[1]
-
-                else:
-                    switch_dict[token[0][1:]] = " ".join([token[1:]])
-
-            else:
-                print "\nInvalid switch: ", token[0][1:]
-                print "Valid switches: ", valid_switches
-                sys_exit(1)
-
-            args.remove(arg)
-
-    return switch_dict
-
-
 def output_from_command(cmd_and_args):
     import subprocess
     c_ = None
@@ -845,25 +738,6 @@ def stdout_write(w_str):
     sys.stdout.write("\b" * len(w_str))
     sys.stdout.write(w_str)
     sys.stdout.flush()
-
-
-def __backup_py_n_text__():
-    """
-    backs up .py and txt files
-    """
-
-    from os import getcwd, listdir, getenv, path
-    f_list = listdir(getenv("UtilResources"))
-    path_str = getenv("UtilResources")
-    for i in range(len(f_list) - 1, -1, -1):
-        file_ = f_list[i]
-        extension = path.splitext(file_)[1]  # extension of file
-        if all([extension != ".py", extension != ".log", extension != ".txt"]):
-            f_list.remove(file_)
-
-    for file_ in f_list:
-        file_ = "".join([path_str, "\\", file_])
-        create_back_up(file_)
 
 
 def self_validate_globals():
