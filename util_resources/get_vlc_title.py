@@ -81,6 +81,10 @@ def path_from_hwnd(vlc_hwnd):
         " - VLC media player": "",
         "file:///": "",
         "%20": " ",
+        "%21": "!",
+        "%23": "#",
+        "%25": "%",
+        "%26": "&",
         "%28": "(",
         "%29": ")",
         "%5B": "[",
@@ -89,6 +93,7 @@ def path_from_hwnd(vlc_hwnd):
         "%40": "@",
         "%2B": "+",
         "%2C": ",",
+        "%5E": "^",
     }
 
     for key in translation_dict.keys():
