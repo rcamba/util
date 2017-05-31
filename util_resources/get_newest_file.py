@@ -60,7 +60,7 @@ def present_result(f_list_):
             else:
                 args.list_files = 10
 
-        print_list([path.split(f)[1] for f in f_list_], args.list_files, press_to_continue=stdout.isatty())
+        print_list([path.split(f)[1][:-1] for f in f_list_], args.list_files, press_to_continue=stdout.isatty())
 
     chosen_item = f_list_[0]
 
@@ -100,7 +100,6 @@ if __name__ == "__main__":
     pruned_list = prune_targ_words_from_file_list(f_list, args.targ_words)
     sorted_list = sort_by_creation_time(pruned_list)
     final_quoted_list = map(lambda x: "\"" + str(x.file.encode("unicode_escape")) + "\"", sorted_list)
-
     if len(final_quoted_list) > 0:
         present_result(final_quoted_list)
     else:
