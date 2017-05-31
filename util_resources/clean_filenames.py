@@ -61,6 +61,7 @@ def clean_chars(partial_clean_str):
                   list(punctuation
                        .replace('\\', '')
                        .replace('/', '')
+                       .replace(':', '')
                        .replace('*', '')
                        .replace('?', '')
                        .replace('\"', '')
