@@ -18,7 +18,7 @@ YT_DL_PROG = os.path.join(home_dir, "Downloads", "youtube-dl.exe")
 def get_dry_title(vid_link):
     yt_dl_opts = "--quiet --simulate --get-title --get-id --restrict-filenames ".split()
     title_cmd = [YT_DL_PROG, vid_link] + yt_dl_opts
-    title = output_from_command(title_cmd).replace("\n", "_").lower()
+    title = output_from_command(title_cmd).replace("\n", "-").lower()
     return title
 
 
