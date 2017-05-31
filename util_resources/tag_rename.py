@@ -35,6 +35,7 @@ def tag_rename(orig_name, new_name, verbose=False, allow_empty_tags=True):
         rename(orig_name, new_name)
 
     except WindowsError:
+        print "Old:", orig_name.encode("unicode_escape"), "-> New:", new_name.encode("unicode_escape")
         add_tags(tag_list, orig_name)
         raise
 
@@ -45,6 +46,7 @@ def tag_rename(orig_name, new_name, verbose=False, allow_empty_tags=True):
         add_tags(tag_list, new_name)
 
     except TagException:
+        print "Old:", orig_name.encode("unicode_escape"), "-> New:", new_name.encode("unicode_escape")
         rename(new_name, orig_name)
         add_tags(tag_list, orig_name)
         raise
