@@ -14,7 +14,7 @@ def tag_rename(orig_name, new_name, verbose=False, allow_empty_tags=True):
         new_name = path.realpath(path.join(getcwd(), new_name))
 
     if not path.isfile(orig_name):
-        raise IOError("Error: Invalid file {f}.".format(f=orig_name))
+        raise IOError("Error: Invalid file {f}.".format(f=orig_name.encode("unicode_escape")))
     if orig_name == new_name:
         raise ValueError("The source and destination are the same.")
 
@@ -26,7 +26,7 @@ def tag_rename(orig_name, new_name, verbose=False, allow_empty_tags=True):
         raise ValueError("No tags found for {}".format(orig_name))
 
     if verbose:
-        print "Removing {tl} from {f}\n".format(tl=tag_list, f=orig_name)
+        print "Removing {tl} from {f}\n".format(tl=tag_list, f=orig_name.encode("unicode_escape"))
     remove_file_from_tags(tag_list, orig_name, False)
 
     try:
