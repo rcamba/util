@@ -47,8 +47,7 @@ def clean_file_names(directory):
     changes_dict = {}
 
     for f in file_list:
-
-        cleaned = clean_string(f)
+        cleaned = clean_string(f, not args.dry_run)
 
         if f != cleaned:
             changes_dict[f] = cleaned
@@ -93,12 +92,12 @@ def clean_chars(partial_clean_str):
     return cleaned
 
 
-def clean_string(dirty_str):
+def clean_string(dirty_str, log_warnings=False):
     kanji_cleaned_str = kanji_to_romaji(dirty_str)
     if "\u" in kanji_cleaned_str:
         untranslated_warn_msg = "Untranslated unicode character found in " + kanji_cleaned_str
         error_alert(untranslated_warn_msg)
-        if not args.dry_run:
+        if log_warnings:
             write_line_to_log(untranslated_warn_msg)
 
     cleaned = clean_chars(kanji_cleaned_str)
@@ -111,7 +110,7 @@ def clean_string(dirty_str):
         all_inval_warn_msg = dirty_str.encode("unicode_escape") + \
                              " only consists of invalid characters. Cannot be cleaned."
         error_alert(all_inval_warn_msg)
-        if not args.dry_run:
+        if log_warnings:
             write_line_to_log(all_inval_warn_msg)
         result = dirty_str
 
@@ -124,7 +123,10 @@ def rename_files(changes_dict, directory):
             try:
                 orig_name = path.join(directory, key)
                 new_name = path.join(directory, changes_dict[key])
-                tag_rename(orig_name, new_name)
+                if path.isfile(orig_name):  # dir won't have tags
+                    tag_rename(orig_name, new_name)
+                else:
+                    rename(orig_name, new_name)
                 writer.write(key.encode('utf8') + ": " + changes_dict[key])
                 writer.write("\n")
 
