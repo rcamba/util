@@ -3,10 +3,14 @@ from os import listdir, chdir, getcwd, path, rename
 from sys import exit as sys_exit
 from string import ascii_letters, digits, punctuation
 
-from root import screening_dir, error_alert, cleaned_fnames_log
+from root import screening_dir, error_alert, cleaned_fnames_log, stdout_write
 from tag import tag_multiple_files, get_files_from_tags
 from tag_rename import tag_rename
 from kanji_to_romaji import kanji_to_romaji
+
+
+def _undo_rename():
+    pass
 
 
 def write_line_to_log(line):
@@ -26,7 +30,7 @@ def screen_tagging():
         screening_list = get_files_from_tags("screen")
         removed_counter = 0
         for i in range(len(file_list) - 1, -1, -1):
-            file_list[i] = path.join(screening_dir, file_list[i]).lower()
+            file_list[i] = path.join(screening_dir, file_list[i])
 
             if file_list[i] in screening_list:
                 file_list.remove(file_list[i])
@@ -121,6 +125,8 @@ def clean_string(dirty_str, log_warnings=False):
 def rename_files(changes_dict, directory):
     with open(cleaned_fnames_log, 'a') as writer:
         for key in changes_dict.keys():
+            stdout_write("Renamed {n} out of {t} files".format(n=changes_dict.keys().index(key) + 1,
+                                                               t=len(changes_dict.keys())))
             try:
                 orig_name = path.join(directory, key)
                 new_name = path.join(directory, changes_dict[key])
@@ -136,6 +142,7 @@ def rename_files(changes_dict, directory):
                             changes_dict[key].encode("unicode_escape") + ". Stopping program." +
                             "\n" + str(e))
                 sys_exit(1)
+    print ""  # newline for messages after stdout_write
 
 
 def main(directory):
