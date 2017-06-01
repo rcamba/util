@@ -100,7 +100,7 @@ def path_from_hwnd(vlc_hwnd):
         window_title = window_title.replace(key, translation_dict[key])
     file_path = path.normpath(window_title)
 
-    return file_path.lower()
+    return file_path
 
 
 def title_from_hwnd(vlc_hwnd):
