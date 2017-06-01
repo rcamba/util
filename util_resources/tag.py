@@ -87,7 +87,7 @@ def write_tag_file(tag_dict):
         writer.write(tag_dict_str.encode("utf-8"))
 
 
-def add_tags(tag_list, filename):
+def add_tags(tag_list, filename, verbose=False):
     if not os.path.isabs(filename):
         error_alert("{f} must be in absolute full file path".format(f=filename),
                     raise_exception=True, err_class=TagException)
@@ -109,7 +109,7 @@ def add_tags(tag_list, filename):
         else:
             error_alert(filename + " is already in tag: " + tag)
 
-    if len(appended_list) > 0:
+    if verbose and len(appended_list) > 0:
         print "Appended to tags:", ", ".join(appended_list)
     write_tag_file(tag_dict)
 
@@ -230,9 +230,9 @@ if __name__ == "__main__":
         input_tag_list = raw_input("Enter tag(s). Separate with commas\n").split(',')
         input_tag_list = map(str.strip, input_tag_list)
         if not os.path.isabs(sys.argv[1]):
-            add_tags(input_tag_list, os.path.join(os.getcwd(), sys.argv[1]))
+            add_tags(input_tag_list, os.path.join(os.getcwd(), sys.argv[1]), verbose=True)
         else:
-            add_tags(input_tag_list, sys.argv[1])
+            add_tags(input_tag_list, sys.argv[1], verbose=True)
 
     elif sys.stdin.isatty() is False:
         print "Tagging piped items"
