@@ -9,8 +9,23 @@ from tag_rename import tag_rename
 from kanji_to_romaji import kanji_to_romaji
 
 
-def _undo_rename():
-    pass
+def _undo_rename(cleaned_targ_fname):
+    if not path.isabs(cleaned_targ_fname):
+        raise IOError("Filename must be in full/absolute path.")
+
+    cleaned_targ_fname = path.realpath(cleaned_targ_fname)
+    targ_dir = path.dirname(cleaned_targ_fname)
+    cleaned_targ_fname = path.split(cleaned_targ_fname)[1]
+
+    with open(cleaned_fnames_log) as reader:
+        lines = reader.read().split('\n')
+        for line in lines:
+            if len(line) > 0:
+                orig_fname, cleaned_fname = line.split(': ')
+                if cleaned_targ_fname.lower() == cleaned_fname.lower():
+                    tag_rename(path.join(targ_dir, cleaned_targ_fname),
+                               path.join(targ_dir, orig_fname),
+                               verbose=True, allow_empty_tags=True)
 
 
 def write_line_to_log(line):
@@ -123,7 +138,7 @@ def clean_string(dirty_str, log_warnings=False):
 
 
 def rename_files(changes_dict, directory):
-    with open(cleaned_fnames_log, 'a') as writer:
+    with open(cleaned_fnames_log, 'a') as writer:  # log renaming changes
         for key in changes_dict.keys():
             stdout_write("Renamed {n} out of {t} files".format(n=changes_dict.keys().index(key) + 1,
                                                                t=len(changes_dict.keys())))
