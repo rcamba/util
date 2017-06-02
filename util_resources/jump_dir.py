@@ -8,7 +8,7 @@ Required to do it from cmd/bat since python process is separate from cmd
 from argparse import ArgumentParser
 from string import strip
 from os import getcwd
-from root import dir_jump_file_log, print_list, choose_from_list, prev_dir_log, create_back_up
+from root import dir_jump_file_log, print_list, choose_from_list, prev_dir_log, create_backup
 
 
 def write_to_prev_dir_file(prev_dir):
@@ -27,7 +27,7 @@ def sort_dir_jump(targ_pos):
 
 def add_to_dir_jump(targ_dir):
 
-    create_back_up(dir_jump_file_log)
+    create_backup(dir_jump_file_log)
     print "Adding: " + targ_dir
     with open(dir_jump_file_log, "a") as f:
         f.write(str(getcwd()))
@@ -40,7 +40,7 @@ def remove_from_dir_jump(targ_pos):
     print "Removing: " + jump_list[targ_pos]
     del jump_list[targ_pos]  # del apparently more efficient than pop; avoids issue where directory is also prevDir
 
-    create_back_up(dir_jump_file_log)
+    create_backup(dir_jump_file_log)
     write_to_dir_jump(jump_list)
 
 

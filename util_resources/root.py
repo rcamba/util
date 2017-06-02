@@ -21,7 +21,8 @@ username = os.getenv("username")
 file_parent_dir = join_then_realpath(os.path.dirname(__file__), os.path.pardir)
 
 home_dir = join_then_realpath(main_drive, os.sep, user_path, username)
-backup_dir = join_then_realpath(home_dir, "backUp")
+default_backup_dir = join_then_realpath(home_dir, "backUp")
+default_backup_ext = '.gzipbak'
 
 music_dir = join_then_realpath(alt1_drive, os.sep, user_path, username, "Music", "ytcon")
 screening_dir = join_then_realpath(music_dir, "screen")
@@ -53,6 +54,13 @@ yt_dled_log = join_then_realpath(logs_dir, "yt_dled_log.log")
 MAX_WAIT_TIME = 30  # seconds
 
 # Utility methods
+
+
+def ktr(u):
+    from kanji_to_romaji import kanji_to_romaji
+    if isinstance(u, str):
+        u = u.decode('utf-8')
+    print kanji_to_romaji(u)
 
 
 def output_from_command(cmd_and_args):
@@ -311,59 +319,56 @@ def key_press_input(prompt_str=""):
     return "".join(result)
 
 
-def create_back_up(file_name, set_back_up_dir=""):  # backup before opening/writing to txt files
-    from shutil import copy2
-    from os import mkdir, path, rename, chdir, getcwd
+def create_backup_compressed_file(src, dest):
+    import gzip
+    import shutil
+
+    if not os.path.splitext(dest)[1] == default_backup_ext:
+        error_alert("Warning: destination doesn't have expected {ext} extension".format(ext=default_backup_ext))
+
+    with open(src, 'rb') as f_in, gzip.open(dest, 'wb') as f_out:
+        shutil.copyfileobj(f_in, f_out)
+
+
+def uncompress_backup_file(filename):
+    import gzip
+    import shutil
+
+    if not os.path.splitext(filename)[1] == default_backup_ext:
+        error_alert("Not a valid backup file. {ext} extension required".format(ext=default_backup_ext),
+                    raise_exception=True, err_class=IOError)
+
+    uncompressed_fname = filename[:-len(default_backup_ext)]
+    with gzip.open(filename, 'rb') as f_in, open(uncompressed_fname, 'wb') as f_out:
+        shutil.copyfileobj(f_in, f_out)
+
+
+def create_backup(full_filename, backup_dir=None):
     from datetime import datetime
-    from time import time
-    global backup_dir
 
-    orig_dir = getcwd()
-    # print "Creating backup copy of: ", fileName
-    if path.exists(file_name) and path.isdir(file_name) is False:
+    if backup_dir is None:
+        backup_dir = default_backup_dir
 
+    if not os.path.isabs(full_filename):
+        full_filename = os.path.realpath(os.path.join(os.getcwd(), full_filename))
+
+    if os.path.isfile(full_filename):
         time_format = "%b-%d-%Y@%H_%M_%f"
-        extension = path.splitext(file_name)[1]
-        sliced_fname = path.splitext(path.split(file_name)[1])[0]  # cuts extension and path from filename
+        filename_and_ext = os.path.split(full_filename)[1]
+        filename_only, extension = os.path.splitext(filename_and_ext)
 
-        if len(set_back_up_dir) > 0:
-            backup_dir = set_back_up_dir
+        backup_dir_name = os.path.join(backup_dir, filename_only)
+        if os.path.isdir(backup_dir_name) is False:
+            print "Creating new directory: ", backup_dir_name
+            os.mkdir(backup_dir_name)
 
-        dir_name = path.join(backup_dir, sliced_fname)
-
-        if path.isdir(dir_name) is False:
-            print "Creating new directory: ", dir_name
-            mkdir(dir_name)
-
-        dated_fname = "".join([sliced_fname, "@", str(datetime.now().strftime(time_format)), extension])
-
-        try:
-            copy2(file_name, dir_name)
-
-        except IOError:
-            error_alert("Error, cannot access directory or directory is invalid.", True, IOError)
-
-        chdir(dir_name)
-
-        if getcwd() == dir_name:
-            win_error = None  # /lock?
-            time_counter = 0
-            init_time = time()
-            while win_error is None and time_counter < MAX_WAIT_TIME:
-                try:
-                    dated_fname = "".join([sliced_fname, "@", str(datetime.now().strftime(time_format)), extension])
-                    rename(str(path.split(file_name)[1]), dated_fname)
-
-                    win_error = "clear"
-                except:
-                    time_counter = time() - init_time
-                    # print "Failed to rename ", str(path.split(fileName)[1]), " to ", datedFileName
-
+        backup_full_filename = os.path.join(backup_dir_name,
+                                            filename_only + "@" +
+                                            str(datetime.now().strftime(time_format))[:-3] +  # -3 removes 0 padding
+                                            extension + default_backup_ext)
+        create_backup_compressed_file(full_filename, backup_full_filename)
     else:
-        print file_name, " is not a valid file."
-
-    if getcwd() != orig_dir:
-        chdir(orig_dir)
+        error_alert("{f} is not a valid file. No backup created.".format(f=full_filename))
 
 
 def kill_proc(proc_name="", pid=-1):
@@ -741,7 +746,7 @@ def stdout_write(w_str):
 
 
 def self_validate_globals():
-    root_dir_list = [music_dir, screening_dir, backup_dir, yt_amv_dir, yt_dls_dir]
+    root_dir_list = [music_dir, screening_dir, default_backup_dir, yt_amv_dir, yt_dls_dir]
 
     root_f_list = [song_log_file, removed_files_log, hib_log, tag_file_log, vlc_hwnd_log, invalidated_tag_files_log,
                    dir_jump_file_log, tdl_log, prev_dir_log, prandom_exceptions_log, deleted_screened_log,

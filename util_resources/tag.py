@@ -4,7 +4,7 @@ import copy
 import collections
 import simplejson as json
 
-from root import error_alert, removed_files_log, create_back_up, tag_file_log, list_from_piped, \
+from root import error_alert, removed_files_log, create_backup, tag_file_log, list_from_piped, \
     key_press_input, choose_from_list, print_list, invalidated_tag_files_log
 
 
@@ -81,7 +81,7 @@ def write_tag_file(tag_dict):
     tag_dict = collections.OrderedDict(sorted(tag_dict.items(), key=lambda k: k[0]))
     for tag in tag_dict.keys():
         tag_dict[tag].sort()
-    create_back_up(tag_file_log)
+    create_backup(tag_file_log)
     tag_dict_str = json.dumps(tag_dict, indent=2, ensure_ascii=False, encoding="utf-8", separators=(',', ': '))
     with open(tag_file_log, 'w') as writer:
         writer.write(tag_dict_str.encode("utf-8"))
