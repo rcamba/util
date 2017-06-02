@@ -77,8 +77,7 @@ def handle_tagging(screen_fname):
         music_fname = path.join(music_dir, slice_off_dir(screen_fname))
         tag_list = raw_input("Enter tag(s). Separate with commas\n").split(',')
         tag_list = map(str.strip, tag_list)
-        add_tags(tag_list, music_fname)
-        print "Tagging complete"
+        add_tags(tag_list, music_fname, verbose=True)
         kill_vlc()
         handle_delete(screen_fname)
 
