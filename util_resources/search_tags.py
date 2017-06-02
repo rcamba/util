@@ -44,8 +44,8 @@ def present_result(file_list):
 def prune_exceptions_from_file_list(file_list, exception_list):
     if exception_list is not None and len(exception_list) > 0:
         exception_file_list = get_files_from_tags(exception_list)
-        for f in file_list:
-            if f not in exception_file_list:
+        for f in file_list[:]:
+            if f.lower() in exception_file_list:
                 file_list.remove(f)
 
 
