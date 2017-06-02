@@ -4,7 +4,7 @@ try:
 except ImportError:
     from json import load
 from os import path, getcwd
-from argparse import ArgumentParser, FileType
+from argparse import ArgumentParser
 from sys import stdin, stdout
 from root import print_list, set_clipboard_data, choose_from_list, song_log_file
 from tag import get_files_from_tags, get_tags_for_file, get_tag_by_partial_match, get_mixed_files_from_tags
@@ -16,11 +16,19 @@ def set_args(new_args):
 
 
 def present_result(file_list):
-    file_list = map(lambda f_: "\"" + f_ + "\"", file_list)
     if args.num_of_results is not None:
         file_list = file_list[:args.num_of_results]
 
-    print_list(file_list, press_to_continue=stdout.isatty())
+    if args.show_all_file_tags:
+        f_list_w_tags = []
+        for i in range(0, len(file_list)):
+            tags = search_tags_for_file(path.realpath(file_list[i]))
+            f_list_w_tags.append(file_list[i] + " [" + ", ".join(tags) + "]")
+        print_list(f_list_w_tags, press_to_continue=stdout.isatty())
+    else:
+        print_list(file_list, press_to_continue=stdout.isatty())
+
+    file_list = map(lambda f_: "\"" + f_ + "\"", file_list)
 
     if args.select:
         if len(file_list) == 1:
@@ -69,7 +77,8 @@ def create_args():
 
     p.add_argument("-n", "--num", type=int, help="number of songs to play", dest="num_of_results")
     p.add_argument("-m", "--mix", action="store_true", help="mix tags", dest="mix_tags")
-    p.add_argument("-e", "--except", nargs='+', default=[], help="mix tags", dest="exception_tags")
+    p.add_argument("-e", "--except", nargs='+', default=[], help="tags of files to exempt", dest="exception_tags")
+    p.add_argument("-saft", "--show-all-file-tags", action="store_true")
 
     p.add_argument("-s", "--select", action="store_true", dest="select")
 
