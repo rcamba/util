@@ -30,8 +30,6 @@ screening_dir = join_then_realpath(music_dir, "screen")
 yt_amv_dir = join_then_realpath(alt1_drive, os.sep, user_path, username, "Videos", "ytAMV")
 yt_dls_dir = join_then_realpath(home_dir, "Videos", "ytVids")
 
-tag_files_log_dir = join_then_realpath(file_parent_dir, "logs", "tagFilesLog")
-
 # Files
 # TODO move to APPDATA?
 logs_dir = join_then_realpath(file_parent_dir, "logs")
@@ -346,9 +344,6 @@ def uncompress_backup_file(filename):
 def create_backup(full_filename, backup_dir=None):
     from datetime import datetime
 
-    if backup_dir is None:
-        backup_dir = default_backup_dir
-
     if not os.path.isabs(full_filename):
         full_filename = os.path.realpath(os.path.join(os.getcwd(), full_filename))
 
@@ -357,7 +352,12 @@ def create_backup(full_filename, backup_dir=None):
         filename_and_ext = os.path.split(full_filename)[1]
         filename_only, extension = os.path.splitext(filename_and_ext)
 
-        backup_dir_name = os.path.join(backup_dir, filename_only)
+        if backup_dir is None:
+            backup_dir = default_backup_dir
+            backup_dir_name = os.path.join(backup_dir, filename_only)
+        else:
+            backup_dir_name = backup_dir
+
         if os.path.isdir(backup_dir_name) is False:
             print "Creating new directory: ", backup_dir_name
             os.mkdir(backup_dir_name)
