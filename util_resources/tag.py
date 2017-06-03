@@ -5,10 +5,10 @@ import collections
 import simplejson as json
 
 from root import error_alert, removed_files_log, create_backup, tag_file_log, list_from_piped, \
-    key_press_input, choose_from_list, print_list, invalidated_tag_files_log
+    key_press_input, choose_from_list, print_list, invalidated_tag_files_log, default_backup_dir
 
 
-class Cache:  # caching
+class Cache:
     tag_dict = None
 
     def __init__(self):
@@ -76,15 +76,97 @@ def log_removed_file(tag, filename):
         writer.write('\n')
 
 
+def log_tag_changes(type_of_change, tag, filename):
+    base_tag_file_log = os.path.join(default_backup_dir, os.path.splitext(os.path.split(tag_file_log)[1])[0],
+                                     "base_tag_file.log")
+    tag_file_changes_log = os.path.join(default_backup_dir, os.path.splitext(os.path.split(tag_file_log)[1])[0],
+                                        "tag_file_changes.log")
+
+    if not os.path.exists(base_tag_file_log):
+        print "Creating", base_tag_file_log
+        with open(base_tag_file_log, 'w') as writer:
+            tag_dict_str = json.dumps(load_tag_dict(), indent=2, ensure_ascii=False,
+                                      encoding="utf-8", separators=(',', ': '))
+            writer.write(tag_dict_str.encode("utf-8"))
+
+    if not os.path.exists(tag_file_changes_log):
+        print "Creating", tag_file_changes_log
+        open(tag_file_changes_log, 'w').close()
+
+    with open(tag_file_changes_log, 'a') as writer:
+        if type_of_change == "add":
+            writer.write("+ {t}:{f}".format(t=tag, f=filename))
+        elif type_of_change == "remove":
+            writer.write("- {t}:{f}".format(t=tag, f=filename))
+        writer.write("\n")
+
+
+def parse_change_line_to_tag_dict(line, tag_dict):
+    type_of_change, tag_and_filename = line.split(" ", 1)
+    tag, filename = tag_and_filename.split(":", 1)
+
+    if type_of_change == "+":
+        if tag in tag_dict:
+            tag_dict[tag].append(filename)
+            tag_dict[tag].sort()
+        else:
+            tag_dict[tag] = [filename]
+
+    elif type_of_change == "-":
+        tag_dict[tag].remove(filename)
+        if len(tag_dict[tag]) == 0:
+            del tag_dict[tag]
+
+
+def merge_changes_to_base_tag_file(base_tag_file_log, tag_file_changes_log):
+    print "Merging tag changes log with base file"
+
+    with open(tag_file_changes_log) as reader:
+        change_lines = reader.read().split('\n')
+    with open(base_tag_file_log) as reader:
+        base_tag_dict = json.load(reader, object_pairs_hook=collections.OrderedDict)
+
+    change_lines = [l for l in change_lines if len(l) > 0]
+    for line in change_lines:  # last change won't be written yet, can only validate up to all changes except last
+        parse_change_line_to_tag_dict(line, base_tag_dict)
+
+    # noinspection PyArgumentList
+    base_tag_dict = collections.OrderedDict(sorted(base_tag_dict.items(), key=lambda item: item[0]))
+
+    # validate backup similar to original log file
+    orig_tag_dict = load_tag_dict()
+    if base_tag_dict == orig_tag_dict:
+
+        with open(base_tag_file_log, 'w') as writer:
+            tag_dict_str = json.dumps(base_tag_dict, indent=2, ensure_ascii=False,
+                                      encoding="utf-8", separators=(',', ': '))
+            writer.write(tag_dict_str.encode("utf-8"))
+
+        open(tag_file_changes_log, 'w').close()
+
+        create_backup(base_tag_file_log, backup_dir=os.path.join(default_backup_dir, "tag_file"))
+
+    else:
+        error_alert("Backup contents not similar to original. Merge aborted!")
+
+
 def write_tag_file(tag_dict):
     # noinspection PyArgumentList
     tag_dict = collections.OrderedDict(sorted(tag_dict.items(), key=lambda k: k[0]))
     for tag in tag_dict.keys():
         tag_dict[tag].sort()
-    create_backup(tag_file_log)
     tag_dict_str = json.dumps(tag_dict, indent=2, ensure_ascii=False, encoding="utf-8", separators=(',', ': '))
     with open(tag_file_log, 'w') as writer:
         writer.write(tag_dict_str.encode("utf-8"))
+
+    base_tag_file_log = os.path.join(default_backup_dir, os.path.splitext(os.path.split(tag_file_log)[1])[0],
+                                     "base_tag_file.log")
+    tag_file_changes_log = os.path.join(default_backup_dir, os.path.splitext(os.path.split(tag_file_log)[1])[0],
+                                        "tag_file_changes.log")
+    changes_until_merge = 10
+    with open(tag_file_changes_log) as reader:
+        if len(reader.readlines()) >= changes_until_merge:
+            merge_changes_to_base_tag_file(base_tag_file_log, tag_file_changes_log)
 
 
 def add_tags(tag_list, filename, verbose=False):
@@ -103,9 +185,11 @@ def add_tags(tag_list, filename, verbose=False):
         if tag not in tag_dict:
             print "Creating new tag:", tag
             tag_dict[tag] = [filename]
+            log_tag_changes("add", tag, filename)
         elif filename not in tag_dict[tag]:
             tag_dict[tag].append(filename)
             appended_list.append(tag)
+            log_tag_changes("add", tag, filename)
         else:
             error_alert(filename + " is already in tag: " + tag)
 
@@ -138,6 +222,7 @@ def remove_file_from_tags(tag_list, fname, verbose=True):
     for tag in tag_list:
         tag = tag.strip().lower()
         if fname in tag_dict[tag]:
+            log_tag_changes("remove", tag, fname)
             if verbose:
                 print "Removed {f} from {t}".format(f=fname.encode("unicode_escape"), t=tag)
             log_removed_file(fname, tag)
