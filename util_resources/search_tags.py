@@ -96,11 +96,11 @@ def parse_args(p):
     return args_
 
 
-def search_partial_match(partial_tag_str, exception_tags_list):
-    tag = get_tag_by_partial_match(partial_tag_str)
+def search_partial_match(partial_tag_str_list, exception_tags_list):
+    tag = get_tag_by_partial_match(partial_tag_str_list)
 
     if tag is None:
-        raise Exception("No tag found matching: " + partial_tag_str)
+        raise Exception("No tag found matching: " + ", ".join(partial_tag_str_list))
 
     file_list = get_files_from_tags(tag)
 
@@ -163,7 +163,7 @@ def do_search(parser):
             print ", ".join(tag_list)
 
     elif loc_args.partial_match:
-        search_partial_match(loc_args.tags[0], loc_args.exception_tags)
+        search_partial_match(loc_args.tags, loc_args.exception_tags)
 
     elif len(loc_args.tags) > 0:
         search_tags(loc_args.tags, loc_args.exception_tags)

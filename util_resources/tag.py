@@ -290,12 +290,12 @@ def get_mixed_files_from_tags(tag_list):  # for prand + search
     return mixed_files
 
 
-def get_tag_by_partial_match(partial_tag_match):
+def get_tag_by_partial_match(partial_tag_match_list):
     tag_dict = load_tag_dict()
     possible_matches = []
     for tag in tag_dict.keys():
         tag = tag.strip().lower()
-        if partial_tag_match.lower() in tag:
+        if all([pt.lower() in tag for pt in partial_tag_match_list]):
             possible_matches.append(tag)
 
     choice = None
