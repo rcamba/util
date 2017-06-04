@@ -225,7 +225,6 @@ def remove_file_from_tags(tag_list, fname, verbose=True):
             log_tag_changes("remove", tag, fname)
             if verbose:
                 print "Removed {f} from {t}".format(f=fname.encode("unicode_escape"), t=tag)
-            log_removed_file(fname, tag)
 
             tag_dict[tag].remove(fname)
             if len(tag_dict[tag]) == 0:
@@ -233,7 +232,7 @@ def remove_file_from_tags(tag_list, fname, verbose=True):
                 del tag_dict[tag]
         else:
             error_alert("Tag: " + tag + " doesn't have filename: " + fname)
-
+    log_removed_file(fname, ", ".join(tag_list))
     write_tag_file(tag_dict)
 
 
