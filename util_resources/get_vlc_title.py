@@ -83,6 +83,7 @@ def path_from_hwnd(vlc_hwnd):
         "%20": " ",
         "%21": "!",
         "%23": "#",
+        "%24": "$",
         "%25": "%",
         "%26": "&",
         "%28": "(",
@@ -94,6 +95,8 @@ def path_from_hwnd(vlc_hwnd):
         "%2B": "+",
         "%2C": ",",
         "%5E": "^",
+        "%3B": ";",
+        "%60": "`"
     }
 
     for key in translation_dict.keys():
