@@ -1,10 +1,12 @@
 import argparse
 import json
 import os
+import io
 import time
 import random
 import subprocess
 import urllib2
+import clean_filenames
 
 from root import screening_dir, music_dir, get_all_page_links, \
     yt_dls_dir, yt_amv_dir, output_from_command, error_alert, deleted_screened_log, yt_dl_defaults_log, home_dir, \
@@ -19,7 +21,7 @@ def get_dry_title(vid_link):
     yt_dl_opts = "--quiet --simulate --get-title --get-id --restrict-filenames ".split()
     title_cmd = [YT_DL_PROG, vid_link] + yt_dl_opts
     title = output_from_command(title_cmd).replace("\n", "-")
-    return title
+    return title.decode("unicode_escape")
 
 
 def get_vid_list(links_list):
@@ -87,10 +89,12 @@ def parse_yt_links(page_links):
 
 def already_downloaded(title, targ_dir):
     ret_val = False
-    f_list = [os.path.splitext(f)[0].lower() for f in os.listdir(targ_dir)]
-    yt_dled_music_list = open(yt_dled_log).read().split('\n')
-    screened_music_list = open(deleted_screened_log).read().split('\n')
-    t = os.path.splitext(title)[0].lower()
+    f_list = [os.path.splitext(f)[0].lower() for f in os.listdir(unicode(targ_dir))]
+
+    yt_dled_music_list = [y.lower() for y in io.open(yt_dled_log, encoding="utf-8").read().split('\n')]
+    screened_music_list = [s.lower() for s in io.open(deleted_screened_log, encoding="utf-8").read().split('\n')]
+
+    t = title.lower()
     if t in f_list or t in yt_dled_music_list or t in screened_music_list:
         ret_val = True
     return ret_val
@@ -98,17 +102,18 @@ def already_downloaded(title, targ_dir):
 
 def log_dled_song(title):
     print "Logging:", title
-    with open(yt_dled_log, 'a') as writer:
+    with io.open(yt_dled_log, 'a', encoding="utf-8") as writer:
         writer.write(title)
-        writer.write('\n')
+        writer.write(u'\n')
 
 
 def dl_single_song(vid_link, target_dir):
     yt_dl_opts = ("--quiet --no-mtime --audio-format best --audio-quality 0 --no-overwrites " +
                   "--extract-audio --output").split()
     title = get_dry_title(vid_link)
+    title = unicode(clean_filenames.clean_string(title))
     yt_dl_output_file = "{td}\\{t}.%(ext)s".format(
-        td=target_dir, t=title)
+        td=target_dir, t=title.encode("mbcs"))  # prev sys.getfilesystemencoding()
 
     dl_music_cmd = [YT_DL_PROG, vid_link] + yt_dl_opts + [yt_dl_output_file]
     if len(title) > 0:
@@ -208,5 +213,3 @@ if __name__ == "__main__":
             dl_multi_song([vid_link_])
         else:
             dl_multi_song()
-
-
