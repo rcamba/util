@@ -108,13 +108,22 @@ def check_hash_in_dir(directory_, hash_algorithm="crc32"):
     f_list = [os.path.join(directory_, f) for f in os.listdir(directory_)]
     all_matched = True
     for f in f_list:
-        expected_hash = re.findall("\[\w+\]", f)[-1].lower().replace("[", "").replace("]", "")
+
         hash_value = get_hash_value(f, hash_algorithm)
-        match = get_match_str(hash_value, expected_hash)
-        if all_matched and hash_value != expected_hash:
-            all_matched = False
+
+        sq_bracket_list = re.findall("\[\w+\]", os.path.split(f)[1])
+        if len(sq_bracket_list) > 0:
+            expected_hash = sq_bracket_list[-1].lower().replace("[", "").replace("]", "")
+            match_str = get_match_str(hash_value, expected_hash)
+            if all_matched and hash_value != expected_hash:
+                all_matched = False
+
+        else:
+            match_str = ""
+            all_matched = "N/A"
+
         print "{f}, {ha}: {hv}{m}".format(f=os.path.split(f)[1],
-                                         ha=hash_algorithm.upper(), hv=hash_value.upper(), m=match)
+                                          ha=hash_algorithm.upper(), hv=hash_value.upper(), m=match_str)
 
     print "All matched:", all_matched
 
