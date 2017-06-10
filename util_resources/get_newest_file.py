@@ -53,6 +53,7 @@ def select_item_from_files(f_list_, numbered_index):
 
 
 def present_result(f_list_, display_full_filepath):
+    f_list_ = [path.realpath(f) for f in f_list_]
     if args.list_files is not None or args.select_file is not None:
         if args.list_files == -1:
             if len(args.targ_words) > 0:
