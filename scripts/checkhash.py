@@ -81,10 +81,9 @@ def get_hash_value(fname, hash_algorithm):
                 hash_func.update(chunk)
 
                 curr_pct = int((total_processed / file_size) * 100)
-                if curr_pct % 5 == 0 and prev_pct != curr_pct:
+                if prev_pct != curr_pct:
                     prev_pct = curr_pct
                     update_pct(str(curr_pct) + "%")
-        sys.stdout.write("\b" * 4)
         checksum = hash_func.hexdigest()
 
     else:
@@ -97,11 +96,8 @@ def get_hash_value(fname, hash_algorithm):
 
 def update_pct(w_str):
     w_str = str(w_str)
-    sys.stdout.write("\b" * len(w_str))
-    sys.stdout.write(" " * len(w_str))
-    sys.stdout.write("\b" * len(w_str))
-    sys.stdout.write(w_str)
-    sys.stdout.flush()
+    print " " * len(w_str) + "\r",
+    print w_str + "\r",
 
 
 def check_hash_in_dir(directory_, hash_algorithm="crc32"):
