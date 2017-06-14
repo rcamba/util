@@ -137,7 +137,7 @@ def get_match_str(hash_value, expected_hash_value):
 if __name__ == "__main__":
     import time
     s = time.time()
-    hash_algorithm_ = "MD5"  # default
+    hash_algorithm_ = "CRC32"  # default
     expected_hash_value_ = None
 
     if len(sys.argv) == 1 or any(map(lambda arg: "help" in arg, sys.argv)) or len(sys.argv) > 4:
@@ -161,6 +161,10 @@ if __name__ == "__main__":
 
         fname_ = sys.argv[1]
         hash_value_ = get_hash_value(fname_, hash_algorithm_)
+        if expected_hash_value_ is None:
+            sq_bracket_list = re.findall("\[\w+\]", os.path.split(fname_)[1])
+            if len(sq_bracket_list) > 0:
+                expected_hash_value_ = sq_bracket_list[-1].lower().replace("[", "").replace("]", "")
         match_ = get_match_str(hash_value_, expected_hash_value_)
 
         print "{ha}: {hv}{m}".format(ha=hash_algorithm_.upper(), hv=hash_value_.upper(), m=match_)
