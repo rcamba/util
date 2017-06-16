@@ -134,7 +134,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("tags", type=str, nargs='*', help="tags split by comma")
 
-    parser.add_argument("-n", "--num", type=int, default=30, help="number of songs to play", dest="num_of_songs")
+    parser.add_argument("-n", "--num", type=int, default=20, help="number of songs to play", dest="num_of_songs")
     parser.add_argument("-m", "--mix", action="store_true", help="mix tags", dest="mix_tags")
     parser.add_argument("-e", "--except", nargs='+', default=[], help="mix tags", dest="exception_tags")
     parser.add_argument("-v", "--verbose", action="store_true", help="display play count info")
