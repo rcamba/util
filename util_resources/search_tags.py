@@ -123,7 +123,7 @@ def search_tags_for_file(filename):
 def search_for_song_playcount(song_filename):
     with open(song_log_file) as reader:
         song_log_dict = load(reader)
-    song_filename = song_filename.replace("\"", "").strip()
+    song_filename = song_filename.replace("\"", "").strip().lower()
     if song_filename in song_log_dict:
         play_count = song_log_dict[song_filename]["play_count"]
     else:
