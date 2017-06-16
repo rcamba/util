@@ -2,11 +2,11 @@ import os
 import sys
 import json
 import time
+import psutil
 import subprocess
+
 import win32gui
-
-
-from root import strack_log, keyboard_type, get_hwnds_for_pid
+from root import strack_log, keyboard_type, get_hwnds_for_pid, print_list, choose_from_list, get_media_player_path
 
 
 def load_series_dict():
@@ -34,14 +34,12 @@ def add_to_series_dict(series_path):
         print "{} has already been added".format(series_path)
 
 
-def get_media_player_path():
-    vlc_exe_path = os.path.join(os.getenv("PROGRAMFILES"), "VideoLAN", "VLC", "vlc.exe")
-    if not os.path.isfile(vlc_exe_path):
-        vlc_exe_path = os.path.join(os.getenv("PROGRAMFILES(x86)"), "VideoLAN", "VLC", "vlc.exe")
-    if not os.path.isfile(vlc_exe_path):
-        raise IOError("VLC player not found")
-
-    return vlc_exe_path
+def get_vlc_pid():
+    proc_id = -1
+    for proc in psutil.process_iter():
+        if proc.name() == "vlc.exe":
+            proc_id = proc.pid
+    return proc_id
 
 
 def play_series(series_dict, series_path):
@@ -54,26 +52,31 @@ def play_series(series_dict, series_path):
     user_input = next_key_press
     valid_inputs = [next_key_press, quit_key_press]
     first_run = True
+    proc_pid = get_vlc_pid()
     vlc_opts = "--one-instance"
     while user_input != quit_key_press and series_path in series_dict:
         if user_input == next_key_press:
             play_now = series_dict[series_path].pop(0)
             print play_now
             if first_run:
-                proc = subprocess.Popen([get_media_player_path(), vlc_opts,
-                                         os.path.join(series_path, play_now)])
-                while len(get_hwnds_for_pid(proc.pid)) == 0:
-                    time.sleep(1)
+                if proc_pid == -1:  # vlc not yet open
+                    proc = subprocess.Popen([get_media_player_path(), vlc_opts,
+                                             os.path.join(series_path, play_now)])
+                    proc_pid = proc.pid
 
-                keyboard_type("f", proc.pid)  # fullscreen
+                while len(get_hwnds_for_pid(proc_pid)) == 0:
+                    time.sleep(0.5)
+
+                keyboard_type("f", proc_pid)  # fullscreen
 
             else:
                 subprocess.Popen([get_media_player_path(), vlc_opts,
                                   os.path.join(series_path, play_now)])
+                time.sleep(0.5)  # wait for fname to be added to queue
 
                 # noinspection PyUnboundLocalVariable
                 win32gui.SetForegroundWindow(get_hwnds_for_pid(proc.pid)[0])
-                keyboard_type("n", proc.pid)  # fullscreen
+                keyboard_type("n", proc_pid)
 
             if len(series_dict[series_path]) == 0:
                 del series_dict[series_path]
@@ -101,11 +104,9 @@ if __name__ == "__main__":
     elif len(sys.argv) == 1:
         s_dict = load_series_dict()
         s_list = s_dict.keys()
-        for s in s_list:
-            print "[ {i} ] {f}".format(i=s_list.index(s) + 1, f=s)
         if len(s_list) > 0:
-            str_choice = raw_input("\nEnter number:")
-            choice = s_list[int(str_choice) - 1]
+            print_list(s_list)
+            choice = choose_from_list(s_list)
             play_series(s_dict, choice)
         else:
             print "No series added"
