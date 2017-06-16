@@ -1,6 +1,7 @@
 from msvcrt import kbhit, getch
 from sys import stdout
 from datetime import datetime
+from root import print_colored
 
 
 def wait_for_keypress():
@@ -34,13 +35,18 @@ def print_time(init_time):
 
 
 def main():
+    start_prompt = "Press any key to START the timer"
+    stdout.write(start_prompt)
 
-    print "Press any key to START the timer"
     wait_for_keypress()
 
     init_time = datetime.now()
 
-    print "Press any key to STOP the timer"
+    stdout.write("\r" + len(start_prompt) * " " + "\r")
+    stdout.write("Press any key to ")
+    print_colored("STOP", "red")
+    stdout.write(" the timer\n")
+
     print_time(init_time)
 
 
