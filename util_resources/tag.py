@@ -34,6 +34,7 @@ def validate_tag_dict_files(tag_dict):
                     tag_dict[tag].remove(f)
                     removed_from_tags.append(tag)
                     changes_made = True
+                    log_tag_changes("remove", tag, f)
                 if len(tag_dict[tag]) == 0:
                     print "Empty files list for: " + tag + "; Removing from tags"
                     del tag_dict[tag]
@@ -163,7 +164,7 @@ def write_tag_file(tag_dict):
                                      "base_tag_file.log")
     tag_file_changes_log = os.path.join(default_backup_dir, os.path.splitext(os.path.split(tag_file_log)[1])[0],
                                         "tag_file_changes.log")
-    changes_until_merge = 10
+    changes_until_merge = 20
     with open(tag_file_changes_log) as reader:
         if len(reader.readlines()) >= changes_until_merge:
             merge_changes_to_base_tag_file(base_tag_file_log, tag_file_changes_log)
