@@ -9,8 +9,8 @@ Create/Append user environment variables
 var_name: var_value
 
 PYTHONPATH: Util\util_resources;
-PATH: C:\Users\Kevin\Util\scripts;
-Util: C:\Users\Kevin\Util
+PATH: Util\scripts;
+Util: Util
 """
 
 
