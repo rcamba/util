@@ -65,11 +65,12 @@ def clean_file_names(directory):
 
     changes_dict = {}
 
-    for f in file_list:
-        cleaned = clean_string(f, not args.dry_run)
-
-        if f != cleaned:
-            changes_dict[f] = cleaned
+    for file_ in file_list:
+        fname, ext = path.splitext(file_)
+        cleaned_fname = clean_string(fname, not args.dry_run)
+        cleaned_file = cleaned_fname + ext
+        if file_ != cleaned_file:
+            changes_dict[file_] = cleaned_file
 
     return changes_dict
 
@@ -107,6 +108,7 @@ def clean_chars(partial_clean_str):
     cleaned = cleaned.replace(" ]", "]")
     cleaned = cleaned.replace("]", "] ")
 
+    cleaned = cleaned.strip()
     while "  " in cleaned:
         cleaned = cleaned.replace("  ", " ")
 
