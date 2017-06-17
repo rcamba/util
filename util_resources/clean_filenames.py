@@ -105,6 +105,7 @@ def clean_chars(partial_clean_str):
     cleaned = cleaned.replace(" )", ")")
     cleaned = cleaned.replace("[ ", "[")
     cleaned = cleaned.replace(" ]", "]")
+    cleaned = cleaned.replace("]", "] ")
 
     while "  " in cleaned:
         cleaned = cleaned.replace("  ", " ")

@@ -6,10 +6,13 @@ import time
 import random
 import subprocess
 import urllib2
+
+import requests
 import clean_filenames
 
+from bs4 import BeautifulSoup
 from root import screening_dir, music_dir, get_all_page_links, \
-    yt_dls_dir, yt_amv_dir, output_from_command, error_alert, deleted_screened_log, yt_dl_defaults_log, home_dir, \
+    yt_dls_dir, yt_amv_dir, error_alert, deleted_screened_log, yt_dl_defaults_log, home_dir, \
     yt_dled_log
 
 
@@ -17,11 +20,13 @@ MAX_TRIES = 10
 YT_DL_PROG = os.path.join(home_dir, "Downloads", "youtube-dl.exe")
 
 
-def get_dry_title(vid_link):
-    yt_dl_opts = "--quiet --simulate --get-title --get-id --restrict-filenames ".split()
-    title_cmd = [YT_DL_PROG, vid_link] + yt_dl_opts
-    title = output_from_command(title_cmd).replace("\n", "-")
-    return title.decode("unicode_escape")
+def get_vid_file_title(vid_link):
+    content = requests.get(vid_link).text
+    soup = BeautifulSoup(content)
+    cleaned_title = clean_filenames.clean_string(soup.title.string[:-len(" - YouTube")])
+    vid_id = vid_link[vid_link.rindex("=") + 1:]
+    file_title = "{t} {id}".format(t=cleaned_title, id=vid_id)
+    return file_title
 
 
 def get_vid_list(links_list):
@@ -110,8 +115,8 @@ def log_dled_song(title):
 def dl_single_song(vid_link, target_dir):
     yt_dl_opts = ("--quiet --no-mtime --audio-format best --audio-quality 0 --no-overwrites " +
                   "--extract-audio --output").split()
-    title = get_dry_title(vid_link)
-    title = unicode(clean_filenames.clean_string(title))
+    title = get_vid_file_title(vid_link)
+
     yt_dl_output_file = "{td}\\{t}.%(ext)s".format(
         td=target_dir, t=title.encode("mbcs"))  # prev sys.getfilesystemencoding()
 
@@ -155,7 +160,7 @@ def dl_single_video(vid_link, target_dir):
 
     dl_vid_cmd = [YT_DL_PROG, vid_link] + yt_dl_opts + [yt_dl_output_file]
 
-    title = get_dry_title(vid_link)
+    title = get_vid_file_title(vid_link)
     print "Downloading:", title
 
     proc = subprocess.Popen(dl_vid_cmd)
