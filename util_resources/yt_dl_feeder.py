@@ -20,13 +20,11 @@ MAX_TRIES = 10
 YT_DL_PROG = os.path.join(home_dir, "Downloads", "youtube-dl.exe")
 
 
-def get_vid_file_title(vid_link):
+def get_vid_title(vid_link):
     content = requests.get(vid_link).text
     soup = BeautifulSoup(content)
-    cleaned_title = clean_filenames.clean_string(soup.title.string[:-len(" - YouTube")])
-    vid_id = vid_link[vid_link.rindex("=") + 1:]
-    file_title = "{t} {id}".format(t=cleaned_title, id=vid_id)
-    return file_title
+    vid_title = soup.title.string[:-len(" - YouTube")]
+    return vid_title
 
 
 def get_vid_list(links_list):
@@ -106,7 +104,6 @@ def already_downloaded(title, targ_dir):
 
 
 def log_dled_song(title):
-    print "Logging:", title
     with io.open(yt_dled_log, 'a', encoding="utf-8") as writer:
         writer.write(title)
         writer.write(u'\n')
@@ -115,23 +112,26 @@ def log_dled_song(title):
 def dl_single_song(vid_link, target_dir):
     yt_dl_opts = ("--quiet --no-mtime --audio-format best --audio-quality 0 --no-overwrites " +
                   "--extract-audio --output").split()
-    title = get_vid_file_title(vid_link)
+    vid_title = get_vid_title(vid_link)
+    cleaned_vid_title = clean_filenames.clean_string(vid_title)
+    vid_id = vid_link[vid_link.rindex("=") + 1:]
+
+    file_title = "{t} {id}".format(t=cleaned_vid_title, id=vid_id)
+    log_title = u"{t} {id}".format(t=vid_title, id=vid_id)
 
     yt_dl_output_file = "{td}\\{t}.%(ext)s".format(
-        td=target_dir, t=title.encode("mbcs"))  # prev sys.getfilesystemencoding()
+        td=target_dir, t=file_title.encode("mbcs"))  # prev sys.getfilesystemencoding()
 
     dl_music_cmd = [YT_DL_PROG, vid_link] + yt_dl_opts + [yt_dl_output_file]
-    if len(title) > 0:
-        if not already_downloaded(title, music_dir):
-            print "\nDownloading:", title
-            proc = subprocess.Popen(dl_music_cmd)
-            proc.wait()
-            log_dled_song(title)
 
-        else:
-            error_alert(title + " already downloaded")
+    if not already_downloaded(log_title, music_dir):
+        print "Downloading:", file_title, "\n"
+        proc = subprocess.Popen(dl_music_cmd)
+        proc.wait()
+        log_dled_song(log_title)
+
     else:
-        error_alert("Empty title for " + vid_link)
+        error_alert(file_title + " already downloaded")
 
 
 def load_default_multi_song_links():
@@ -160,7 +160,7 @@ def dl_single_video(vid_link, target_dir):
 
     dl_vid_cmd = [YT_DL_PROG, vid_link] + yt_dl_opts + [yt_dl_output_file]
 
-    title = get_vid_file_title(vid_link)
+    title = get_vid_title(vid_link)
     print "Downloading:", title
 
     proc = subprocess.Popen(dl_vid_cmd)
