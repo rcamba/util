@@ -119,6 +119,8 @@ def dl_single_song(vid_link, target_dir):
     file_title = "{t} {id}".format(t=cleaned_vid_title, id=vid_id)
     log_title = u"{t} {id}".format(t=vid_title, id=vid_id)
 
+    clean_filenames.append_line_to_log(log_title.encode("utf-8") + ": " + file_title)
+
     yt_dl_output_file = "{td}\\{t}.%(ext)s".format(
         td=target_dir, t=file_title.encode("mbcs"))  # prev sys.getfilesystemencoding()
 

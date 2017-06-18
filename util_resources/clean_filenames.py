@@ -28,7 +28,7 @@ def _undo_rename(cleaned_targ_fname):
                                verbose=True, allow_empty_tags=True)
 
 
-def write_line_to_log(line):
+def append_line_to_log(line):
     with open(cleaned_fnames_log, 'a') as writer:
         writer.write(line)
         writer.write("\n")
@@ -121,7 +121,7 @@ def clean_string(dirty_str, log_warnings=False):
         untranslated_warn_msg = "Untranslated unicode character found in " + kanji_cleaned_str
         error_alert(untranslated_warn_msg)
         if log_warnings:
-            write_line_to_log(untranslated_warn_msg)
+            append_line_to_log(untranslated_warn_msg)
 
     cleaned = clean_chars(kanji_cleaned_str)
 
@@ -134,7 +134,7 @@ def clean_string(dirty_str, log_warnings=False):
                              " only consists of invalid characters. Cannot be cleaned."
         error_alert(all_inval_warn_msg)
         if log_warnings:
-            write_line_to_log(all_inval_warn_msg)
+            append_line_to_log(all_inval_warn_msg)
         result = dirty_str
 
     return result
@@ -152,7 +152,7 @@ def rename_files(changes_dict, directory):
                     tag_rename(orig_name, new_name)
                 else:
                     rename(orig_name, new_name)
-                writer.write(key.encode('utf8') + ": " + changes_dict[key])
+                writer.write(key.encode('utf-8') + ": " + changes_dict[key])
                 writer.write("\n")
 
             except WindowsError, e:
