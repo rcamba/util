@@ -247,7 +247,7 @@ def get_files_from_tags(tag_list):  # str or list
     for tag in tag_list:
         tag = tag.strip().lower()
         if tag in tag_dict:
-            if len(file_list) == 0:
+            if tag_list.index(tag) == 0:
                 file_list = copy.deepcopy(tag_dict[tag])
             else:
                 file_list = list(set(file_list).intersection(
@@ -287,7 +287,7 @@ def get_mixed_files_from_tags(tag_list):  # for prand + search
         else:
             error_alert("Tag doesn't exist: " + tag, raise_exception=True, err_class=TagException)
 
-    mixed_files = set(mixed_files)
+    mixed_files = list(set(mixed_files))
     return mixed_files
 
 
