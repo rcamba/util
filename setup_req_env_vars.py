@@ -137,7 +137,7 @@ if __name__ == "__main__":
     path_to_module = os.path.dirname(__file__)
 
     pypath_env_name = "PYTHONPATH"
-    pypath_env_path = os.path.realpath(os.path.join(path_to_module, "util_resources"))
+    pypath_env_path = os.path.realpath(os.path.join(path_to_module, "resources"))
     start_setting_env_var(pypath_env_name, pypath_env_path)
 
     util_env_name = "Util"

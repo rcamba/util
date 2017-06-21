@@ -7,4 +7,4 @@ from os import system
 
 if __name__ == "__main__":
     stringArgs = " ".join(map(str, argv[1:]))
-    system("".join(["%Util%/util_resources/prandom.py ", stringArgs]))
+    system("".join(["%Util%/resources/prandom.py ", stringArgs]))
