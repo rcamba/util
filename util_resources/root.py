@@ -514,8 +514,6 @@ def get_pid_from_name(targ_proc_name):
 
 def resize_window(targ_proc, width, height, relative=False):
     from win32gui import MoveWindow, GetWindowRect
-    # noinspection PyUnresolvedReferences
-    from pywintypes import error as pywintypes_error
 
     if isinstance(targ_proc, int) or (isinstance(targ_proc, str) and targ_proc.isdigit()):
         hwnd = get_hwnds_for_pid(int(targ_proc))[0]
@@ -537,9 +535,6 @@ def resize_window(targ_proc, width, height, relative=False):
 
 def move_window(targ_proc, x, y, relative=False):
     from win32gui import MoveWindow, GetWindowRect
-
-    # noinspection PyUnresolvedReferences
-    from pywintypes import error as pywintypes_error
 
     if isinstance(targ_proc, int) or (isinstance(targ_proc, str) and targ_proc.isdigit()):
         hwnd = get_hwnds_for_pid(int(targ_proc))[0]

@@ -64,4 +64,3 @@ if __name__ == "__main__":
 
     elif args.filename is not None:
         remove_tags_from_filename(args.filename.strip())
-

@@ -19,9 +19,8 @@ getpos() -- returns mouse x/y coordinates (in pixels)
 slide(x,y) -- slides mouse to x/y coodinates (in pixels)
               also supports optional speed='slow', speed='fast'
 """
-
-from ctypes import *
-from ctypes.wintypes import *
+from _ctypes import Structure, POINTER, Union, byref, sizeof, pointer
+from ctypes import c_ulong, c_ushort, c_short, c_long, windll
 from time import sleep
 from argparse import ArgumentParser
 
@@ -58,7 +57,7 @@ class MouseInput(Structure):
                 ("dwExtraInfo", PUL)]
 
 
-class Input_I(Union):
+class InputI(Union):
     _fields_ = [("ki", KeyBdInput),
                 ("mi", MouseInput),
                 ("hi", HardwareInput)]
@@ -66,7 +65,7 @@ class Input_I(Union):
 
 class Input(Structure):
     _fields_ = [("type", c_ulong),
-                ("ii", Input_I)]
+                ("ii", InputI)]
 
 
 class POINT(Structure):
@@ -94,12 +93,12 @@ RIGHTUP = 0x00000010
 FInputs = Input * 2
 extra = c_ulong(0)
 
-click = Input_I()
+click = InputI()
 click.mi = MouseInput(0, 0, 0, 2, 0, pointer(extra))
-release = Input_I()
+release = InputI()
 release.mi = MouseInput(0, 0, 0, 4, 0, pointer(extra))
 
-x = FInputs((0, click), (0, release))
+x1 = FInputs((0, click), (0, release))
 
 x2 = FInputs((0, click))
 
@@ -147,7 +146,7 @@ def slide(a, b, speed=0):
 
 
 def click():
-    windll.user32.SendInput(2, pointer(x), sizeof(x[0]))
+    windll.user32.SendInput(2, pointer(x1), sizeof(x1[0]))
 
 
 def hold():
