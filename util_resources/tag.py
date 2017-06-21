@@ -183,11 +183,10 @@ def write_tag_file(tag_dict):
 
 def add_tags(tag_list, filename, verbose=False):
     if not os.path.isabs(filename):
-        error_alert("{f} must be in absolute full file path".format(f=filename),
-                    raise_exception=True, err_class=TagException)
+        raise TagException("{f} must be in absolute full file path".format(f=filename))
 
     if not os.path.isfile(filename):
-        error_alert(filename + " is not a valid file", raise_exception=True, err_class=IOError)
+        raise IOError(filename + " is not a valid file")
 
     tag_dict = load_tag_dict()
     filename = os.path.normpath(filename.lower())
@@ -264,7 +263,7 @@ def get_files_from_tags(tag_list):  # str or list
                 file_list = list(set(file_list).intersection(
                     copy.deepcopy(tag_dict[tag])))
         else:
-            error_alert("Tag: {t} not found ".format(t=tag), raise_exception=True, err_class=TagException)
+            raise TagException("Tag: {t} not found ".format(t=tag))
 
     file_list.sort()
     return file_list
@@ -279,7 +278,7 @@ def get_tags_for_file(filename=None):
         tags = []
         filename = os.path.normpath(filename.lower())
         if not os.path.isfile(filename):
-            error_alert(filename + " is not a valid file", raise_exception=True, err_class=IOError)
+            raise IOError(filename + " is not a valid file")
 
         for tag in tag_dict.keys():
             if filename in tag_dict[tag]:
@@ -296,7 +295,7 @@ def get_mixed_files_from_tags(tag_list):  # for prand + search
         if tag in tag_dict:
             mixed_files.extend(copy.deepcopy(tag_dict[tag]))
         else:
-            error_alert("Tag doesn't exist: " + tag, raise_exception=True, err_class=TagException)
+            raise TagException("Tag doesn't exist: " + tag)
 
     mixed_files = list(set(mixed_files))
     return mixed_files

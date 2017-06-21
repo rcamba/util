@@ -6,8 +6,8 @@ if __name__ == "__main__":
 
     cData = get_clipboard_data()
 
-    if len(argv) > 1 and "-q" == argv[1]: # add config option for extra string before text or maybe something like regex pattern
-        keyboard_type("remote_client.py -qbit \"")
+    if len(argv) > 1 and "-q" == argv[1]:
+        keyboard_type("remote_client.py -rc gat \"")
         keyboard_type(cData)
         keyboard_type("\"")
 

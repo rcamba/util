@@ -83,7 +83,7 @@ def handle_tagging(screen_fname):
 
     except Shutil_error:
         error_alert(("{m} already exists in music directory." +
-                    "\nDeleting {m}").format(m=screen_fname))
+                     "\nDeleting {m}").format(m=screen_fname))
         handle_delete(screen_fname)
 
 
@@ -96,9 +96,8 @@ def handle_delete(music_filename):
         log_deleted_song(music_filename)
 
     except OSError, e:
-        error_alert(
-            "Failed to delete file {}. No changes have been made.".format(
-                music_filename))
+        error_alert("Failed to delete file {}. No changes have been made.".format(
+            music_filename))
         print e.message
         raise
 
@@ -111,9 +110,8 @@ def handle_keep(music_filename):
         print "Moving complete\n"
 
     except Shutil_error:
-        error_alert(
-            "{m} already exists in music directory.\nDeleting {m}".format(
-                m=music_filename))
+        error_alert("{m} already exists in music directory.\nDeleting {m}".format(
+            m=music_filename))
         handle_delete(music_filename)
 
 

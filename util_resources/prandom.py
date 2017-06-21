@@ -38,7 +38,7 @@ def get_song_list_from_tag(tag_list, mix_tags=False):
         song_list = tag.get_files_from_tags(tag_list)
 
     if len(song_list) == 0:
-        root.error_alert("No file list available for given tag(s)", raise_exception=True)
+        raise ValueError("No file list available for given tag(s)")
 
     return song_list
 

@@ -159,7 +159,7 @@ def rename_files(changes_dict, directory):
                 error_alert("Unable to rename " + key.encode("unicode_escape") + " in to " +
                             changes_dict[key].encode("unicode_escape") + ". Stopping program." +
                             "\n" + str(e))
-                sys_exit(1)
+                raise
     print ""  # newline for messages after stdout_write
 
 

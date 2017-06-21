@@ -183,7 +183,7 @@ def choose_from_list(list_):
     return result
 
 
-def list_from_piped(stdin_output):
+def list_from_piped(stdin_output):  # TODO rename?
     import re
 
     if isinstance(stdin_output, list):
@@ -194,7 +194,7 @@ def list_from_piped(stdin_output):
     list_of_items = re.findall(list_item_pattern, stdin_output)
     piped_list_ = [re.sub(number_brace_removal_pattern, "", item) for item in list_of_items]
     if len(piped_list_) == 0:
-        error_alert("Cannot convert piped output in to list", raise_exception=True)
+        raise ValueError("Cannot convert piped output in to list")
 
     final_list = [x.replace('\"', '') for x in piped_list_]
     return final_list
@@ -341,8 +341,7 @@ def uncompress_backup_file(filename):
     import shutil
 
     if not os.path.splitext(filename)[1] == default_backup_ext:
-        error_alert("Not a valid backup file. {ext} extension required".format(ext=default_backup_ext),
-                    raise_exception=True, err_class=IOError)
+        raise IOError("Not a valid backup file. {ext} extension required".format(ext=default_backup_ext))
 
     uncompressed_fname = filename[:-len(default_backup_ext)]
     with gzip.open(filename, 'rb') as f_in, open(uncompressed_fname, 'wb') as f_out:
@@ -513,14 +512,17 @@ def get_pid_from_name(targ_proc_name):
     return result_pid
 
 
-def resize_window(proc_name, width, height, relative=False):
+def resize_window(targ_proc, width, height, relative=False):
     from win32gui import MoveWindow, GetWindowRect
     # noinspection PyUnresolvedReferences
     from pywintypes import error as pywintypes_error
 
-    hwnd = get_main_handle(proc_name)
-    rect = GetWindowRect(hwnd)
+    if isinstance(targ_proc, int) or (isinstance(targ_proc, str) and targ_proc.isdigit()):
+        hwnd = get_hwnds_for_pid(int(targ_proc))[0]
+    else:
+        hwnd = get_main_handle(targ_proc)
 
+    rect = GetWindowRect(hwnd)
     x = rect[0]
     y = rect[1]
 
@@ -533,13 +535,17 @@ def resize_window(proc_name, width, height, relative=False):
     MoveWindow(hwnd, x, y, width, height, True)
 
 
-def move_window(proc_name, x, y, relative=False):
+def move_window(targ_proc, x, y, relative=False):
     from win32gui import MoveWindow, GetWindowRect
 
     # noinspection PyUnresolvedReferences
     from pywintypes import error as pywintypes_error
 
-    hwnd = get_main_handle(proc_name)
+    if isinstance(targ_proc, int) or (isinstance(targ_proc, str) and targ_proc.isdigit()):
+        hwnd = get_hwnds_for_pid(int(targ_proc))[0]
+    else:
+        hwnd = get_main_handle(targ_proc)
+
     rect = GetWindowRect(hwnd)
 
     width = rect[2] - rect[0]
@@ -585,7 +591,7 @@ def keyboard_type(keystrokes, targ_proc=None):
 
     from win32com import client
 
-    dict_mapping = {"~": "{~}", "!": "{!}", "+": "{+}", "(": "{(}", ")": "{)}"}
+    dict_mapping = {"~": "{~}", "!": "{!}", "+": "{+}", "(": "{(}", ")": "{)}", "%": "{%}"}
     for key in dict_mapping.keys():
         keystrokes = keystrokes.replace(key, dict_mapping[key])
 
@@ -712,18 +718,8 @@ def print_colored(text, color):
         set_console_color(orig_color)
 
 
-def error_alert(msg="", raise_exception=False, err_class=None):
-    # raising exception won't color... remove
-
-    if raise_exception:
-        if err_class is not None:
-            raise err_class(msg)
-        else:
-            raise Exception(msg)
-    else:
-        print_colored(msg, "red")
-
-    return msg
+def error_alert(msg):
+    print_colored(msg, "red")
 
 
 def get_pid_from_handle(handle):
