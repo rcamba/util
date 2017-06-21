@@ -3,7 +3,7 @@ from os import listdir, chdir, getcwd, path, rename
 from sys import exit as sys_exit
 from string import ascii_letters, digits, punctuation
 
-from root import screening_dir, error_alert, cleaned_fnames_log, stdout_write
+from root import screening_dir, error_alert, cleaned_fnames_log, write_inline
 from tag import tag_multiple_files, get_files_from_tags
 from tag_rename import tag_rename
 from kanji_to_romaji import kanji_to_romaji
@@ -143,7 +143,7 @@ def clean_string(dirty_str, log_warnings=False):
 def rename_files(changes_dict, directory):
     with open(cleaned_fnames_log, 'a') as writer:  # log renaming changes
         for key in changes_dict.keys():
-            stdout_write("Renamed {n} out of {t} files".format(n=changes_dict.keys().index(key) + 1,
+            write_inline("Renamed {n} out of {t} files".format(n=changes_dict.keys().index(key) + 1,
                                                                t=len(changes_dict.keys())))
             try:
                 orig_name = path.join(directory, key)

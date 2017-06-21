@@ -5,7 +5,7 @@ from random import shuffle
 from subprocess import Popen
 
 from tag import get_files_from_tags, add_tags, remove_file_from_tags
-from root import music_dir, deleted_screened_log, error_alert
+from root import music_dir, deleted_screened_log, error_alert, get_media_player_path
 
 from psutil import process_iter
 
@@ -166,7 +166,7 @@ def screen_songs(song_list):
 
 if __name__ == "__main__":
 
-    MEDIA_PLAYER_PROGRAM = "C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe"
+    MEDIA_PLAYER_PROGRAM = get_media_player_path()
 
     MEDIA_PLAYER_OPTIONS = "--qt-start-minimized " \
                            "--playlist-enqueue --playlist-autostart --no-crashdump -L".split()

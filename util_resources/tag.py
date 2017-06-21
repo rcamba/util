@@ -5,7 +5,7 @@ import collections
 import simplejson as json
 
 from root import error_alert, removed_files_log, create_backup, tag_file_log, list_from_piped, \
-    key_press_input, choose_from_list, print_list, invalidated_tag_files_log, default_backup_dir
+    keypress_input, choose_from_list, print_list, invalidated_tag_files_log, default_backup_dir
 
 
 class Cache:
@@ -149,6 +149,17 @@ def merge_changes_to_base_tag_file(base_tag_file_log, tag_file_changes_log):
 
     else:
         error_alert("Backup contents not similar to original. Merge aborted!")
+        keys_not_in_orig = [key for key in base_tag_dict if key not in orig_tag_dict]
+        keys_not_in_new = [key for key in orig_tag_dict if key not in base_tag_dict]
+        if len(keys_not_in_orig) > 0:
+            print "Keys in new but not in original", keys_not_in_orig
+        if len(keys_not_in_new) > 0:
+            print "Keys in original but not in new", keys_not_in_new
+
+        elif len(keys_not_in_new) == 0 and len(keys_not_in_orig) == 0:
+            for k in orig_tag_dict:
+                if orig_tag_dict[k] != base_tag_dict[k]:
+                    print k, set(orig_tag_dict[k]).symmetric_difference(set(base_tag_dict[k]))
 
 
 def write_tag_file(tag_dict):
@@ -322,7 +333,7 @@ if __name__ == "__main__":
     elif sys.stdin.isatty() is False:
         print "Tagging piped items"
         fileList = list_from_piped("".join(map(str, sys.stdin.readlines())))
-        input_tag_list = key_press_input("Enter tag(s). Separate with commas").split(',')
+        input_tag_list = keypress_input("Enter tag(s). Separate with commas").split(',')
         for t in input_tag_list:
             tag_multiple_files(t, fileList)
     else:

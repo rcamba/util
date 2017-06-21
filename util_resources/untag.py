@@ -1,6 +1,6 @@
 import argparse
 from tag import remove_file_from_tags, get_tags_for_file, get_files_from_tags, TagException
-from root import print_list, key_press_input, error_alert
+from root import print_list, keypress_input, error_alert
 
 
 def get_user_choices(tag_or_file_list):
@@ -13,7 +13,7 @@ def get_user_choices(tag_or_file_list):
         try:
             input_ = raw_input()
         except EOFError:  # pipes
-            input_ = key_press_input()
+            input_ = keypress_input()
 
         choices = input_.split(',')
         choices = map(int, choices)
