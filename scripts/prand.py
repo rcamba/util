@@ -2,9 +2,8 @@
 Using .py because .bat reads commas as a separator/delimiter
 """
 
-from sys import argv
-from os import system
 
 if __name__ == "__main__":
-    stringArgs = " ".join(map(str, argv[1:]))
-    system("".join(["%Util%/resources/prandom.py ", stringArgs]))
+    from prandom import setup_argparser, play_random
+    parser_ = setup_argparser()
+    play_random(parser_)

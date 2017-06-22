@@ -1,6 +1,5 @@
 import argparse
 import json
-# from collections import OrderedDict
 import collections
 import os
 import random
@@ -130,7 +129,7 @@ def handle_piping():
     return song_list
 
 
-if __name__ == "__main__":
+def setup_argparser():
     parser = argparse.ArgumentParser()
     parser.add_argument("tags", type=str, nargs='*', help="tags split by comma")
 
@@ -138,6 +137,11 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--mix", action="store_true", help="mix tags", dest="mix_tags")
     parser.add_argument("-e", "--except", nargs='+', default=[], help="mix tags", dest="exception_tags")
     parser.add_argument("-v", "--verbose", action="store_true", help="display play count info")
+    return parser
+
+
+def play_random(parser):
+    global args
 
     args = parser.parse_args()
     args.tags = [t.strip() for t in " ".join(args.tags).split(",") if len(t) > 0]
@@ -162,3 +166,8 @@ if __name__ == "__main__":
     final_song_list = random_distrib_select(pruned_song_list, num_of_songs)
     update_song_log(final_song_list)
     play_songs(final_song_list)
+
+
+if __name__ == "__main__":
+    parser_ = setup_argparser()
+    play_random(parser_)
