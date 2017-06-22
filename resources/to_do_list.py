@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from datetime import date
-from root import tdl_log, print_list, create_back_up
+from root import tdl_log, print_list, create_backup
 
 
 class ToDoTask:
@@ -14,7 +14,7 @@ class ToDoTask:
 
 
 def add_item(task_str):
-    create_back_up(tdl_log)
+    create_backup(tdl_log)
 
     new_task = ToDoTask(task_str)
     with open(tdl_log, 'a') as writer:
@@ -23,7 +23,7 @@ def add_item(task_str):
 
 
 def delete_item(number_of_item):
-    create_back_up(tdl_log)
+    create_backup(tdl_log)
     task_list = load_task_list()
 
     print "Removing:\n\t {num}) {date} \t {task}".format(

@@ -14,17 +14,17 @@ def tag_rename(orig_name, new_name, verbose=False, allow_empty_tags=True):
         new_name = path.realpath(path.join(getcwd(), new_name))
 
     if not path.isfile(orig_name):
-        raise IOError("Error: Invalid file {f}.".format(f=orig_name))
+        raise IOError("Error: Invalid file {f}.".format(f=orig_name.encode("unicode_escape")))
     if orig_name == new_name:
         raise ValueError("The source and destination are the same.")
 
     tag_list = get_tags_for_file(orig_name)
-    if not allow_empty_tags and len(tag_list) == 0:
+    if not allow_empty_tags and len(tag_list) == 0:  # for cleanfnames
         raise ValueError("No tags found for {}".format(orig_name))
 
     if verbose:
-        print "Removing {tl} from {f}\n".format(tl=tag_list, f=orig_name)
-    remove_file_from_tags(tag_list, orig_name)
+        print "Removing {tl} from {f}\n".format(tl=tag_list, f=orig_name.encode("unicode_escape"))
+    remove_file_from_tags(tag_list, orig_name, False)
 
     try:
         if verbose:
@@ -32,6 +32,7 @@ def tag_rename(orig_name, new_name, verbose=False, allow_empty_tags=True):
         rename(orig_name, new_name)
 
     except WindowsError:
+        print "Old:", orig_name.encode("unicode_escape"), "-> New:", new_name.encode("unicode_escape")
         add_tags(tag_list, orig_name)
         raise
 
@@ -42,6 +43,7 @@ def tag_rename(orig_name, new_name, verbose=False, allow_empty_tags=True):
         add_tags(tag_list, new_name)
 
     except TagException:
+        print "Old:", orig_name.encode("unicode_escape"), "-> New:", new_name.encode("unicode_escape")
         rename(new_name, orig_name)
         add_tags(tag_list, orig_name)
         raise

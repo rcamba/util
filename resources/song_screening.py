@@ -5,7 +5,7 @@ from random import shuffle
 from subprocess import Popen
 
 from tag import get_files_from_tags, add_tags, remove_file_from_tags
-from root import music_dir, deleted_screened_log, error_alert
+from root import music_dir, deleted_screened_log, error_alert, get_media_player_path
 
 from psutil import process_iter
 
@@ -77,14 +77,13 @@ def handle_tagging(screen_fname):
         music_fname = path.join(music_dir, slice_off_dir(screen_fname))
         tag_list = raw_input("Enter tag(s). Separate with commas\n").split(',')
         tag_list = map(str.strip, tag_list)
-        add_tags(tag_list, music_fname)
-        print "Tagging complete"
+        add_tags(tag_list, music_fname, verbose=True)
         kill_vlc()
         handle_delete(screen_fname)
 
     except Shutil_error:
         error_alert(("{m} already exists in music directory." +
-                    "\nDeleting {m}").format(m=screen_fname))
+                     "\nDeleting {m}").format(m=screen_fname))
         handle_delete(screen_fname)
 
 
@@ -97,9 +96,8 @@ def handle_delete(music_filename):
         log_deleted_song(music_filename)
 
     except OSError, e:
-        error_alert(
-            "Failed to delete file {}. No changes have been made.".format(
-                music_filename))
+        error_alert("Failed to delete file {}. No changes have been made.".format(
+            music_filename))
         print e.message
         raise
 
@@ -112,9 +110,8 @@ def handle_keep(music_filename):
         print "Moving complete\n"
 
     except Shutil_error:
-        error_alert(
-            "{m} already exists in music directory.\nDeleting {m}".format(
-                m=music_filename))
+        error_alert("{m} already exists in music directory.\nDeleting {m}".format(
+            m=music_filename))
         handle_delete(music_filename)
 
 
@@ -167,7 +164,7 @@ def screen_songs(song_list):
 
 if __name__ == "__main__":
 
-    MEDIA_PLAYER_PROGRAM = "C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe"
+    MEDIA_PLAYER_PROGRAM = get_media_player_path()
 
     MEDIA_PLAYER_OPTIONS = "--qt-start-minimized " \
                            "--playlist-enqueue --playlist-autostart --no-crashdump -L".split()

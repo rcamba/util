@@ -1,6 +1,5 @@
 import argparse
 import json
-# from collections import OrderedDict
 import collections
 import os
 import random
@@ -19,14 +18,13 @@ valid_extensions = [
 
 def remove_invalid_ext(file_list):
     for song in file_list:
-        if os.path.isfile(song) and os.path.splitext(song)[1] not in valid_extensions:
-            root.error_alert(song + " has an invalid extension")
+        if not os.path.isfile(song) or os.path.splitext(song)[1] not in valid_extensions:
             file_list.remove(song)
     return file_list
 
 
 def get_song_list(targ_dir=root.music_dir):
-    file_list = [os.path.join(targ_dir, song).lower() for song in os.listdir(targ_dir) if "desktop.ini" not in song]
+    file_list = [os.path.join(targ_dir, song).lower() for song in os.listdir(targ_dir)]
     song_list = remove_invalid_ext(file_list)
     return song_list
 
@@ -39,7 +37,7 @@ def get_song_list_from_tag(tag_list, mix_tags=False):
         song_list = tag.get_files_from_tags(tag_list)
 
     if len(song_list) == 0:
-        root.error_alert("No file list available for given tag(s)", raise_exception=True)
+        raise ValueError("No file list available for given tag(s)")
 
     return song_list
 
@@ -126,19 +124,24 @@ def random_distrib_select(song_list, songs_limit):
 
 
 def handle_piping():
-    item_list = root.piped_list("".join(map(str, sys.stdin.readlines())))
+    item_list = root.list_from_piped(sys.stdin.readlines())
     song_list = remove_invalid_ext(item_list)
     return song_list
 
 
-if __name__ == "__main__":
+def setup_argparser():
     parser = argparse.ArgumentParser()
     parser.add_argument("tags", type=str, nargs='*', help="tags split by comma")
 
-    parser.add_argument("-n", "--num", type=int, default=30, help="number of songs to play", dest="num_of_songs")
+    parser.add_argument("-n", "--num", type=int, default=20, help="number of songs to play", dest="num_of_songs")
     parser.add_argument("-m", "--mix", action="store_true", help="mix tags", dest="mix_tags")
     parser.add_argument("-e", "--except", nargs='+', default=[], help="mix tags", dest="exception_tags")
     parser.add_argument("-v", "--verbose", action="store_true", help="display play count info")
+    return parser
+
+
+def play_random(parser):
+    global args
 
     args = parser.parse_args()
     args.tags = [t.strip() for t in " ".join(args.tags).split(",") if len(t) > 0]
@@ -163,3 +166,8 @@ if __name__ == "__main__":
     final_song_list = random_distrib_select(pruned_song_list, num_of_songs)
     update_song_log(final_song_list)
     play_songs(final_song_list)
+
+
+if __name__ == "__main__":
+    parser_ = setup_argparser()
+    play_random(parser_)

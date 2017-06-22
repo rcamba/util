@@ -6,4 +6,4 @@
 autopep8.bat
 pycharm.bat
 pyflakes.bat
-resources/testDir/tagFile.txt
+run_checks.bat

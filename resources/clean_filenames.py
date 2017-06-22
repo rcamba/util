@@ -3,13 +3,32 @@ from os import listdir, chdir, getcwd, path, rename
 from sys import exit as sys_exit
 from string import ascii_letters, digits, punctuation
 
-from root import screening_dir, error_alert, cleaned_fnames_log
+from root import screening_dir, error_alert, cleaned_fnames_log, write_inline
 from tag import tag_multiple_files, get_files_from_tags
 from tag_rename import tag_rename
 from kanji_to_romaji import kanji_to_romaji
 
 
-def write_line_to_log(line):
+def _undo_rename(cleaned_targ_fname):
+    if not path.isabs(cleaned_targ_fname):
+        raise IOError("Filename must be in full/absolute path.")
+
+    cleaned_targ_fname = path.realpath(cleaned_targ_fname)
+    targ_dir = path.dirname(cleaned_targ_fname)
+    cleaned_targ_fname = path.split(cleaned_targ_fname)[1]
+
+    with open(cleaned_fnames_log) as reader:
+        lines = reader.read().split('\n')
+        for line in lines:
+            if len(line) > 0:
+                orig_fname, cleaned_fname = line.split(': ')
+                if cleaned_targ_fname.lower() == cleaned_fname.lower():
+                    tag_rename(path.join(targ_dir, cleaned_targ_fname),
+                               path.join(targ_dir, orig_fname),
+                               verbose=True, allow_empty_tags=True)
+
+
+def append_line_to_log(line):
     with open(cleaned_fnames_log, 'a') as writer:
         writer.write(line)
         writer.write("\n")
@@ -26,7 +45,7 @@ def screen_tagging():
         screening_list = get_files_from_tags("screen")
         removed_counter = 0
         for i in range(len(file_list) - 1, -1, -1):
-            file_list[i] = path.join(screening_dir, file_list[i]).lower()
+            file_list[i] = path.join(screening_dir, file_list[i])
 
             if file_list[i] in screening_list:
                 file_list.remove(file_list[i])
@@ -46,12 +65,12 @@ def clean_file_names(directory):
 
     changes_dict = {}
 
-    for f in file_list:
-
-        cleaned = clean_string(f)
-
-        if f != cleaned:
-            changes_dict[f] = cleaned
+    for file_ in file_list:
+        fname, ext = path.splitext(file_)
+        cleaned_fname = clean_string(fname, not args.dry_run)
+        cleaned_file = cleaned_fname + ext
+        if file_ != cleaned_file:
+            changes_dict[file_] = cleaned_file
 
     return changes_dict
 
@@ -62,6 +81,7 @@ def clean_chars(partial_clean_str):
                   list(punctuation
                        .replace('\\', '')
                        .replace('/', '')
+                       .replace(':', '')
                        .replace('*', '')
                        .replace('?', '')
                        .replace('\"', '')
@@ -86,20 +106,22 @@ def clean_chars(partial_clean_str):
     cleaned = cleaned.replace(" )", ")")
     cleaned = cleaned.replace("[ ", "[")
     cleaned = cleaned.replace(" ]", "]")
+    cleaned = cleaned.replace("]", "] ")
 
+    cleaned = cleaned.strip()
     while "  " in cleaned:
         cleaned = cleaned.replace("  ", " ")
 
     return cleaned
 
 
-def clean_string(dirty_str):
+def clean_string(dirty_str, log_warnings=False):
     kanji_cleaned_str = kanji_to_romaji(dirty_str)
     if "\u" in kanji_cleaned_str:
         untranslated_warn_msg = "Untranslated unicode character found in " + kanji_cleaned_str
         error_alert(untranslated_warn_msg)
-        if not args.dry_run:
-            write_line_to_log(untranslated_warn_msg)
+        if log_warnings:
+            append_line_to_log(untranslated_warn_msg)
 
     cleaned = clean_chars(kanji_cleaned_str)
 
@@ -111,28 +133,34 @@ def clean_string(dirty_str):
         all_inval_warn_msg = dirty_str.encode("unicode_escape") + \
                              " only consists of invalid characters. Cannot be cleaned."
         error_alert(all_inval_warn_msg)
-        if not args.dry_run:
-            write_line_to_log(all_inval_warn_msg)
+        if log_warnings:
+            append_line_to_log(all_inval_warn_msg)
         result = dirty_str
 
     return result
 
 
 def rename_files(changes_dict, directory):
-    with open(cleaned_fnames_log, 'a') as writer:
+    with open(cleaned_fnames_log, 'a') as writer:  # log renaming changes
         for key in changes_dict.keys():
+            write_inline("Renamed {n} out of {t} files".format(n=changes_dict.keys().index(key) + 1,
+                                                               t=len(changes_dict.keys())))
             try:
                 orig_name = path.join(directory, key)
                 new_name = path.join(directory, changes_dict[key])
-                tag_rename(orig_name, new_name)
-                writer.write(key.encode('utf8') + ": " + changes_dict[key])
+                if path.isfile(orig_name):  # dir won't have tags
+                    tag_rename(orig_name, new_name)
+                else:
+                    rename(orig_name, new_name)
+                writer.write(key.encode('utf-8') + ": " + changes_dict[key])
                 writer.write("\n")
 
             except WindowsError, e:
                 error_alert("Unable to rename " + key.encode("unicode_escape") + " in to " +
                             changes_dict[key].encode("unicode_escape") + ". Stopping program." +
                             "\n" + str(e))
-                sys_exit(1)
+                raise
+    print ""  # newline for messages after stdout_write
 
 
 def main(directory):

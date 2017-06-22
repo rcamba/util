@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from sys import stdin, stdout
 from os import listdir, getcwd, stat, path
 from root import set_clipboard_data, \
-    print_list, choose_from_list, error_alert, piped_list
+    print_list, choose_from_list, error_alert, list_from_piped
 
 
 class AttribContainer:
@@ -39,7 +39,7 @@ def get_file_list(targ_dir=getcwd()):
 def prune_targ_words_from_file_list(f_list_, targ_words):
     for word in targ_words:
         for f in f_list_[:]:
-            if word.lower() not in f.lower():
+            if word.lower() not in path.split(f)[1].lower():
                 f_list_.remove(f)
     return f_list_
 
@@ -52,16 +52,26 @@ def select_item_from_files(f_list_, numbered_index):
     return chosen_item
 
 
-def present_result(f_list_):
+def present_result(f_list_, display_full_filepath):
+    f_list_ = [path.realpath(f) for f in f_list_]
     if args.list_files is not None or args.select_file is not None:
-        if args.list_files is None:
-            args.list_files = 10
-        print_list([path.split(f)[1] for f in f_list_], args.list_files, press_to_continue=stdout.isatty())
+        if args.list_files == -1:
+            if len(args.targ_words) > 0:
+                args.list_files = len(f_list_)
+            else:
+                args.list_files = 10
 
-    chosen_item = f_list_[0]
+        if display_full_filepath:
+            list_to_be_printed = f_list_
+        else:
+            list_to_be_printed = [path.split(f)[1] for f in f_list_]
+        print_list(list_to_be_printed, args.list_files, press_to_continue=stdout.isatty())
+
+    quoted_f_list = map(lambda x: "\"" + str(x) + "\"", f_list_)
+    chosen_item = quoted_f_list[0]
 
     if args.select_file is not None:
-        chosen_item = select_item_from_files(f_list_, args.select_file)
+        chosen_item = select_item_from_files(quoted_f_list, args.select_file)
 
     print chosen_item
     set_clipboard_data(chosen_item)
@@ -71,7 +81,7 @@ def add_arg_options():
     p = ArgumentParser()
     p.add_argument('targ_words', nargs='*')
     p.add_argument("-l", "--list-files", help="list the x newest files. default x is 10",
-                   type=int, nargs="?", const=10, required=False)
+                   type=int, nargs="?", const=-1, required=False)
     p.add_argument("-f", "--files-only", help="only show files",
                    action="store_true")
     p.add_argument("-d", "--dir-only", help="only show directories",
@@ -82,22 +92,29 @@ def add_arg_options():
     return p
 
 
-if __name__ == "__main__":
-    parser = add_arg_options()
-    args = parser.parse_args()
+def get_newest_file(args_):
+    global args
+    args = args_
 
     if stdin.isatty() is False:
         print "Piping"
-        f_list = piped_list("".join(map(str, stdin.readlines())))
+        f_list = list_from_piped("".join(map(str, stdin.readlines())))
+        display_full_filepath = True
 
     else:
         f_list = get_file_list()
+        display_full_filepath = False
 
-    pruned_list = prune_targ_words_from_file_list(f_list, args.targ_words)
-    sorted_list = sort_by_creation_time(pruned_list)
-    final_quoted_list = map(lambda x: "\"" + str(x.file.encode("unicode_escape")) + "\"", sorted_list)
-
-    if len(final_quoted_list) > 0:
-        present_result(final_quoted_list)
+    pruned_list = prune_targ_words_from_file_list(f_list, args_.targ_words)
+    sorted_list_ac = sort_by_creation_time(pruned_list)
+    sorted_list = map(lambda x: str(x.file.encode("unicode_escape")), sorted_list_ac)
+    if len(sorted_list) > 0:
+        present_result(sorted_list, display_full_filepath)
     else:
         error_alert("Either empty directory or search term(s) not found.")
+
+
+if __name__ == "__main__":
+    parser = add_arg_options()
+    args = parser.parse_args()
+    get_newest_file(args)

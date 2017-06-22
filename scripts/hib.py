@@ -21,43 +21,24 @@ def loading_splash(time_limit, output="", splash=None):
     then set cursor back to the end of output + 1
     """
 
-    def backspace_stdout(string):
-        result = ""
-        for j in range(0, len(string)):
-            result += "\b"
-        stdout.write(result)
-
-    def clear_std_out(string):
-        clear = ""
-        for j in range(0, len(string)):
-            clear += " "
-        stdout.write(clear)
-
-        return clear
-
     if splash is None:
         splash = ['', '.', "..", "..."]
 
-    stdout.write(output)
-
     i = 0
     start_time = time()
+
     while (time() - start_time) < time_limit:
 
         splash_txt = splash[i]
-        stdout.write(splash_txt)
+        stdout.write(output + splash_txt)
         sleep(1)
-        stdout.flush()
-
-        backspace_stdout(splash_txt)
+        stdout.write("\r" + len(output + splash_txt) * " " + "\r")
 
         i += 1
         if i == len(splash):
-            backspace_stdout(clear_std_out(splash_txt))
             i = 0
 
-    stdout.flush()
-    backspace_stdout(output)
+    print ""
 
 
 def create_log():

@@ -9,8 +9,8 @@ Create/Append user environment variables
 var_name: var_value
 
 PYTHONPATH: Util\util_resources;
-PATH: C:\Users\Kevin\Util\scripts;
-Util: C:\Users\Kevin\Util
+PATH: Util\scripts;
+Util: Util
 """
 
 
@@ -137,7 +137,7 @@ if __name__ == "__main__":
     path_to_module = os.path.dirname(__file__)
 
     pypath_env_name = "PYTHONPATH"
-    pypath_env_path = os.path.realpath(os.path.join(path_to_module, "util_resources"))
+    pypath_env_path = os.path.realpath(os.path.join(path_to_module, "resources"))
     start_setting_env_var(pypath_env_name, pypath_env_path)
 
     util_env_name = "Util"
@@ -148,7 +148,15 @@ if __name__ == "__main__":
     path_env_value = os.path.realpath(os.path.join(util_env_path, "scripts"))
     start_setting_env_var(path_env_name, path_env_value)
 
-    print "If running in cmd, note that environment variables won't take effect until you open a new instance of cmd\n"
+    py_io_encoding = "PYTHONIOENCODING"
+    curr_pyioencoding_val = get_user_environ_var(py_io_encoding)
+    if curr_pyioencoding_val is None:
+        print "Creating {} with {}".format(py_io_encoding, "utf-8")
+        set_persistent_env_var(py_io_encoding, "utf-8")
+    else:
+        print "PYTHONIOENCODING is already set to", curr_pyioencoding_val
+
+    print "\nIf running in cmd, " \
+          "note that environment variables won't take effect until you open a new instance of cmd\n"
 
     check_for_name_conflicts(path_env_value)
-
